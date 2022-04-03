@@ -1,0 +1,7 @@
+[
+    {
+        "name":"cssLoader",
+        "file":"cssLoader.js",
+        "devMode":true
+    }
+]
