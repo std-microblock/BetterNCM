@@ -1,4 +1,16 @@
-div{
+*{
     border-radius: 0px !important;
-    /* box-shadow: 2px 3px 6px rgba(0, 0, 0, 0.404); */
+}
+
+.btn,.cface,.ply,button{
+    box-shadow: 2px 3px 6px rgba(0, 0, 0, 0.158),-2px 1px 4px rgba(0, 0, 0, 0.068);
+}
+
+.cdbox{
+    opacity: 0 !important;
+}
+
+.cdwrap{
+    rotate: 0 !important;
+    -webkit-animation: none !important;
 }
