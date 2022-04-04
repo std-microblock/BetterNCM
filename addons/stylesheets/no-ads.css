@@ -1,0 +1,4 @@
+/* Remove ADs */
+.livewrap,.voicelive,.m-list-recmd-live,.m-banner,.heartbeat,.icn-live-sm,.u-icn-novip{
+    display: none;
+}

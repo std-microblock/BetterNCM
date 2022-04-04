@@ -1,25 +1,31 @@
-var cssLoaderLiveReload={}
+var cssLoaderLiveReload = {}
 fetch("https://music.163.com/betterncm_api/read_file?stylesheets/all.json")
-.then(function(resp){return resp.json()})
-.then(function(resp){
-    for(var x=0;x<resp.length;x++){
-        var style=resp[x];
-        var link=document.createElement("link");
-        link.rel="stylesheet";
-        link.href="https://music.163.com/betterncm_api/read_file?stylesheets/"+style.file;
-        document.head.appendChild(link);
-        if(style.devMode){
-            
-            setInterval(function(){
-                fetch("https://music.163.com/betterncm_api/read_file?stylesheets/"+style.file)
-                .then(function(resp){return resp.text()})
-                .then(function(resp){
-                    if(!cssLoaderLiveReload[style.file])
-                        cssLoaderLiveReload[style.file]=resp
-                    
-                    if(resp!=cssLoaderLiveReload[style.file])document.location.reload()
-                })
-            },1000);
+    .then(function (resp) { return resp.json() })
+    .then(function (resp) {
+
+        setInterval(function () {
+            for (var x = 0; x < resp.length; x++) {
+                var style_23ujd = resp[x];
+                if (style_23ujd.enabled && style_23ujd.devMode) {
+                    fetch("https://music.163.com/betterncm_api/read_file?stylesheets/" + style_23ujd.file)
+                        .then(function (resp) { return resp.text() })
+                        .then(function (resp) {
+                            if (!cssLoaderLiveReload[style_23ujd.file])
+                                cssLoaderLiveReload[style_23ujd.file] = resp
+
+                            if (resp != cssLoaderLiveReload[style_23ujd.file]) document.location.reload()
+                        })
+
+                }
+            }
+        }, 1000);
+
+        for (var x = 0; x < resp.length; x++) {
+            var style = resp[x];
+            if (!style.enabled) continue;
+            var link = document.createElement("link");
+            link.rel = "stylesheet";
+            link.href = "https://music.163.com/betterncm_api/read_file?stylesheets/" + style.file;
+            document.head.appendChild(link);
         }
-    }
-})
+    })

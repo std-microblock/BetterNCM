@@ -1,6 +1,6 @@
 [
     {
         "file":"block.css",
-        "devMode":true
+        "enabled":false
     }
 ]

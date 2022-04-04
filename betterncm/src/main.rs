@@ -1,7 +1,11 @@
 #![windows_subsystem = "windows"]
 #![feature(path_try_exists)]
+#![feature(try_blocks)]
+
 extern crate minwin;
 extern crate msgbox;
+
+use std::env;
 
 
 use minwin::named::CreateNamedError;
@@ -9,7 +13,7 @@ use minwin::sync::Mutex;
 
 use hudsucker::{
     async_trait::async_trait,
-    hyper::{Body, Request, Response},
+    hyper::{body::HttpBody, Body, Request, Response},
     tungstenite::Message,
     *,
 };
@@ -22,6 +26,11 @@ use std::{fs, net::SocketAddr};
 use tracing::*;
 
 use msgbox::IconType;
+
+
+fn config_path() -> String{
+    String::from(env::home_dir().unwrap().as_os_str().to_str().expect("Covert error"))+ "\\betterncm\\"
+}
 
 async fn shutdown_signal() {
     tokio::signal::ctrl_c()
@@ -48,24 +57,62 @@ impl HttpHandler for LogHandler {
         {
             let api = req.uri().path();
             if api == "/betterncm_api/addons" {
-                resp = fs::read_to_string("./addons/addons.json").expect("No addons.json");
+                resp = fs::read_to_string(format!("{}/addons.json", config_path()))
+                    .expect("No addons.json");
             }
             if api == "/betterncm_api/read_file" {
                 if req.uri().query().expect("wrong api call").contains("..") {
                     return RequestOrResponse::Request(req);
                 }
                 match fs::read_to_string(format!(
-                    "./addons/{}",
+                    "{}/{}",
+                    config_path(),
                     req.uri().query().expect("wrong api call")
                 )) {
                     Ok(s) => resp = s,
                     Err(_) => resp = "".to_string(),
                 }
             }
+            if api == "/betterncm_api/write_file" {
+                if req.uri().query().expect("wrong api call").contains("..") {
+                    return RequestOrResponse::Request(req);
+                }
+                fs::write(
+                    format!(
+                        "{}/{}",
+                        config_path(),
+                        req.uri()
+                            .query()
+                            .expect("wrong api call")
+                            .split("&")
+                            .nth(0)
+                            .unwrap()
+                    ),
+                    req.uri()
+                        .query()
+                        .expect("wrong api call")
+                        .split("&")
+                        .nth(1)
+                        .unwrap(),
+                )
+                .expect("Failed to write file");
+            }
+            if api == "/betterncm_api/opensettings" {
+                let template = fs::read_to_string(format!("{}/addons.json", config_path())).unwrap();
+                let edited = edit::edit(template).unwrap();
+                fs::write(format!("{}/addons.json", config_path()),edited).unwrap();
+                resp=String::from("reload");
+            }
+            if api == "/betterncm_api/opencsssettings" {
+                let template = fs::read_to_string(format!("{}/stylesheets/all.json", config_path())).unwrap();
+                let edited = edit::edit(template).unwrap();
+                fs::write(format!("{}/stylesheets/all.json", config_path()),edited).unwrap();
+                resp=String::from("reload");
+            }
         }
         if !resp.is_empty() {
             let res = Response::new(Body::from(resp.clone()));
-            println!("Handled request:{:?}\n\n\nReturned:{}", req, resp);
+            // println!("Handled request:{:?}\n\n\nReturned:{}", req, resp);
             RequestOrResponse::Response(res)
         } else {
             RequestOrResponse::Request(req)
@@ -88,7 +135,7 @@ impl MessageHandler for WsLogHandler {
     }
 }
 
-fn elevate(){
+fn elevate() {
     use is_elevated::is_elevated;
     if !is_elevated() {
         msgbox::create("警告", "初次运行，请右键管理员运行~", IconType::Error).unwrap();
@@ -96,64 +143,126 @@ fn elevate(){
     }
 }
 
-fn write_assets(){
-    if !fs::try_exists("cloudmusic.dll").unwrap() {
-        msgbox::create("用法", "1.关闭网易云音乐，将本程序拷贝到网易云音乐安装目录内，替换cloudmusic.exe\n2.在 网易云音乐-工具 上点击自定义代理，输入\n\t服务器：localhost\t端口：3000\n3.点击确定", IconType::Error).unwrap();
-        std::process::exit(0);
-    }
+fn write_assets() {
+    // if !fs::try_exists("cloudmusic.dll").unwrap() {
+    //     msgbox::create("用法", "1.关闭网易云音乐，将本程序拷贝到网易云音乐安装目录内，替换cloudmusic.exe\n2.在 网易云音乐-工具 上点击自定义代理，输入\n\t服务器：localhost\t端口：3000\n3.点击确定", IconType::Error).unwrap();
+    //     std::process::exit(0);
+    // }
 
-    match fs::try_exists("cloudmusicn.exe"){
-        Ok(true) => {
-            println!("cloudmusicn.exe exists");
-        },
-        Ok(false) => {
-            println!("cloudmusicn.exe not exists");
+    // match fs::try_exists("cloudmusicn.exe"){
+    //     Ok(true) => {
+    //         println!("cloudmusicn.exe exists");
+    //     },
+    //     Ok(false) => {
+    //         println!("cloudmusicn.exe not exists");
+    //         elevate();
+    //         fs::write("cloudmusicn.exe", include_bytes!("../cloudmusicn.exe")).expect("write cloudmusicn.exe failed");
+    //     },
+    //     Err(e) => {
+    //         println!("cloudmusicn.exe not exists");
+    //         println!("{:?}", e);
+    //     }
+    // }
+
+    if !fs::try_exists("cloudmusicn.exe").unwrap() {
+        if !fs::try_exists("cloudmusic.dll").unwrap() {
+            msgbox::create("用法", "1.关闭网易云音乐，将本程序拷贝到网易云音乐安装目录内，右键管理员运行\n2.在 网易云音乐-工具 上点击自定义代理，输入\n\t服务器：localhost\t端口：3000\n3.点击确定", IconType::Error).unwrap();
+            std::process::exit(0);
+        } else {
             elevate();
-            fs::write("cloudmusicn.exe", include_bytes!("../cloudmusicn.exe")).expect("write cloudmusicn.exe failed");
-        },
-        Err(e) => {
-            println!("cloudmusicn.exe not exists");
-            println!("{:?}", e);
+            let result: Result<(), std::io::Error>=try{
+            fs::rename("cloudmusic.exe", "cloudmusicn.exe")?;
+            fs::copy("betterncm.exe", "cloudmusic.exe")?;
+            use std::process::Command;
+            Command::new("cloudmusic.exe")
+            .spawn()?;
+            return ()
+            };
+            match result{
+                Ok(_) => {
+                    std::process::exit(0);
+                },
+                Err(_) => {
+                    msgbox::create("安装失败", "请检查网易云音乐是否已退出", IconType::Error).unwrap();
+                    std::process::exit(0);
+                }
+            }
         }
     }
 
-    if !fs::try_exists("addons").unwrap() {
+    if !fs::try_exists(config_path()).unwrap() {
         elevate();
-        fs::create_dir("addons").expect("create addons failed");
+        fs::create_dir(config_path()).expect("create addons failed");
     }
-    if !fs::try_exists("./addons/addons.json").unwrap(){
+    if !fs::try_exists(format!("{}/addons.json", config_path())).unwrap() {
         elevate();
-        fs::write("./addons/addons.json", include_bytes!("../../addons/addons.json")).expect("write addons.json failed");
+        fs::write(
+            format!("{}/addons.json", config_path()),
+            include_bytes!("../../addons/addons.json"),
+        )
+        .expect("write addons.json failed");
     }
-    if !fs::try_exists("./addons/cssLoader.js").unwrap(){
+    if !fs::try_exists(format!("{}/cssLoader.js", config_path())).unwrap() {
         elevate();
-        fs::write("./addons/cssLoader.js", include_bytes!("../../addons/cssLoader.js")).expect("write cssLoader.js failed");
+        fs::write(
+            format!("{}/cssLoader.js", config_path()),
+            include_bytes!("../../addons/cssLoader.js"),
+        )
+        .expect("write cssLoader.js failed");
     }
-    if !fs::try_exists("addons/stylesheets").unwrap() {
+    if !fs::try_exists(format!("{}/debugger.js", config_path())).unwrap() {
         elevate();
-        fs::create_dir("addons/stylesheets").expect("create addons/stylesheets failed");
+        fs::write(
+            format!("{}/debugger.js", config_path()),
+            include_bytes!("../../addons/debugger.js"),
+        )
+        .expect("write debugger.js failed");
     }
-    if !fs::try_exists("./addons/stylesheets/all.json").unwrap(){
+    if !fs::try_exists(format!("{}/pluginmanager.js", config_path())).unwrap() {
         elevate();
-        fs::write("./addons/stylesheets/all.json", include_bytes!("../../addons/stylesheets/all.json")).expect("write all.json failed");
+        fs::write(
+            format!("{}/pluginmanager.js", config_path()),
+            include_bytes!("../../addons/pluginmanager.js"),
+        )
+        .expect("write pluginmanager.js failed");
     }
-    if !fs::try_exists("./addons/stylesheets/block.css").unwrap(){
+    if !fs::try_exists(format!("{}/stylesheets", config_path())).unwrap() {
         elevate();
-        fs::write("./addons/stylesheets/block.css", include_bytes!("../../addons/stylesheets/block.css")).expect("write block.css failed");
+        fs::create_dir(format!("{}/stylesheets", config_path()))
+            .expect("create addons/stylesheets failed");
+    }
+    if !fs::try_exists(format!("{}/stylesheets/all.json", config_path())).unwrap() {
+        elevate();
+        fs::write(
+            format!("{}/stylesheets/all.json", config_path()),
+            include_bytes!("../../addons/stylesheets/all.json"),
+        )
+        .expect("write all.json failed");
+    }
+    if !fs::try_exists(format!("{}/stylesheets/block.css", config_path())).unwrap() {
+        elevate();
+        fs::write(
+            format!("{}/stylesheets/block.css", config_path()),
+            include_bytes!("../../addons/stylesheets/block.css"),
+        )
+        .expect("write block.css failed");
     }
 }
 
-
 #[tokio::main]
 async fn main() {
+
+
     use std::process::Command;
 
     write_assets();
 
+    if true {
+        Command::new("cloudmusicn.exe")
+            .spawn()
+            .expect("Failed to launch NCM");
+    }
 
-    Command::new("cloudmusicn.exe")
-        .spawn()
-        .expect("Failed to launch NCM");
     match Mutex::create_named("BetterNCM") {
         Ok(_) => {
             tracing_subscriber::fmt::init();
