@@ -9,7 +9,7 @@
 2. 将该程序放入网易云安装文件夹，右键 管理员打开
 3. 打开网易云-设置-代理，选择自定义代理
 4. 设置为 服务器`localhost` 端口`3000` 如图
-![proxyset](proxy.png)
+![proxyset](proxyset.png)
 
 # 插件库
 [BetterNCMPlugins](https://github.com/MicroCBer/BetterNCMPlugins)
