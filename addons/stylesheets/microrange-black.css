@@ -1,3 +1,9 @@
+body{
+    background: url("https://img-baofun.zhhainiao.com/pcwallpaper_ugc/static/6e2ea5cf56a0280bcb8c77109db685ce.png?x-oss-process=image%2Fresize%2Cm_lfit%2Cw_1920%2Ch_1080");
+    background-size: cover;
+}
+
+
 *{
     transition: all 0.2s;
     scroll-behavior: smooth;
@@ -8,11 +14,6 @@
     text-shadow: 1px 1px 4px #00000077;
 }
 
-body{
-    background: url(https://s1.ax1x.com/2022/04/04/qHc1nx.jpg);
-    /* background-image: url("https://img-baofun.zhhainiao.com/pcwallpaper_ugc/static/6e2ea5cf56a0280bcb8c77109db685ce.png?x-oss-process=image%2Fresize%2Cm_lfit%2Cw_1920%2Ch_1080"); */
-    background-size: cover;
-}
 
 .z-tab-scroll,.g-mn{
     background:  rgba(255, 255, 255, 0.877) !important;

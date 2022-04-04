@@ -5,8 +5,7 @@
 extern crate minwin;
 extern crate msgbox;
 
-use std::env;
-
+use std::{env, process::Command};
 
 use minwin::named::CreateNamedError;
 use minwin::sync::Mutex;
@@ -27,9 +26,14 @@ use tracing::*;
 
 use msgbox::IconType;
 
-
-fn config_path() -> String{
-    String::from(env::home_dir().unwrap().as_os_str().to_str().expect("Covert error"))+ "\\betterncm\\"
+fn config_path() -> String {
+    String::from(
+        env::home_dir()
+            .unwrap()
+            .as_os_str()
+            .to_str()
+            .expect("Covert error"),
+    ) + "\\betterncm\\"
 }
 
 async fn shutdown_signal() {
@@ -98,16 +102,22 @@ impl HttpHandler for LogHandler {
                 .expect("Failed to write file");
             }
             if api == "/betterncm_api/opensettings" {
-                let template = fs::read_to_string(format!("{}/addons.json", config_path())).unwrap();
+                let template =
+                    fs::read_to_string(format!("{}/addons.json", config_path())).unwrap();
                 let edited = edit::edit(template).unwrap();
-                fs::write(format!("{}/addons.json", config_path()),edited).unwrap();
-                resp=String::from("reload");
+                fs::write(format!("{}/addons.json", config_path()), edited).unwrap();
+                resp = String::from("reload");
             }
             if api == "/betterncm_api/opencsssettings" {
-                let template = fs::read_to_string(format!("{}/stylesheets/all.json", config_path())).unwrap();
+                let template =
+                    fs::read_to_string(format!("{}/stylesheets/all.json", config_path())).unwrap();
                 let edited = edit::edit(template).unwrap();
-                fs::write(format!("{}/stylesheets/all.json", config_path()),edited).unwrap();
-                resp=String::from("reload");
+                fs::write(format!("{}/stylesheets/all.json", config_path()), edited).unwrap();
+                resp = String::from("reload");
+            }
+            if api == "/betterncm_api/openconfigfolder" {
+                Command::new("explorer").arg(config_path()).spawn().unwrap();
+                resp = String::from("opened");
             }
         }
         if !resp.is_empty() {
@@ -170,20 +180,20 @@ fn write_assets() {
             std::process::exit(0);
         } else {
             elevate();
-            let result: Result<(), std::io::Error>=try{
-            fs::rename("cloudmusic.exe", "cloudmusicn.exe")?;
-            fs::copy("betterncm.exe", "cloudmusic.exe")?;
-            use std::process::Command;
-            Command::new("cloudmusic.exe")
-            .spawn()?;
-            return ()
+            let result: Result<(), std::io::Error> = try {
+                fs::rename("cloudmusic.exe", "cloudmusicn.exe")?;
+                fs::copy("betterncm.exe", "cloudmusic.exe")?;
+                use std::process::Command;
+                Command::new("cloudmusic.exe").spawn()?;
+                return ();
             };
-            match result{
+            match result {
                 Ok(_) => {
                     std::process::exit(0);
-                },
+                }
                 Err(_) => {
-                    msgbox::create("安装失败", "请检查网易云音乐是否已退出", IconType::Error).unwrap();
+                    msgbox::create("安装失败", "请检查网易云音乐是否已退出", IconType::Error)
+                        .unwrap();
                     std::process::exit(0);
                 }
             }
@@ -251,8 +261,6 @@ fn write_assets() {
 
 #[tokio::main]
 async fn main() {
-
-
     use std::process::Command;
 
     write_assets();
