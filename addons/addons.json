@@ -7,12 +7,12 @@
     },{
         "name":"debugger",
         "file":"debugger.js",
-        "enabled":false,
+        "enabled":true,
         "devMode":false
     },{
         "name":"PluginManager",
         "file":"pluginmanager.js",
         "enabled":true,
-        "devMode":true
+        "devMode":false
     }
 ]

@@ -9,7 +9,7 @@ setInterval(function(){
         settings.style.zIndex="100000"
         settings.id="betterncmPM"
         // settings.style.background="yellow"
-        settings.innerHTML="<h2 class='s-fc1 f-ff2'>BetterNCM</h2><button onclick='fetch(\"https://music.163.com/betterncm_api/opensettings\").then(function(){document.location.reload()})'>编辑设置</button><button onclick='fetch(\"https://music.163.com/betterncm_api/opencsssettings\").then(function(){document.location.reload()})'>编辑CSS设置</button><button onclick='fetch(\"https://music.163.com/betterncm_api/openconfigfolder\")'>打开配置文件夹</button><button onclick='document.location.reload()'>重载页面</button>"
+        settings.innerHTML="<h3 class='s-fc1 f-ff2' style='font-size:20px;font-weight:800;margin:20px;'>BetterNCM</h3><button class='u-ibtn5' onclick='fetch(\"https://music.163.com/betterncm_api/opensettings\").then(function(){document.location.reload()})'>编辑设置</button><button class='u-ibtn5' onclick='fetch(\"https://music.163.com/betterncm_api/opencsssettings\").then(function(){document.location.reload()})'>编辑CSS设置</button><button class='u-ibtn5' onclick='fetch(\"https://music.163.com/betterncm_api/openconfigfolder\")'>打开配置文件夹</button><button class='u-ibtn5' onclick='document.location.reload()'>重载页面</button>"
         document.querySelector(".g-mn-set").appendChild(settings)
     }
 },100)
