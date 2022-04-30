@@ -174,31 +174,31 @@ fn write_assets() {
     //     }
     // }
 
-    if !fs::try_exists("cloudmusicn.exe").unwrap() {
-        if !fs::try_exists("cloudmusic.dll").unwrap() {
-            msgbox::create("用法", "1.关闭网易云音乐，将本程序拷贝到网易云音乐安装目录内，右键管理员运行\n2.在 网易云音乐-工具 上点击自定义代理，输入\n\t服务器：localhost\t端口：3000\n3.点击确定", IconType::Error).unwrap();
-            std::process::exit(0);
-        } else {
-            elevate();
-            let result: Result<(), std::io::Error> = try {
-                fs::rename("cloudmusic.exe", "cloudmusicn.exe")?;
-                fs::copy("betterncm.exe", "cloudmusic.exe")?;
-                use std::process::Command;
-                Command::new("cloudmusic.exe").spawn()?;
-                return ();
-            };
-            match result {
-                Ok(_) => {
-                    std::process::exit(0);
-                }
-                Err(_) => {
-                    msgbox::create("安装失败", "请检查网易云音乐是否已退出", IconType::Error)
-                        .unwrap();
-                    std::process::exit(0);
-                }
-            }
-        }
-    }
+    // if !fs::try_exists("cloudmusicn.exe").unwrap() {
+    //     if !fs::try_exists("cloudmusic.dll").unwrap() {
+    //         msgbox::create("用法", "1.关闭网易云音乐，将本程序拷贝到网易云音乐安装目录内，右键管理员运行\n2.在 网易云音乐-工具 上点击自定义代理，输入\n\t服务器：localhost\t端口：3000\n3.点击确定", IconType::Error).unwrap();
+    //         std::process::exit(0);
+    //     } else {
+    //         elevate();
+    //         let result: Result<(), std::io::Error> = try {
+    //             fs::rename("cloudmusic.exe", "cloudmusicn.exe")?;
+    //             fs::copy("betterncm.exe", "cloudmusic.exe")?;
+    //             use std::process::Command;
+    //             Command::new("cloudmusic.exe").spawn()?;
+    //             return ();
+    //         };
+    //         match result {
+    //             Ok(_) => {
+    //                 std::process::exit(0);
+    //             }
+    //             Err(_) => {
+    //                 msgbox::create("安装失败", "请检查网易云音乐是否已退出", IconType::Error)
+    //                     .unwrap();
+    //                 std::process::exit(0);
+    //             }
+    //         }
+    //     }
+    // }
 
     if !fs::try_exists(config_path()).unwrap() {
         elevate();
@@ -261,11 +261,21 @@ fn write_assets() {
 
 #[tokio::main]
 async fn main() {
+    let mut args = std::env::args();
+    args.next();
+    fs::write(format!("{}/version.txt", config_path()),env!("CARGO_PKG_VERSION"));
+    if let Some(cmd) = args.next() {
+        if cmd == "--version" {
+            println!("{}", env!("CARGO_PKG_VERSION"));
+            return;
+        }
+    }
+
     use std::process::Command;
 
     write_assets();
 
-    if true {
+    if false{
         Command::new("cloudmusicn.exe")
             .spawn()
             .expect("Failed to launch NCM");
@@ -283,7 +293,7 @@ async fn main() {
             let ca = OpensslAuthority::new(private_key, ca_cert, MessageDigest::sha256(), 1_000);
 
             let proxy = ProxyBuilder::new()
-                .with_addr(SocketAddr::from(([127, 0, 0, 1], 3000)))
+                .with_addr(SocketAddr::from(([127, 0, 0, 1], 3296)))
                 .with_rustls_client()
                 .with_ca(ca)
                 .with_http_handler(LogHandler {})

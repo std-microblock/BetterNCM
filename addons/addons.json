@@ -7,7 +7,7 @@
     },{
         "name":"debugger",
         "file":"debugger.js",
-        "enabled":true,
+        "enabled":false,
         "devMode":false
     },{
         "name":"PluginManager",
