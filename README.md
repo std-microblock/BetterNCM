@@ -1,3 +1,9 @@
+# 已弃用，被[BetterNCM-v2](https://github.com/BetterNCM/BetterNCM-v2)替代
+
+
+
+-------
+
 # BetterNCM
 ### PC版网易云客户端插件管理器
 ![Microrange](https://github.com/MicroCBer/BetterNCMPlugins/raw/main/Stylesheets/Theme-Microrange/white.png)
