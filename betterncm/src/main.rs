@@ -1,4 +1,4 @@
-// #![windows_subsystem = "windows"]
+#![windows_subsystem = "windows"]
 #![feature(path_try_exists)]
 #![feature(try_blocks)]
 
@@ -25,9 +25,6 @@ use std::{fs, net::SocketAddr};
 use tracing::*;
 
 fn config_path() -> String {
-    #[cfg(debug_assertions)]
-    return "I:/Better_NCM/addons".to_string();
-
     return String::from(
         env::home_dir()
             .unwrap()
@@ -204,6 +201,7 @@ fn write_assets() {
 
 #[tokio::main]
 async fn main() {
+    write_assets();
     let mut args = std::env::args();
     args.next();
     fs::write(
@@ -220,9 +218,9 @@ async fn main() {
 
     use std::process::Command;
 
-    write_assets();
+   
 
-    if false {
+    if true {
         Command::new("cloudmusicn.exe")
             .spawn()
             .expect("Failed to launch NCM");
