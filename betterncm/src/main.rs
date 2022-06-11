@@ -1,4 +1,4 @@
-#![windows_subsystem = "windows"]
+// #![windows_subsystem = "windows"]
 #![feature(path_try_exists)]
 #![feature(try_blocks)]
 
@@ -59,8 +59,7 @@ impl HttpHandler for LogHandler {
         req: Request<Body>,
     ) -> RequestOrResponse {
         let mut resp = None;
-        if req.uri().path().starts_with("/puzzle/puzzle") {
-            // resp = fs::read_to_string("I:\\betterNCM\\betterncm\\frontend\\inject.js").expect("No inject.js");
+        if req.uri().path().ends_with("watchman.min.js") {
             resp =
                 Some(String::from_utf8_lossy(include_bytes!("../frontend/inject.js")).to_string());
         }
