@@ -12,7 +12,7 @@ use minwin::sync::Mutex;
 
 use hudsucker::{
     async_trait::async_trait,
-    hyper::{body::HttpBody, Body, Request, Response},
+    hyper::{Body, Request, Response},
     tungstenite::Message,
     *,
 };
@@ -24,16 +24,17 @@ use hudsucker::{
 use std::{fs, net::SocketAddr};
 use tracing::*;
 
-use msgbox::IconType;
-
 fn config_path() -> String {
-    String::from(
+    #[cfg(debug_assertions)]
+    return "I:/Better_NCM/addons".to_string();
+
+    return String::from(
         env::home_dir()
             .unwrap()
             .as_os_str()
             .to_str()
             .expect("Covert error"),
-    ) + "\\betterncm\\"
+    ) + "\\betterncm\\";
 }
 
 async fn shutdown_signal() {
@@ -45,6 +46,11 @@ async fn shutdown_signal() {
 #[derive(Clone)]
 struct LogHandler {}
 
+async fn body_to_string(req: Request<Body>) -> String {
+    let body_bytes = hyper::body::to_bytes(req.into_body()).await.unwrap();
+    String::from_utf8(body_bytes.to_vec()).unwrap()
+}
+
 #[async_trait]
 impl HttpHandler for LogHandler {
     async fn handle_request(
@@ -52,35 +58,39 @@ impl HttpHandler for LogHandler {
         _ctx: &HttpContext,
         req: Request<Body>,
     ) -> RequestOrResponse {
-        let mut resp = String::from("");
+        let mut resp = None;
         if req.uri().path().starts_with("/puzzle/puzzle") {
             // resp = fs::read_to_string("I:\\betterNCM\\betterncm\\frontend\\inject.js").expect("No inject.js");
-            resp = String::from_utf8_lossy(include_bytes!("../frontend/inject.js")).to_string();
+            resp =
+                Some(String::from_utf8_lossy(include_bytes!("../frontend/inject.js")).to_string());
         }
         println!("{}", req.uri().path());
-        {
-            let api = req.uri().path();
-            if api == "/betterncm_api/addons" {
-                resp = fs::read_to_string(format!("{}/addons.json", config_path()))
-                    .expect("No addons.json");
-            }
-            if api == "/betterncm_api/read_file" {
-                if req.uri().query().expect("wrong api call").contains("..") {
-                    return RequestOrResponse::Request(req);
-                }
+
+        let api = req.uri().path();
+        if api == "/betterncm_api/addons" {
+            resp = Some(
+                fs::read_to_string(format!("{}/addons.json", config_path()))
+                    .expect("No addons.json"),
+            );
+        }
+        if api == "/betterncm_api/read_file" {
+            if req.uri().query().expect("wrong api call").contains("..") {
+                resp = Some("".to_string());
+            } else {
                 match fs::read_to_string(format!(
                     "{}/{}",
                     config_path(),
                     req.uri().query().expect("wrong api call")
                 )) {
-                    Ok(s) => resp = s,
-                    Err(_) => resp = "".to_string(),
+                    Ok(s) => resp = Some(s),
+                    Err(_) => resp = Some("".to_string()),
                 }
             }
-            if api == "/betterncm_api/write_file" {
-                if req.uri().query().expect("wrong api call").contains("..") {
-                    return RequestOrResponse::Request(req);
-                }
+        }
+        if api == "/betterncm_api/write_file" {
+            if req.uri().query().expect("wrong api call").contains("..") {
+                resp = Some("".to_string());
+            } else {
                 fs::write(
                     format!(
                         "{}/{}",
@@ -88,44 +98,69 @@ impl HttpHandler for LogHandler {
                         req.uri()
                             .query()
                             .expect("wrong api call")
-                            .split("&")
-                            .nth(0)
+                            .split('&')
+                            .next()
                             .unwrap()
                     ),
-                    req.uri()
-                        .query()
-                        .expect("wrong api call")
-                        .split("&")
-                        .nth(1)
-                        .unwrap(),
+                    body_to_string(req).await,
                 )
                 .expect("Failed to write file");
-            }
-            if api == "/betterncm_api/opensettings" {
-                let template =
-                    fs::read_to_string(format!("{}/addons.json", config_path())).unwrap();
-                let edited = edit::edit(template).unwrap();
-                fs::write(format!("{}/addons.json", config_path()), edited).unwrap();
-                resp = String::from("reload");
-            }
-            if api == "/betterncm_api/opencsssettings" {
-                let template =
-                    fs::read_to_string(format!("{}/stylesheets/all.json", config_path())).unwrap();
-                let edited = edit::edit(template).unwrap();
-                fs::write(format!("{}/stylesheets/all.json", config_path()), edited).unwrap();
-                resp = String::from("reload");
-            }
-            if api == "/betterncm_api/openconfigfolder" {
-                Command::new("explorer").arg(config_path()).spawn().unwrap();
-                resp = String::from("opened");
+                let res = Response::new(Body::from("succeeded".to_string()));
+                println!("Write file api called.");
+                return RequestOrResponse::Response(res);
             }
         }
-        if !resp.is_empty() {
-            let res = Response::new(Body::from(resp.clone()));
-            // println!("Handled request:{:?}\n\n\nReturned:{}", req, resp);
-            RequestOrResponse::Response(res)
-        } else {
-            RequestOrResponse::Request(req)
+        if api == "/betterncm_api/opensettings" {
+            let template = fs::read_to_string(format!("{}/addons.json", config_path())).unwrap();
+            let edited = edit::edit(template).unwrap();
+            fs::write(format!("{}/addons.json", config_path()), edited).unwrap();
+            resp = Some(String::from("reload"));
+        }
+
+        if api == "/betterncm_api/getdir" {
+            let dir = format!(
+                "{}/{}",
+                config_path(),
+                req.uri()
+                    .query()
+                    .expect("wrong api call")
+                    .split('&')
+                    .next()
+                    .unwrap()
+            );
+            let mut files = vec![];
+            for entry in fs::read_dir(dir).unwrap() {
+                let entry = entry.unwrap();
+                if entry.path().is_dir() {
+                    continue;
+                }
+                let filename = entry.file_name();
+                let filename = filename.to_str().unwrap().to_string();
+                files.push(filename);
+            }
+            resp = Some(files.join(",").to_string());
+        }
+
+        if api == "/betterncm_api/opencsssettings" {
+            let template =
+                fs::read_to_string(format!("{}/stylesheets/all.json", config_path())).unwrap();
+            let edited = edit::edit(template).unwrap();
+            fs::write(format!("{}/stylesheets/all.json", config_path()), edited).unwrap();
+            resp = Some(String::from("reload"));
+        }
+
+        if api == "/betterncm_api/openconfigfolder" {
+            Command::new("explorer").arg(config_path()).spawn().unwrap();
+            resp = Some(String::from("opened"));
+        }
+
+        match resp {
+            Some(resp) => {
+                let res = Response::new(Body::from(resp));
+                println!("Hooked request:{:?}", api);
+                RequestOrResponse::Response(res)
+            }
+            None => RequestOrResponse::Request(req),
         }
     }
 
@@ -145,117 +180,26 @@ impl MessageHandler for WsLogHandler {
     }
 }
 
-fn elevate() {
-    use is_elevated::is_elevated;
-    if !is_elevated() {
-        msgbox::create("警告", "初次运行，请右键管理员运行~", IconType::Error).unwrap();
-        std::process::exit(0);
-    }
-}
-
 fn write_assets() {
-    // if !fs::try_exists("cloudmusic.dll").unwrap() {
-    //     msgbox::create("用法", "1.关闭网易云音乐，将本程序拷贝到网易云音乐安装目录内，替换cloudmusic.exe\n2.在 网易云音乐-工具 上点击自定义代理，输入\n\t服务器：localhost\t端口：3000\n3.点击确定", IconType::Error).unwrap();
-    //     std::process::exit(0);
-    // }
-
-    // match fs::try_exists("cloudmusicn.exe"){
-    //     Ok(true) => {
-    //         println!("cloudmusicn.exe exists");
-    //     },
-    //     Ok(false) => {
-    //         println!("cloudmusicn.exe not exists");
-    //         elevate();
-    //         fs::write("cloudmusicn.exe", include_bytes!("../cloudmusicn.exe")).expect("write cloudmusicn.exe failed");
-    //     },
-    //     Err(e) => {
-    //         println!("cloudmusicn.exe not exists");
-    //         println!("{:?}", e);
-    //     }
-    // }
-
-    // if !fs::try_exists("cloudmusicn.exe").unwrap() {
-    //     if !fs::try_exists("cloudmusic.dll").unwrap() {
-    //         msgbox::create("用法", "1.关闭网易云音乐，将本程序拷贝到网易云音乐安装目录内，右键管理员运行\n2.在 网易云音乐-工具 上点击自定义代理，输入\n\t服务器：localhost\t端口：3000\n3.点击确定", IconType::Error).unwrap();
-    //         std::process::exit(0);
-    //     } else {
-    //         elevate();
-    //         let result: Result<(), std::io::Error> = try {
-    //             fs::rename("cloudmusic.exe", "cloudmusicn.exe")?;
-    //             fs::copy("betterncm.exe", "cloudmusic.exe")?;
-    //             use std::process::Command;
-    //             Command::new("cloudmusic.exe").spawn()?;
-    //             return ();
-    //         };
-    //         match result {
-    //             Ok(_) => {
-    //                 std::process::exit(0);
-    //             }
-    //             Err(_) => {
-    //                 msgbox::create("安装失败", "请检查网易云音乐是否已退出", IconType::Error)
-    //                     .unwrap();
-    //                 std::process::exit(0);
-    //             }
-    //         }
-    //     }
-    // }
-
     if !fs::try_exists(config_path()).unwrap() {
-        elevate();
         fs::create_dir(config_path()).expect("create addons failed");
     }
-    if !fs::try_exists(format!("{}/addons.json", config_path())).unwrap() {
-        elevate();
-        fs::write(
-            format!("{}/addons.json", config_path()),
-            include_bytes!("../../addons/addons.json"),
-        )
-        .expect("write addons.json failed");
-    }
-    if !fs::try_exists(format!("{}/cssLoader.js", config_path())).unwrap() {
-        elevate();
-        fs::write(
-            format!("{}/cssLoader.js", config_path()),
-            include_bytes!("../../addons/cssLoader.js"),
-        )
-        .expect("write cssLoader.js failed");
-    }
-    if !fs::try_exists(format!("{}/debugger.js", config_path())).unwrap() {
-        elevate();
-        fs::write(
-            format!("{}/debugger.js", config_path()),
-            include_bytes!("../../addons/debugger.js"),
-        )
-        .expect("write debugger.js failed");
-    }
-    if !fs::try_exists(format!("{}/pluginmanager.js", config_path())).unwrap() {
-        elevate();
-        fs::write(
-            format!("{}/pluginmanager.js", config_path()),
-            include_bytes!("../../addons/pluginmanager.js"),
-        )
-        .expect("write pluginmanager.js failed");
-    }
+
+    fs::write(
+        format!("{}/cssLoader.js", config_path()),
+        include_bytes!("../../addons/cssLoader.js"),
+    )
+    .expect("write cssLoader.js failed");
+
+    fs::write(
+        format!("{}/pluginmanager.js", config_path()),
+        include_bytes!("../../addons/pluginmanager.js"),
+    )
+    .expect("write pluginmanager.js failed");
+
     if !fs::try_exists(format!("{}/stylesheets", config_path())).unwrap() {
-        elevate();
         fs::create_dir(format!("{}/stylesheets", config_path()))
             .expect("create addons/stylesheets failed");
-    }
-    if !fs::try_exists(format!("{}/stylesheets/all.json", config_path())).unwrap() {
-        elevate();
-        fs::write(
-            format!("{}/stylesheets/all.json", config_path()),
-            include_bytes!("../../addons/stylesheets/all.json"),
-        )
-        .expect("write all.json failed");
-    }
-    if !fs::try_exists(format!("{}/stylesheets/block.css", config_path())).unwrap() {
-        elevate();
-        fs::write(
-            format!("{}/stylesheets/block.css", config_path()),
-            include_bytes!("../../addons/stylesheets/block.css"),
-        )
-        .expect("write block.css failed");
     }
 }
 
@@ -263,7 +207,11 @@ fn write_assets() {
 async fn main() {
     let mut args = std::env::args();
     args.next();
-    fs::write(format!("{}/version.txt", config_path()),env!("CARGO_PKG_VERSION"));
+    fs::write(
+        format!("{}/version.txt", config_path()),
+        env!("CARGO_PKG_VERSION"),
+    )
+    .unwrap();
     if let Some(cmd) = args.next() {
         if cmd == "--version" {
             println!("{}", env!("CARGO_PKG_VERSION"));
@@ -275,7 +223,7 @@ async fn main() {
 
     write_assets();
 
-    if false{
+    if false {
         Command::new("cloudmusicn.exe")
             .spawn()
             .expect("Failed to launch NCM");

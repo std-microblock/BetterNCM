@@ -1,0 +1,13 @@
+.nav .firstlist>*:nth-child(2),
+.nav .firstlist>*:nth-child(3),
+.nav .firstlist>*:nth-child(4),
+.nav .firstlist>*:nth-child(5),
+.nav .firstlist>*:nth-child(6),
+.nav #my-music-list>*:nth-child(4),
+.nav #my-music-list>*:nth-child(5),
+.u-headtit,
+.m-list-excmv,
+.discover-podcast,
+.g-mn.one .m-tabwrap .m-tab {
+    display: none;
+}
