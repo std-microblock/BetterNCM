@@ -6,7 +6,7 @@ var postInstall = async function (ind: number) {
   try {
     await (
       await fetch(
-        "http://localhost/betterncm_api/write_file?" + plugin["filepath"],
+        "http://music.163.com/betterncm_api/write_file?" + plugin["filepath"],
         { body: content, method: "POST" }
       )
     ).text();
@@ -20,7 +20,7 @@ var postUninstall = async function (ind: number) {
   let plugin = onlinePlugins[ind];
   await (
     await fetch(
-      "http://localhost/betterncm_api/write_file?" + plugin["filepath"],
+      "http://music.163.com/betterncm_api/write_file?" + plugin["filepath"],
       { body: "", method: "POST" }
     )
   ).text();
@@ -43,7 +43,7 @@ var postUninstall = async function (ind: number) {
     try {
       script = await (
         await fetch(
-          "http://localhost/betterncm_api/read_file?" + plugin["filepath"]
+          "http://music.163.com/betterncm_api/read_file?" + plugin["filepath"]
         )
       ).text();
     } catch (e) {
@@ -64,15 +64,8 @@ var postUninstall = async function (ind: number) {
       settings.id = "betterncmPM";
       settings.innerHTML = `
       <h3 class='s-fc1 f-ff2' style='font-size:24px;font-weight:800;margin:20px;'>BetterNCM</h3>
-      <button class='u-ibtn5' 
-      onclick=' fetch(\"https://localhost/betterncm_api/opensettings\").then(function(){document.location.reload()})'>
-      编辑设置
-      </button>
       
-      <button class='u-ibtn5' onclick='fetch(\"https://localhost/betterncm_api/opencsssettings\")
-      .then(function(){document.location.reload()})'>编辑CSS设置</button>
-      
-      <button class='u-ibtn5' onclick='fetch(\"https://localhost/betterncm_api/openconfigfolder\")'>
+      <button class='u-ibtn5' onclick='fetch(\"https://music.163.com/betterncm_api/openconfigfolder\")'>
       打开配置文件夹</button>
       
       <button class='u-ibtn5' onclick='document.location.reload()'>重载页面</button>
@@ -86,10 +79,10 @@ var postUninstall = async function (ind: number) {
                 <span style="font-size:14px;font-weight:500;color:gray;">(${plugin["author"]})</span>
                 <button class='u-ibtn5' style="display:${
                   plugin["installed"] ? "none" : "inline-block"
-                };" onclick="postInstall(${ind});">Install</button>
+                };" onclick="postInstall(${ind});">安装</button>
                 <button class='u-ibtn5' style="display:${
                   plugin["installed"] ? "inline-block" : "none"
-                };" onclick="postUninstall(${ind});">Uninstall</button>
+                };" onclick="postUninstall(${ind});">卸载</button>
                 <div style="padding:5px;">
                 ${plugin["description"]}
                 </div>

@@ -1,6 +1,6 @@
 "use strict";
 
-fetch("https://localhost/betterncm_api/getdir?stylesheets/").then(function (resp) {
+fetch("https://music.163.com/betterncm_api/getdir?stylesheets/").then(function (resp) {
   return resp.text();
 }).then(function (resp) {
   resp = resp.split(',');
@@ -9,7 +9,7 @@ fetch("https://localhost/betterncm_api/getdir?stylesheets/").then(function (resp
     var style = resp[x];
     var link = document.createElement("link");
     link.rel = "stylesheet";
-    link.href = "https://localhost/betterncm_api/read_file?stylesheets/" + style;
+    link.href = "https://music.163.com/betterncm_api/read_file?stylesheets/" + style;
     document.head.appendChild(link);
   }
 });

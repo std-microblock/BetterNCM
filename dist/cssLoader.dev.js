@@ -1,7 +1,7 @@
 "use strict";
 
 var cssLoaderLiveReload = {};
-fetch("https://localhost/betterncm_api/read_file?stylesheets/all.json").then(function (resp) {
+fetch("https://music.163.com/betterncm_api/read_file?stylesheets/all.json").then(function (resp) {
   return resp.json();
 }).then(function (resp) {
   setInterval(function () {
@@ -9,7 +9,7 @@ fetch("https://localhost/betterncm_api/read_file?stylesheets/all.json").then(fun
       var style_23ujd = resp[x];
 
       if (style_23ujd.enabled && style_23ujd.devMode) {
-        fetch("https://localhost/betterncm_api/read_file?stylesheets/" + style_23ujd.file).then(function (resp) {
+        fetch("https://music.163.com/betterncm_api/read_file?stylesheets/" + style_23ujd.file).then(function (resp) {
           return resp.text();
         }).then(function (resp) {
           if (!cssLoaderLiveReload[style_23ujd.file]) cssLoaderLiveReload[style_23ujd.file] = resp;
@@ -24,7 +24,7 @@ fetch("https://localhost/betterncm_api/read_file?stylesheets/all.json").then(fun
     if (!style.enabled) continue;
     var link = document.createElement("link");
     link.rel = "stylesheet";
-    link.href = "https://localhost/betterncm_api/read_file?stylesheets/" + style.file;
+    link.href = "https://music.163.com/betterncm_api/read_file?stylesheets/" + style.file;
     document.head.appendChild(link);
   }
 });

@@ -1,6 +1,10 @@
-#![windows_subsystem = "windows"]
+#![cfg_attr(
+    all(not(debug_assertions), target_os = "windows"),
+    windows_subsystem = "windows"
+)]
 #![feature(path_try_exists)]
 #![feature(try_blocks)]
+#![feature(let_chains)]
 
 extern crate minwin;
 extern crate msgbox;
@@ -25,6 +29,9 @@ use std::{fs, net::SocketAddr};
 use tracing::*;
 
 fn config_path() -> String {
+    #[cfg(debug_assertions)]
+    return "I:/Better_NCM/addons".to_string();
+
     return String::from(
         env::home_dir()
             .unwrap()
@@ -171,7 +178,7 @@ struct WsLogHandler {}
 #[async_trait]
 impl MessageHandler for WsLogHandler {
     async fn handle_message(&mut self, _ctx: &MessageContext, msg: Message) -> Option<Message> {
-        println!("{:?}", msg);
+        println!("Websocket: {:?}", msg);
         Some(msg)
     }
 }
@@ -200,27 +207,23 @@ fn write_assets() {
 }
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Box<dyn std::error::Error>> {
     write_assets();
     let mut args = std::env::args();
     args.next();
     fs::write(
         format!("{}/version.txt", config_path()),
         env!("CARGO_PKG_VERSION"),
-    )
-    .unwrap();
+    )?;
     if let Some(cmd) = args.next() {
         if cmd == "--version" {
             println!("{}", env!("CARGO_PKG_VERSION"));
-            return;
+            return Ok(());
         }
     }
 
-    use std::process::Command;
-
-   
-
-    if true {
+    #[cfg(not(debug_assertions))]
+    {
         Command::new("cloudmusicn.exe")
             .spawn()
             .expect("Failed to launch NCM");
@@ -229,23 +232,73 @@ async fn main() {
     match Mutex::create_named("BetterNCM") {
         Ok(_) => {
             tracing_subscriber::fmt::init();
-            let private_key_bytes: &[u8] = include_bytes!("../ca/key.pem");
-            let ca_cert_bytes: &[u8] = include_bytes!("../ca/cert.pem");
-            let private_key =
-                PKey::private_key_from_pem(private_key_bytes).expect("Failed to parse private key");
-            let ca_cert = X509::from_pem(ca_cert_bytes).expect("Failed to parse CA certificate");
 
-            let ca = OpensslAuthority::new(private_key, ca_cert, MessageDigest::sha256(), 1_000);
+            fs::create_dir_all(format!("{}/ca/", config_path()))?;
 
-            let proxy = ProxyBuilder::new()
-                .with_addr(SocketAddr::from(([127, 0, 0, 1], 3296)))
-                .with_rustls_client()
-                .with_ca(ca)
-                .with_http_handler(LogHandler {})
-                .build();
+            let pkey_file_exists = fs::try_exists(format!("{}/ca/key.pem", config_path()))?;
+            let ca_file_exists = fs::try_exists(format!("{}/ca/cert.crt", config_path()))?;
 
-            if let Err(e) = proxy.start(shutdown_signal()).await {
-                error!("{}", e);
+            if !pkey_file_exists || !ca_file_exists {
+                extern crate msgbox;
+
+                use msgbox::IconType;
+                msgbox::create("BetterNCM将生成并导入自签名证书", "从网易云PC客户端 2.10.2 更新CEF版本后，BetterNCM需要将自签名证书导入到电脑才能注入网易云音乐\n接下来BetterNCM将会要求管理员权限以导入自签名证书", IconType::Info)?;
+
+                extern crate rcgen;
+                use rcgen::generate_simple_self_signed;
+                let subject_alt_names = vec!["*".to_string()];
+
+                let cert = generate_simple_self_signed(subject_alt_names).unwrap();
+
+                fs::write(
+                    format!("{}/ca/cert.crt", config_path()),
+                    cert.serialize_pem()?,
+                )?;
+                fs::write(
+                    format!("{}/ca/key.pem", config_path()),
+                    cert.serialize_private_key_pem(),
+                )?;
+
+                use runas::Command;
+
+                let status = Command::new("certutil")
+                    .args(&[
+                        "-addstore",
+                        "root",
+                        format!("{}/ca/cert.crt", config_path()).as_str(),
+                    ])
+                    .status()?;
+
+                if !status.success(){
+                    msgbox::create("证书导入失败！", "自签名证书导入失败！\nBetterNCM将不会运行", IconType::Error)?;
+                }
+            }
+
+            let private_key_bytes = fs::read(format!("{}/ca/key.pem", config_path()));
+            let ca_cert_bytes = fs::read(format!("{}/ca/cert.crt", config_path()));
+
+
+            if let (Ok(private), Ok(cert)) = (private_key_bytes, ca_cert_bytes) {
+                let private_key_bytes = private.as_slice();
+                let ca_cert_bytes = cert.as_slice();
+                let private_key = PKey::private_key_from_pem(private_key_bytes)
+                    .expect("Failed to parse private key");
+                let ca_cert =
+                    X509::from_pem(ca_cert_bytes).expect("Failed to parse CA certificate");
+
+                let ca =
+                    OpensslAuthority::new(private_key, ca_cert, MessageDigest::sha256(), 1_000);
+
+                let proxy = ProxyBuilder::new()
+                    .with_addr(SocketAddr::from(([127, 0, 0, 1], 3296)))
+                    .with_rustls_client()
+                    .with_ca(ca)
+                    .with_http_handler(LogHandler {})
+                    .build();
+
+                if let Err(e) = proxy.start(shutdown_signal()).await {
+                    error!("{}", e);
+                }
             }
         }
         Err(CreateNamedError::AlreadyExists(_)) => {
@@ -255,4 +308,6 @@ async fn main() {
             println!("An error occurred: {}", error);
         }
     }
+
+    Ok(())
 }

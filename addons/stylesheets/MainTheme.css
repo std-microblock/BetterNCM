@@ -1,16 +1,27 @@
+/*
+[[ BetterNCM-CSS-V2 ]]
+==||
+{
+    "name":"Mirror",
+    "configs":{
+        "background":"url(https://s1.ax1x.com/2022/06/11/XcOy4J.jpg)"
+    }
+}
+||==
+*/
+
 #portal_root {
-    background: url("https://s1.ax1x.com/2022/06/11/XcOy4J.jpg");
+    background:[[background]];
+
     background-size: cover;
-    -webkit-filter: blur(5px) brightness(0.8);
-    -webkit-transform: scale(1.1);
+    -webkit-filter: blur(0px) brightness(0.8);
 }
 
 * {
-    -webkit-transition: all 0.2s;
     scroll-behavior: smooth;
 }
 
-.m-nav *{
+.m-nav * {
     color: white !important;
     text-shadow: 1px 1px 4px #00000077;
 }
@@ -37,7 +48,6 @@
 #main-player {
     margin: 10px;
     border-radius: 10px;
-    -webkit-transition: all 0.1s;
     border: none !important;
 }
 
@@ -186,3 +196,4 @@ header::after{
 .nav .firstlist>*:nth-child(5) {
     display: none;
 }
+

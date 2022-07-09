@@ -1,3 +1,4 @@
+"use strict";
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -34,7 +35,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
         if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
     }
 };
-var _this = this;
 var onlinePlugins = [];
 var postInstall = function (ind) {
     return __awaiter(this, void 0, void 0, function () {
@@ -50,7 +50,7 @@ var postInstall = function (ind) {
                     _a.label = 3;
                 case 3:
                     _a.trys.push([3, 6, , 7]);
-                    return [4 /*yield*/, fetch("http://localhost/betterncm_api/write_file?" + plugin["filepath"], { body: content, method: "POST" })];
+                    return [4 /*yield*/, fetch("http://music.163.com/betterncm_api/write_file?" + plugin["filepath"], { body: content, method: "POST" })];
                 case 4: return [4 /*yield*/, (_a.sent()).text()];
                 case 5:
                     _a.sent();
@@ -73,7 +73,7 @@ var postUninstall = function (ind) {
             switch (_a.label) {
                 case 0:
                     plugin = onlinePlugins[ind];
-                    return [4 /*yield*/, fetch("http://localhost/betterncm_api/write_file?" + plugin["filepath"], { body: "", method: "POST" })];
+                    return [4 /*yield*/, fetch("http://music.163.com/betterncm_api/write_file?" + plugin["filepath"], { body: "", method: "POST" })];
                 case 1: return [4 /*yield*/, (_a.sent()).text()];
                 case 2:
                     _a.sent();
@@ -83,7 +83,7 @@ var postUninstall = function (ind) {
         });
     });
 };
-(function () { return __awaiter(_this, void 0, void 0, function () {
+(function () { return __awaiter(void 0, void 0, void 0, function () {
     var handle, e_2, _i, onlinePlugins_1, plugin, script, e_3;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -108,7 +108,7 @@ var postUninstall = function (ind) {
                 _a.label = 6;
             case 6:
                 _a.trys.push([6, 9, , 10]);
-                return [4 /*yield*/, fetch("http://localhost/betterncm_api/read_file?" + plugin["filepath"])];
+                return [4 /*yield*/, fetch("http://music.163.com/betterncm_api/read_file?" + plugin["filepath"])];
             case 7: return [4 /*yield*/, (_a.sent()).text()];
             case 8:
                 script = _a.sent();
@@ -134,9 +134,9 @@ var postUninstall = function (ind) {
                         settings.style.width = "100%";
                         settings.style.zIndex = "100000";
                         settings.id = "betterncmPM";
-                        settings.innerHTML = "\n      <h3 class='s-fc1 f-ff2' style='font-size:24px;font-weight:800;margin:20px;'>BetterNCM</h3>\n      <button class='u-ibtn5' \n      onclick=' fetch(\"https://localhost/betterncm_api/opensettings\").then(function(){document.location.reload()})'>\n      \u7F16\u8F91\u8BBE\u7F6E\n      </button>\n      \n      <button class='u-ibtn5' onclick='fetch(\"https://localhost/betterncm_api/opencsssettings\")\n      .then(function(){document.location.reload()})'>\u7F16\u8F91CSS\u8BBE\u7F6E</button>\n      \n      <button class='u-ibtn5' onclick='fetch(\"https://localhost/betterncm_api/openconfigfolder\")'>\n      \u6253\u5F00\u914D\u7F6E\u6587\u4EF6\u5939</button>\n      \n      <button class='u-ibtn5' onclick='document.location.reload()'>\u91CD\u8F7D\u9875\u9762</button>\n      \n      <h3 class='s-fc1 f-ff2' style='font-size:19px;font-weight:700;margin:10px;'>BetterNCM \u63D2\u4EF6\u5217\u8868</h3>\n      <div class=\"onlinepluginlish\">\n          " + onlinePlugins
+                        settings.innerHTML = "\n      <h3 class='s-fc1 f-ff2' style='font-size:24px;font-weight:800;margin:20px;'>BetterNCM</h3>\n      \n      <button class='u-ibtn5' onclick='fetch(\"https://music.163.com/betterncm_api/openconfigfolder\")'>\n      \u6253\u5F00\u914D\u7F6E\u6587\u4EF6\u5939</button>\n      \n      <button class='u-ibtn5' onclick='document.location.reload()'>\u91CD\u8F7D\u9875\u9762</button>\n      \n      <h3 class='s-fc1 f-ff2' style='font-size:19px;font-weight:700;margin:10px;'>BetterNCM \u63D2\u4EF6\u5217\u8868</h3>\n      <div class=\"onlinepluginlish\">\n          " + onlinePlugins
                             .map(function (plugin, ind) {
-                            return "<div>\n                <span style=\"font-size:16px;font-weight:600;\">" + plugin["name"] + "</span>\n                <span style=\"font-size:14px;font-weight:500;color:gray;\">(" + plugin["author"] + ")</span>\n                <button class='u-ibtn5' style=\"display:" + (plugin["installed"] ? "none" : "inline-block") + ";\" onclick=\"postInstall(" + ind + ");\">Install</button>\n                <button class='u-ibtn5' style=\"display:" + (plugin["installed"] ? "inline-block" : "none") + ";\" onclick=\"postUninstall(" + ind + ");\">Uninstall</button>\n                <div style=\"padding:5px;\">\n                " + plugin["description"] + "\n                </div>\n            </div><br>";
+                            return "<div>\n                <span style=\"font-size:16px;font-weight:600;\">" + plugin["name"] + "</span>\n                <span style=\"font-size:14px;font-weight:500;color:gray;\">(" + plugin["author"] + ")</span>\n                <button class='u-ibtn5' style=\"display:" + (plugin["installed"] ? "none" : "inline-block") + ";\" onclick=\"postInstall(" + ind + ");\">\u5B89\u88C5</button>\n                <button class='u-ibtn5' style=\"display:" + (plugin["installed"] ? "inline-block" : "none") + ";\" onclick=\"postUninstall(" + ind + ");\">\u5378\u8F7D</button>\n                <div style=\"padding:5px;\">\n                " + plugin["description"] + "\n                </div>\n            </div><br>";
                         })
                             .join("") + "\n      </div>";
                         ele.appendChild(settings);
