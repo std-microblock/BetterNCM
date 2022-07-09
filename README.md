@@ -1,6 +1,9 @@
 # BetterNCM
 ### PC版网易云客户端插件管理器
-![Microrange](https://github.com/MicroCBer/BetterNCMPlugins/raw/main/Stylesheets/Theme-Microrange/white.png)
+
+![Snipaste_2022-07-10_02-52-40](https://user-images.githubusercontent.com/66859419/178119152-69cde259-16a2-4f2f-a5b6-8e75c0364dba.png)
+
+
 最新测试兼容版本：`2.10.2`
 
 # 安装
