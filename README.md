@@ -7,15 +7,14 @@
 ## Windows
 使用[BetterNCM Installer](https://github.com/MicroCBer/BetterNCM-Installer)一键安装~
 
-# 插件库
-[BetterNCMPlugins](https://github.com/MicroCBer/BetterNCMPlugins)
+安装完成后在网易云音乐-设置-最下面 安装插件
 
 # 开发
-## JS插件
-参考`cssLoader.js`插件（`/addons/cssLoader.js`）
-`addons.json`中每一项的`devMode`属性为开发模式，开启会每秒轮询一次，有变化则自动重载。（建议仅开启一个）
+请参考插件库中的插件
 
-## CSS插件
-参考 `block.css`（`/addons/stylesheets/block.css`）
-`stylesheets/all.json`中每一项的`devMode`属性为开发模式，开启会每秒轮询一次，有变化则自动重载。（建议仅开启一个）
+将你的插件/主题放置在对应位置即可
+
+大型插件开发参考 https://github.com/MicroCBer/NeteaseLiveSongPlayer
+
+想要添加主题/插件到主题商店的，可以联系我
 
