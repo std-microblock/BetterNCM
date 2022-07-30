@@ -9,7 +9,7 @@
 extern crate minwin;
 extern crate msgbox;
 
-use std::{env, process::Command};
+use std::{env, process::Command, str::FromStr};
 
 use minwin::named::CreateNamedError;
 use minwin::sync::Mutex;
@@ -30,7 +30,7 @@ use tracing::*;
 
 fn config_path() -> String {
     #[cfg(debug_assertions)]
-    return "I:/Better_NCM/addons".to_string();
+    return "I:\\Better_NCM\\addons\\".to_string();
 
     return String::from(
         env::home_dir()
@@ -94,17 +94,20 @@ impl HttpHandler for LogHandler {
             if req.uri().query().expect("wrong api call").contains("..") {
                 resp = Some("".to_string());
             } else {
+                let path=req.uri()
+                .query()
+                .expect("wrong api call")
+                .split('&')
+                .next()
+                .unwrap();
+                let path=format!(
+                    "{}/{}",
+                    config_path(),
+                    path
+                );
+                fs::create_dir_all(std::path::Path::new(&path).parent().unwrap()).expect("Failed to write file");
                 fs::write(
-                    format!(
-                        "{}/{}",
-                        config_path(),
-                        req.uri()
-                            .query()
-                            .expect("wrong api call")
-                            .split('&')
-                            .next()
-                            .unwrap()
-                    ),
+                    path,
                     body_to_string(req).await,
                 )
                 .expect("Failed to write file");
@@ -155,6 +158,14 @@ impl HttpHandler for LogHandler {
         if api == "/betterncm_api/openconfigfolder" {
             Command::new("explorer").arg(config_path()).spawn().unwrap();
             resp = Some(String::from("opened"));
+        }
+
+        if api == "/betterncm_api/open" {
+            if req.uri().query().expect("wrong api call").contains("..") {
+                resp = Some("".to_string());
+            } else {
+                open::that(req.uri().query().expect("wrong api call"));
+            }
         }
 
         match resp {
@@ -269,14 +280,23 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
                     ])
                     .status()?;
 
-                if !status.success(){
-                    msgbox::create("证书导入失败！", "自签名证书导入失败！\nBetterNCM将不会运行", IconType::Error)?;
+                if !status.success() {
+                    msgbox::create(
+                        "证书导入失败！",
+                        "自签名证书导入失败！\nBetterNCM将不会运行",
+                        IconType::Error,
+                    )?;
                 }
             }
 
             let private_key_bytes = fs::read(format!("{}/ca/key.pem", config_path()));
             let ca_cert_bytes = fs::read(format!("{}/ca/cert.crt", config_path()));
 
+            tokio::spawn(async {
+                warp::serve(warp::fs::dir(config_path()))
+                    .run(([127, 0, 0, 1], 3297))
+                    .await;
+            });
 
             if let (Ok(private), Ok(cert)) = (private_key_bytes, ca_cert_bytes) {
                 let private_key_bytes = private.as_slice();
