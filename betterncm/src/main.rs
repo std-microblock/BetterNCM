@@ -25,6 +25,8 @@ use std::process::Command;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
+
+    write_assets::write_assets();
     let mut args = std::env::args();
     args.next();
     fs::write(
@@ -47,7 +49,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
     match Mutex::create_named("BetterNCM") {
         Ok(_) => {
-            write_assets::write_assets();
             create_cert::create()?;
             tracing_subscriber::fmt::init();
 

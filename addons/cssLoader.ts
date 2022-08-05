@@ -1,6 +1,6 @@
 interface StyleSheetConfig2 {
   default: string | undefined;
-
+  type:string[] | undefined;
 }
 
 type SSConfigs2 = { [name: string]: StyleSheetConfig2 };
@@ -92,7 +92,7 @@ class CSSLoader {
       for (let configName in localConfigs) {
         let config = localConfigs[configName];
         if (typeof config === "string") {
-          localConfigs[configName] = localConfigs[configName] || config
+          configs[styleObj.get_name()][configName] = configs[styleObj.get_name()][configName] || config
 
           configsHTML += `<div>${configName}:
               <input class="txt u-txt __cssLoader__config__input__" 
@@ -101,13 +101,14 @@ class CSSLoader {
               
               </div>`;
         } else {
-          localConfigs[configName] = localConfigs[configName] || config.default || ""
+          configs[styleObj.get_name()][configName] = configs[styleObj.get_name()][configName] || config.default || ""
           configsHTML += `<div>${configName}:
           <input class="txt u-txt __cssLoader__config__input__ __cssLoader__config__${styleObj.get_name()}_${configName}" 
           onkeyup='window["configs"]["${styleObj.get_name()}"]["${configName}"]=event.target.value'
           value="${htmlEscape(configs[styleObj.get_name()][configName])}">`;
 
-          if (config.type.includes("cssfile")) {
+        
+          if (config.type&&config.type.includes("cssfile")) {
             configsHTML += `<button class='u-ibtn5' onclick="selectFile('${styleObj.get_name()}','${configName}')">选择文件</button>`
           }
 
