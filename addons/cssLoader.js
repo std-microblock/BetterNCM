@@ -1,7 +1,7 @@
 "use strict";
-window["configs"] = JSON.parse(localStorage["betterncm.cssloader.config"] || "{}");
+window["configs"] = JSON.parse(localStorage["betterncm.cssloader.config2"] || "{}");
 window["saveCSSSettings"] = function () {
-    localStorage["betterncm.cssloader.config"] = JSON.stringify(window["configs"]);
+    localStorage["betterncm.cssloader.config2"] = JSON.stringify(window["configs"]);
     setTimeout(() => {
         CSSLoader.loadStyles();
     }, 100);
@@ -40,7 +40,6 @@ class CSSLoader {
                 stylesheetFile;
             let stylesheet = await (await fetch(url)).text();
             let styleObj = this.parseStyle(stylesheet);
-            let localConfigs = styleObj.get_configs();
             configsHTML += `<div>
           <h3 style='font-size:16px;font-weight:700;'>${styleObj.get_name()}</h3>`;
             function htmlEscape(text) {
@@ -54,6 +53,8 @@ class CSSLoader {
                     }
                 });
             }
+            let localConfigs = styleObj.get_configs();
+            configs[styleObj.get_name()] = configs[styleObj.get_name()] || {};
             for (let configName in localConfigs) {
                 let config = localConfigs[configName];
                 if (typeof config === "string") {

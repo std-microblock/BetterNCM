@@ -14,13 +14,13 @@ interface BetterNCMStyleSheet {
 }
 
 window["configs"] = JSON.parse(
-  localStorage["betterncm.cssloader.config"] || "{}"
+  localStorage["betterncm.cssloader.config2"] || "{}"
 );
 
 declare let configs: { [pluginName: string]: { [configName: string]: string } };
 
 window["saveCSSSettings"] = function () {
-  localStorage["betterncm.cssloader.config"] = JSON.stringify(window["configs"])
+  localStorage["betterncm.cssloader.config2"] = JSON.stringify(window["configs"])
   setTimeout(() => {
     CSSLoader.loadStyles();
   }, 100)
@@ -69,7 +69,7 @@ class CSSLoader {
       let stylesheet = await (await fetch(url)).text();
       let styleObj = this.parseStyle(stylesheet);
 
-      let localConfigs = styleObj.get_configs();
+      
 
       configsHTML += `<div>
           <h3 style='font-size:16px;font-weight:700;'>${styleObj.get_name()}</h3>`
@@ -86,9 +86,13 @@ class CSSLoader {
         });
       }
 
+      let localConfigs = styleObj.get_configs();
+
+      configs[styleObj.get_name()] = configs[styleObj.get_name()] || {}
 
       for (let configName in localConfigs) {
         let config = localConfigs[configName];
+
         if (typeof config === "string") {
           configs[styleObj.get_name()][configName] = configs[styleObj.get_name()][configName] || config
 
