@@ -11,30 +11,17 @@ extern crate msgbox;
 mod api;
 mod config;
 mod create_cert;
+mod mitmserver;
 mod webserver;
 mod write_assets;
-mod mitmserver;
 
 use config::*;
 
 use minwin::named::CreateNamedError;
 use minwin::sync::Mutex;
 
-use std::{fs};
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+use std::fs;
+use std::process::Command;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
@@ -51,6 +38,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         }
     }
 
+    #[cfg(not(debug_assertions))]
+    {
+        Command::new("cloudmusicn.exe")
+            .spawn()
+            .expect("Failed to launch NCM");
+    }
+
     match Mutex::create_named("BetterNCM") {
         Ok(_) => {
             write_assets::write_assets();
@@ -59,7 +53,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
             webserver::start_webserver();
             mitmserver::start_mitm_server().await;
-
         }
         Err(CreateNamedError::AlreadyExists(_)) => {
             println!("Process already running!");

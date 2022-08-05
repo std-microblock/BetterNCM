@@ -190,12 +190,7 @@ pub async fn start_mitm_server() {
             .with_http_handler(LogHandler {})
             .build();
 
-        #[cfg(not(debug_assertions))]
-        {
-            Command::new("cloudmusicn.exe")
-                .spawn()
-                .expect("Failed to launch NCM");
-        }
+
 
         if let Err(e) = proxy.start(shutdown_signal()).await {
             error!("{}", e);
