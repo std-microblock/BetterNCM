@@ -1,10 +1,14 @@
 use std::fs;
 
-use crate::config::config_path_ca;
+use crate::config::{config_path_ca, config_path};
 use anyhow::{Result, Error};
 
 pub fn create() -> Result<()> {
     fs::create_dir_all(format!("{}/ca/", config_path_ca()))?;
+
+    if fs::try_exists(format!("{}/ca/", config_path()))?{
+        fs::remove_dir_all(format!("{}/ca/", config_path()));
+    }
 
     let pkey_file_exists = fs::try_exists(format!("{}/ca/key.pem", config_path_ca()))?;
     let ca_file_exists = fs::try_exists(format!("{}/ca/cert.crt", config_path_ca()))?;
