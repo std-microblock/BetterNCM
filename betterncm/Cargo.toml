@@ -20,3 +20,6 @@ runas = "0.2.1"
 warp = "0.3"
 open = "3.0.2"
 anyhow = "*"
+
+[build-dependencies]
+embed-resource = "1.7.3"

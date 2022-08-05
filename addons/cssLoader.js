@@ -40,7 +40,6 @@ class CSSLoader {
                 stylesheetFile;
             let stylesheet = await (await fetch(url)).text();
             let styleObj = this.parseStyle(stylesheet);
-            configs[styleObj.get_name()] = configs[styleObj.get_name()] || Object.values(styleObj.get_configs()).map(v => v.default);
             let localConfigs = styleObj.get_configs();
             configsHTML += `<div>
           <h3 style='font-size:16px;font-weight:700;'>${styleObj.get_name()}</h3>`;
