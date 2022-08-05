@@ -1,6 +1,14 @@
+interface StyleSheetConfig2 {
+  default: string | undefined;
+
+}
+
+type SSConfigs2 = { [name: string]: StyleSheetConfig2 };
+type SSConfigs1 = { [name: string]: string }
+
 interface BetterNCMStyleSheet {
-  generator(config: Map<string, string>): string;
-  get_configs(): Array<string>;
+  generator(config: { [configName: string]: string }): string;
+  get_configs(): SSConfigs1 | SSConfigs2;
   get_name(): string;
   is_debug(): boolean;
 }
@@ -9,12 +17,29 @@ window["configs"] = JSON.parse(
   localStorage["betterncm.cssloader.config"] || "{}"
 );
 
+declare let configs: { [pluginName: string]: { [configName: string]: string } };
+
 window["saveCSSSettings"] = function () {
   localStorage["betterncm.cssloader.config"] = JSON.stringify(window["configs"])
   setTimeout(() => {
     CSSLoader.loadStyles();
   }, 100)
-  // document.location.reload()
+}
+
+window["selectFile"] = async function selectFile(name: string, id: string) {
+  let path = await (await fetch("http://localhost:3297/api/openFileSelectDialog/*?" + new Date().getTime())).text()
+  let localPath = path.split("betterncm");
+  if (path !== "Failed") {
+    if (localPath.length > 1) {
+      let urlPath = `url("http://localhost:3297/${encodeURI(localPath[1].slice(1))}")`;
+      document.getElementsByClassName(`__cssLoader__config__${name}_${id}`)[0].value = urlPath
+      configs[name][id] = urlPath;
+    } else {
+      alert("你必须选择一个在BetterNCM配置文件夹内的路径！")
+      selectFile(name,id)
+    }
+  }
+
 }
 
 let liveReloadHandles: { [key: string]: number } = {}
@@ -43,21 +68,54 @@ class CSSLoader {
 
       let stylesheet = await (await fetch(url)).text();
       let styleObj = this.parseStyle(stylesheet);
-      configs[styleObj.get_name()] = configs[styleObj.get_name()] || styleObj.get_configs()
 
-      configsHTML += `
-        <div>
-            <h3 style='font-size:16px;font-weight:700;'>${styleObj.get_name()}</h3>
-            ${Object.keys(styleObj.get_configs()).map((v) => {
-        console.log(configs[styleObj.get_name()][v])
-        return `<div>${v}:
+      configs[styleObj.get_name()] = configs[styleObj.get_name()] || Object.values(styleObj.get_configs()).map(v => v.default);
+
+      let localConfigs = styleObj.get_configs();
+
+      configsHTML += `<div>
+          <h3 style='font-size:16px;font-weight:700;'>${styleObj.get_name()}</h3>`
+
+      function htmlEscape(text) {
+        //https://juejin.cn/post/6844903778928295949
+        return text.replace(/[<>"&]/g, function (match, pos, originalText) {
+          switch (match) {
+            case "<": return "&lt;";
+            case ">": return "&gt;";
+            case "&": return "&amp;";
+            case "\"": return "&quot;";
+          }
+        });
+      }
+
+
+      for (let configName in localConfigs) {
+        let config = localConfigs[configName];
+        if (typeof config === "string") {
+          localConfigs[configName] = localConfigs[configName] || config
+
+          configsHTML += `<div>${configName}:
               <input class="txt u-txt __cssLoader__config__input__" 
-              onkeyup='window["configs"]["${styleObj.get_name()}"]["${v}"]=event.target.value'
-              value="${configs[styleObj.get_name()][v]}"></div>`;
-      })}
-            
-        </div>
-      `;
+              onkeyup='window["configs"]["${styleObj.get_name()}"]["${configName}"]=event.target.value'
+              value="${htmlEscape(configs[styleObj.get_name()][configName])}">
+              
+              </div>`;
+        } else {
+          localConfigs[configName] = localConfigs[configName] || config.default || ""
+          configsHTML += `<div>${configName}:
+          <input class="txt u-txt __cssLoader__config__input__ __cssLoader__config__${styleObj.get_name()}_${configName}" 
+          onkeyup='window["configs"]["${styleObj.get_name()}"]["${configName}"]=event.target.value'
+          value="${htmlEscape(configs[styleObj.get_name()][configName])}">`;
+
+          if (config.type.includes("cssfile")) {
+            configsHTML += `<button class='u-ibtn5' onclick="selectFile('${styleObj.get_name()}','${configName}')">选择文件</button>`
+          }
+
+          configsHTML += "</div>";
+        }
+      }
+
+      configsHTML += `</div>`;
 
       // Live Reload
       {
@@ -70,10 +128,10 @@ class CSSLoader {
                 "https://music.163.com/betterncm_api/read_file?stylesheets/" +
                 stylesheetFile;
 
-              let stylesheet = await(await fetch(url)).text();
+              let stylesheet = await (await fetch(url)).text();
 
-              if(stylesheet!=liveReloadLastValues[styleObj.get_name()]){
-                liveReloadLastValues[styleObj.get_name()]=stylesheet
+              if (stylesheet != liveReloadLastValues[styleObj.get_name()]) {
+                liveReloadLastValues[styleObj.get_name()] = stylesheet
                 await this.loadStyles()
               }
             }, 400)
@@ -117,7 +175,7 @@ class CSSLoader {
           return stylesheetText;
         },
         get_configs() {
-          return [];
+          return {};
         },
         get_name() {
           return "Unnamed Stylesheet";
@@ -132,7 +190,7 @@ class CSSLoader {
     return {
       generator(cconfig) {
         let _text = stylesheetText;
-        let configs: Array<string> = this.get_configs();
+        let configs: SSConfigs1 | SSConfigs2 = this.get_configs();
         for (let config of Object.keys(configs)) {
           let configValue = cconfig[config];
           if (configValue)
