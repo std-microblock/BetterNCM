@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <Keyword>Win32Proj</Keyword>
+    <ProjectGuid>{bcd79d10-988e-4a2c-bf59-d6225f3836aa}</ProjectGuid>
+    <RootNamespace>EasyCefInject</RootNamespace>
+    <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>false</LinkIncremental>
+    <ExternalIncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath); I:\qtbuild\qt-everywhere-src-5.15.2\qt-everywhere-src-5.15.2\qtbase\include</ExternalIncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_DEBUG;EASYCEFINJECT_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableUAC>false</EnableUAC>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_CRT_NONSTDC_NO_DEPRECATE;NDEBUG;EASYCEFINJECT_EXPORTS;_WINDOWS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableUAC>false</EnableUAC>
+      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+    <PostBuildEvent>
+      <Command>call ./runNCM.bat</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;EASYCEFINJECT_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableUAC>false</EnableUAC>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;EASYCEFINJECT_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+    </ClCompile>
+    <Link>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableUAC>false</EnableUAC>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="EasyCEFHooks.h" />
+    <ClInclude Include="framework.h" />
+    <ClInclude Include="include\cef_accessibility_handler.h" />
+    <ClInclude Include="include\cef_api_hash.h" />
+    <ClInclude Include="include\cef_app.h" />
+    <ClInclude Include="include\cef_audio_handler.h" />
+    <ClInclude Include="include\cef_auth_callback.h" />
+    <ClInclude Include="include\cef_base.h" />
+    <ClInclude Include="include\cef_browser.h" />
+    <ClInclude Include="include\cef_browser_process_handler.h" />
+    <ClInclude Include="include\cef_callback.h" />
+    <ClInclude Include="include\cef_client.h" />
+    <ClInclude Include="include\cef_command_line.h" />
+    <ClInclude Include="include\cef_config.h" />
+    <ClInclude Include="include\cef_context_menu_handler.h" />
+    <ClInclude Include="include\cef_cookie.h" />
+    <ClInclude Include="include\cef_crash_util.h" />
+    <ClInclude Include="include\cef_devtools_message_observer.h" />
+    <ClInclude Include="include\cef_dialog_handler.h" />
+    <ClInclude Include="include\cef_display_handler.h" />
+    <ClInclude Include="include\cef_dom.h" />
+    <ClInclude Include="include\cef_download_handler.h" />
+    <ClInclude Include="include\cef_download_item.h" />
+    <ClInclude Include="include\cef_drag_data.h" />
+    <ClInclude Include="include\cef_drag_handler.h" />
+    <ClInclude Include="include\cef_extension.h" />
+    <ClInclude Include="include\cef_extension_handler.h" />
+    <ClInclude Include="include\cef_file_util.h" />
+    <ClInclude Include="include\cef_find_handler.h" />
+    <ClInclude Include="include\cef_focus_handler.h" />
+    <ClInclude Include="include\cef_frame.h" />
+    <ClInclude Include="include\cef_image.h" />
+    <ClInclude Include="include\cef_jsdialog_handler.h" />
+    <ClInclude Include="include\cef_keyboard_handler.h" />
+    <ClInclude Include="include\cef_life_span_handler.h" />
+    <ClInclude Include="include\cef_load_handler.h" />
+    <ClInclude Include="include\cef_media_router.h" />
+    <ClInclude Include="include\cef_menu_model.h" />
+    <ClInclude Include="include\cef_menu_model_delegate.h" />
+    <ClInclude Include="include\cef_navigation_entry.h" />
+    <ClInclude Include="include\cef_origin_whitelist.h" />
+    <ClInclude Include="include\cef_pack_resources.h" />
+    <ClInclude Include="include\cef_pack_strings.h" />
+    <ClInclude Include="include\cef_parser.h" />
+    <ClInclude Include="include\cef_path_util.h" />
+    <ClInclude Include="include\cef_print_handler.h" />
+    <ClInclude Include="include\cef_print_settings.h" />
+    <ClInclude Include="include\cef_process_message.h" />
+    <ClInclude Include="include\cef_process_util.h" />
+    <ClInclude Include="include\cef_registration.h" />
+    <ClInclude Include="include\cef_render_handler.h" />
+    <ClInclude Include="include\cef_render_process_handler.h" />
+    <ClInclude Include="include\cef_request.h" />
+    <ClInclude Include="include\cef_request_callback.h" />
+    <ClInclude Include="include\cef_request_context.h" />
+    <ClInclude Include="include\cef_request_context_handler.h" />
+    <ClInclude Include="include\cef_request_handler.h" />
+    <ClInclude Include="include\cef_resource_bundle.h" />
+    <ClInclude Include="include\cef_resource_bundle_handler.h" />
+    <ClInclude Include="include\cef_resource_handler.h" />
+    <ClInclude Include="include\cef_resource_request_handler.h" />
+    <ClInclude Include="include\cef_response.h" />
+    <ClInclude Include="include\cef_response_filter.h" />
+    <ClInclude Include="include\cef_sandbox_win.h" />
+    <ClInclude Include="include\cef_scheme.h" />
+    <ClInclude Include="include\cef_server.h" />
+    <ClInclude Include="include\cef_ssl_info.h" />
+    <ClInclude Include="include\cef_ssl_status.h" />
+    <ClInclude Include="include\cef_stream.h" />
+    <ClInclude Include="include\cef_string_visitor.h" />
+    <ClInclude Include="include\cef_task.h" />
+    <ClInclude Include="include\cef_thread.h" />
+    <ClInclude Include="include\cef_trace.h" />
+    <ClInclude Include="include\cef_urlrequest.h" />
+    <ClInclude Include="include\cef_v8.h" />
+    <ClInclude Include="include\cef_values.h" />
+    <ClInclude Include="include\cef_version.h" />
+    <ClInclude Include="include\cef_waitable_event.h" />
+    <ClInclude Include="include\cef_web_plugin.h" />
+    <ClInclude Include="include\cef_x509_certificate.h" />
+    <ClInclude Include="include\cef_xml_reader.h" />
+    <ClInclude Include="include\cef_zip_reader.h" />
+    <ClInclude Include="json.hpp" />
+    <ClInclude Include="pch.h" />
+    <ClInclude Include="createfiles.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="createfiles.cpp" />
+    <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="EasyCEFHooks.cpp" />
+    <ClCompile Include="pch.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">Create</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="C:\PATH\vcpkg\installed\x86-windows\lib\workflow.lib" />
+    <Library Include="libcef.lib" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
