@@ -97,20 +97,20 @@ int EasyCEFHooks::hook_cef_browser_host_create_browser(
 bool EasyCEFHooks::InstallHooks() {
 	DetourTransactionBegin();
 	DetourUpdateThread(GetCurrentThread());
+	
 	origin_cef_v8context_get_current_context = DetourFindFunction("libcef.dll", "cef_v8context_get_current_context");
 	origin_cef_browser_host_create_browser = DetourFindFunction("libcef.dll", "cef_browser_host_create_browser_sync");
-	if (origin_cef_v8context_get_current_context) {
+
+	if (origin_cef_v8context_get_current_context)
 		DetourAttach(&origin_cef_v8context_get_current_context, (PVOID)hook_cef_v8context_get_current_context);
-	}
-	else {
+	else 
 		return false;
-	}
-	if (origin_cef_browser_host_create_browser) {
+
+	if (origin_cef_browser_host_create_browser) 
 		DetourAttach(&origin_cef_browser_host_create_browser, hook_cef_browser_host_create_browser);
-	}
-	else {
+	else 
 		return false;
-	}
+	
 	LONG ret = DetourTransactionCommit();
 	return ret == NO_ERROR;
 }

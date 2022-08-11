@@ -10,6 +10,7 @@
 
 // 添加要在此处预编译的标头
 #include "framework.h"
+#include "kubazip/zip/zip.h"
 #include <string>
 #include <fstream>
 #include <sstream>
@@ -20,9 +21,9 @@
 #include <ctime>
 #include "createfiles.h"
 #include <filesystem>
-#include "nlohmann/json.hpp"
 #include <locale>
 #include <codecvt>
+
 #include <Windows.h>
 #include <thread>
 #endif //PCH_H

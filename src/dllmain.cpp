@@ -1,8 +1,8 @@
 ﻿#include "pch.h"
 #include "pystring/pystring.h"
 #include "EasyCEFHooks.h"
-
-
+#include <Windows.h>
+#include "App.h"
 
 #pragma comment(linker, "/EXPORT:vSetDdrawflag=_AheadLib_vSetDdrawflag,@1")
 #pragma comment(linker, "/EXPORT:AlphaBlend=_AheadLib_AlphaBlend,@2")
@@ -18,13 +18,8 @@
 #define ALSTD EXTERNC EXPORT NAKED void __stdcall
 #define ALCFAST EXTERNC EXPORT NAKED void __fastcall
 #define ALCDECL EXTERNC NAKED void __cdecl
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 using namespace std;
-
-
-
-
 
 string script;
 
@@ -54,22 +49,12 @@ void warn(string text) {
 	message("BetterNCM 警告", text);
 }
 
-BOOL APIENTRY InstallHook()
-{
-	createBetterNCMFiles();
-
-}
-
-
-
-
 namespace AheadLib
 {
-	HMODULE m_hModule = NULL;	// ԭʼģ����
-	DWORD m_dwReturn[5] = { 0 };	// ԭʼ�������ص�ַ
+	HMODULE m_hModule = NULL;
+	DWORD m_dwReturn[5] = { 0 };
+	App* app;
 
-
-	// ����ԭʼģ��
 	inline BOOL WINAPI Load()
 	{
 		TCHAR tzPath[MAX_PATH];
@@ -87,7 +72,6 @@ namespace AheadLib
 		return (m_hModule != NULL);
 	}
 
-	// �ͷ�ԭʼģ��
 	inline VOID WINAPI Free()
 	{
 		if (m_hModule)
@@ -96,7 +80,6 @@ namespace AheadLib
 		}
 	}
 
-	// ��ȡԭʼ������ַ
 	FARPROC WINAPI GetAddress(PCSTR pszProcName)
 	{
 		FARPROC fpAddress;
@@ -108,7 +91,6 @@ namespace AheadLib
 		{
 			if (HIWORD(pszProcName) == 0)
 			{
-				//printf(szProcName, "%d", pszProcName);
 				pszProcName = szProcName;
 			}
 
@@ -121,217 +103,82 @@ namespace AheadLib
 	}
 }
 using namespace AheadLib;
-thread* servert;
 
-string read_to_string(string path) {
-	std::ifstream t(path);
-	std::stringstream buffer;
-	buffer << t.rdbuf();
-	return string(buffer.str());
-}
-
-string datapath = string(getenv("USERPROFILE")) + "\\betterncm";
-
-bool check_legal_file_path(string path) {
-	return pystring::find(path, "..") == -1;
-}
-
-// https://blog.insane.engineer/post/cpp_read_file_into_string/
-std::string file_contents(const std::filesystem::path& path)
+ALCDECL AheadLib_vSetDdrawflag(void)
 {
-	// Sanity check
-	if (!std::filesystem::is_regular_file(path))
-		return { };
+	__asm PUSH m_dwReturn[0 * TYPE long];
+	__asm CALL DWORD PTR[TlsSetValue];
 
-	// Open the file
-	// Note that we have to use binary mode as we want to return a string
-	// representing matching the bytes of the file on the file system.
-	std::ifstream file(path, std::ios::in | std::ios::binary);
-	if (!file.is_open())
-		return { };
+	GetAddress("vSetDdrawflag")();
 
-	// Read contents
-	std::string content{ std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>() };
-
-	// Close the file
-	file.close();
-
-	return content;
+	__asm PUSH EAX;
+	__asm PUSH m_dwReturn[0 * TYPE long];
+	__asm CALL DWORD PTR[TlsGetValue];
+	__asm XCHG EAX, [ESP];
+	__asm RET;
 }
 
-// https://stackoverflow.com/questions/51352863/what-is-the-idiomatic-c17-standard-approach-to-reading-binary-files
-std::vector<std::byte> load_file(std::string const& filepath)
+ALCDECL AheadLib_AlphaBlend(void)
 {
-	std::ifstream ifs(filepath, std::ios::binary | std::ios::ate);
+	__asm PUSH m_dwReturn[1 * TYPE long];
+	__asm CALL DWORD PTR[TlsSetValue];
 
-	if (!ifs)
-		throw std::runtime_error(filepath + ": " + std::strerror(errno));
+	GetAddress("AlphaBlend")();
 
-	auto end = ifs.tellg();
-	ifs.seekg(0, std::ios::beg);
+	__asm PUSH EAX;
+	__asm PUSH m_dwReturn[1 * TYPE long];
+	__asm CALL DWORD PTR[TlsGetValue];
+	__asm XCHG EAX, [ESP];
+	__asm RET;
+}
 
-	auto size = std::size_t(end - ifs.tellg());
+ALCDECL AheadLib_DllInitialize(void)
+{
+	__asm PUSH m_dwReturn[2 * TYPE long];
+	__asm CALL DWORD PTR[TlsSetValue];
 
-	if (size == 0) // avoid undefined behavior 
-		return {};
+	GetAddress("DllInitialize")();
 
-	std::vector<std::byte> buffer(size);
+	__asm PUSH EAX;
+	__asm PUSH m_dwReturn[2 * TYPE long];
+	__asm CALL DWORD PTR[TlsGetValue];
+	__asm XCHG EAX, [ESP];
+	__asm RET;
+}
 
-	if (!ifs.read((char*)buffer.data(), buffer.size()))
-		throw std::runtime_error(filepath + ": " + std::strerror(errno));
+ALCDECL AheadLib_GradientFill(void)
+{
+	__asm PUSH m_dwReturn[3 * TYPE long];
+	__asm CALL DWORD PTR[TlsSetValue];
 
-	return buffer;
+	GetAddress("GradientFill")();
+
+	__asm PUSH EAX;
+	__asm PUSH m_dwReturn[3 * TYPE long];
+	__asm CALL DWORD PTR[TlsGetValue];
+	__asm XCHG EAX, [ESP];
+	__asm RET;
+}
+
+ALCDECL AheadLib_TransparentBlt(void)
+{
+	__asm PUSH m_dwReturn[4 * TYPE long];
+	__asm CALL DWORD PTR[TlsSetValue];
+
+	GetAddress("TransparentBlt")();
+
+	__asm PUSH EAX;
+	__asm PUSH m_dwReturn[4 * TYPE long];
+	__asm CALL DWORD PTR[TlsGetValue];
+	__asm XCHG EAX, [ESP];
+	__asm RET;
 }
 
 BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 {
 	if (dwReason == DLL_PROCESS_ATTACH)
 	{
-		servert = new thread([=] {
-
-			httplib::Server svr;
-			svr.Get("/api/fs/read_dir", [&](const httplib::Request& req, httplib::Response& res) {
-				using namespace std;
-				namespace fs = std::filesystem;
-
-				auto path = req.get_param_value("path");
-
-				vector<string> paths;
-
-				if (check_legal_file_path(path)) {
-					for (const auto& entry : fs::directory_iterator(datapath+"/"+path))
-						paths.push_back(pystring::slice(entry.path().string(),datapath.length()));
-				}
-				else {
-					paths.push_back("Error: Access Denied");
-					res.status = 400;
-				}
-
-				res.set_content(((nlohmann::json)paths).dump(), "application/json");
-			});
-
-			svr.Get("/api/fs/read_file_text", [&](const httplib::Request& req, httplib::Response& res) {
-				using namespace std;
-				namespace fs = std::filesystem;
-
-				auto path = req.get_param_value("path");
-
-				if (check_legal_file_path(path)) {
-					res.set_content(file_contents(datapath + "/" + path), "text/plain");
-				}
-				else {
-					res.set_content("Error: Access Denied","text/plain");
-					res.status = 400;
-				}
-			});
-
-			svr.Post("/api/fs/write_file_text", [&](const httplib::Request& req, httplib::Response& res) {
-				using namespace std;
-				namespace fs = std::filesystem;
-
-				auto path = req.get_param_value("path");
-
-				if (check_legal_file_path(path)) {
-					ofstream file;
-					file.open(datapath + "/" + path);
-					file << req.body;
-					file.close();
-					res.status = 200;
-				}
-				else {
-					res.set_content("Error: Access Denied", "text/plain");
-					res.status = 400;
-				}
-			});
-
-			svr.set_mount_point("/local", datapath);
-
-			//svr.Get("/read_file", [&](const httplib::Request& req, httplib::Response& res) {
-			//	string filename = req.get_param_value("filename");
-			//	if (filename.find_first_of("..") != string::npos) {
-			//		res.status = 502;
-			//		res.set_content("Bad request","");
-			//	}
-			//	res.set_content(read_to_string(datapath + "/" + filename), "application/json");
-			//}); 
-
-
-			//
-			//svr.Get("/explorer", [&](const httplib::Request& req, httplib::Response& res) {
-			//	auto command = string("cmd /c explorer.exe \"") + datapath + "\"";
-			//	system(command.c_str());
-			//	res.set_content(command,"");
-			//});
-			svr.listen("0.0.0.0", 3248);
-			});
-
-		script = R"(
-if(!window["__BETTERNCM___"]){
-window["__BETTERNCM___"]=true
-
-var addons;
-var reloadInject = {}
-function main() {
-    fetch("http://localhost:3248/addons").then(function (resp) { return resp.text() }).then(function (resp1) {
-        addons = JSON.parse(resp1);
-        setInterval(function () {
-            for (var x = 0; x < addons.length; x++) {
-                var addon = addons[x];
-                if(addon.enabled)
-                if (addon.devMode) {
-                    fetch("http://localhost:3248/read_file?filename=" + addon.file)
-                        .then(function (resp_2856) { return resp_2856.text() })
-                        .then(function (resp2) {
-                            if (reloadInject[addon.file] && resp2 != reloadInject[addon.file]) {
-                                document.location.reload()
-                            }
-                        })
-                }
-            }
-        }, 1000);
-        for (var x = 0; x < addons.length; x++) {
-            var addon = addons[x];
-            if(addon.enabled)
-            fetch("http://localhost:3248/read_file?filename=" + addon.file)
-                .then(function (resp) { return resp.text() })
-                .then(function (resp) {
-                    reloadInject[addon.file] = resp
-                    var script = document.createElement("script");
-                    script.innerHTML = resp;
-                    document.body.appendChild(script);
-                })
-		
-        }
-fetch("http://localhost:3248/injectsucceeded")
-    });
-}
-setTimeout(function(){main()},1000)
-}
-)";
-
-		EasyCEFHooks::onKeyEvent = [](auto client, auto browser, auto event) {
-			if (event->type == KEYEVENT_KEYUP && event->windows_key_code == 123) {
-
-
-				auto cef_browser_host = browser->get_host(browser);
-				CefWindowInfo windowInfo{};
-				CefBrowserSettings settings{};
-				CefPoint point{};
-				windowInfo.SetAsPopup(NULL, "EasyCEFInject DevTools");
-
-				cef_browser_host->show_dev_tools(cef_browser_host, &windowInfo, client, &settings, &point);
-			}
-		};
-
-		EasyCEFHooks::onLoadStart = [](_cef_browser_t* browser, _cef_frame_t* frame, auto transition_type) {
-			if (frame->is_main(frame) && frame->is_valid(frame)) {
-				wstring url = frame->get_url(frame)->str;
-				EasyCEFHooks::executeJavaScript(frame, string("console.log('yeeeeeee ") + ws2s(url) + "')");
-			}
-		};
-
-		EasyCEFHooks::InstallHooks();
-
+		app = new App();
 		DisableThreadLibraryCalls(hModule);
 
 		for (INT i = 0; i < sizeof(m_dwReturn) / sizeof(DWORD); i++)
@@ -343,120 +190,13 @@ setTimeout(function(){main()},1000)
 	}
 	else if (dwReason == DLL_PROCESS_DETACH)
 	{
-
+		delete app;
 		for (INT i = 0; i < sizeof(m_dwReturn) / sizeof(DWORD); i++)
 		{
 			TlsFree(m_dwReturn[i]);
 		}
 
 		Free();
-		EasyCEFHooks::UninstallHook();
 	}
-
 	return TRUE;
-}
-
-ALCDECL AheadLib_vSetDdrawflag(void)
-{
-	// ���淵�ص�ַ�� TLS
-	__asm PUSH m_dwReturn[0 * TYPE long];
-	__asm CALL DWORD PTR[TlsSetValue];
-
-	// ����ԭʼ����
-	GetAddress("vSetDdrawflag")();
-
-	// ��ȡ���ص�ַ������
-	__asm PUSH EAX;
-	__asm PUSH m_dwReturn[0 * TYPE long];
-	__asm CALL DWORD PTR[TlsGetValue];
-	__asm XCHG EAX, [ESP];
-	__asm RET;
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// ��������
-ALCDECL AheadLib_AlphaBlend(void)
-{
-	// ���淵�ص�ַ�� TLS
-	__asm PUSH m_dwReturn[1 * TYPE long];
-	__asm CALL DWORD PTR[TlsSetValue];
-
-	// ����ԭʼ����
-	GetAddress("AlphaBlend")();
-
-	// ��ȡ���ص�ַ������
-	__asm PUSH EAX;
-	__asm PUSH m_dwReturn[1 * TYPE long];
-	__asm CALL DWORD PTR[TlsGetValue];
-	__asm XCHG EAX, [ESP];
-	__asm RET;
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// ��������
-ALCDECL AheadLib_DllInitialize(void)
-{
-	// ���淵�ص�ַ�� TLS
-	__asm PUSH m_dwReturn[2 * TYPE long];
-	__asm CALL DWORD PTR[TlsSetValue];
-
-	// ����ԭʼ����
-	GetAddress("DllInitialize")();
-
-	// ��ȡ���ص�ַ������
-	__asm PUSH EAX;
-	__asm PUSH m_dwReturn[2 * TYPE long];
-	__asm CALL DWORD PTR[TlsGetValue];
-	__asm XCHG EAX, [ESP];
-	__asm RET;
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// ��������
-ALCDECL AheadLib_GradientFill(void)
-{
-	// ���淵�ص�ַ�� TLS
-	__asm PUSH m_dwReturn[3 * TYPE long];
-	__asm CALL DWORD PTR[TlsSetValue];
-
-	// ����ԭʼ����
-	GetAddress("GradientFill")();
-
-	// ��ȡ���ص�ַ������
-	__asm PUSH EAX;
-	__asm PUSH m_dwReturn[3 * TYPE long];
-	__asm CALL DWORD PTR[TlsGetValue];
-	__asm XCHG EAX, [ESP];
-	__asm RET;
-}
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
-
-
-////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-// ��������
-ALCDECL AheadLib_TransparentBlt(void)
-{
-	// ���淵�ص�ַ�� TLS
-	__asm PUSH m_dwReturn[4 * TYPE long];
-	__asm CALL DWORD PTR[TlsSetValue];
-
-	// ����ԭʼ����
-	GetAddress("TransparentBlt")();
-
-	// ��ȡ���ص�ַ������
-	__asm PUSH EAX;
-	__asm PUSH m_dwReturn[4 * TYPE long];
-	__asm CALL DWORD PTR[TlsGetValue];
-	__asm XCHG EAX, [ESP];
-	__asm RET;
 }

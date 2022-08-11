@@ -117,13 +117,13 @@
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>libcef.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>taskkill /f /im cloudmusic.exe&gt;nul
+      <Command>taskkill /f /im cloudmusic.exe &gt; nul
 
 ping localhost -n 2
-copy "$(TargetDir)EasyCefInject.dll" "C:\Program Files (x86)\Netease\CloudMusic\msimg32.dll" /y</Command>
+copy "$(TargetDir)BetterNCMII.dll" "C:\Program Files (x86)\Netease\CloudMusic\msimg32.dll" /y</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -161,100 +161,16 @@ copy "$(TargetDir)EasyCefInject.dll" "C:\Program Files (x86)\Netease\CloudMusic\
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="json.hpp" />
+    <ClInclude Include="src\App.h" />
     <ClInclude Include="src\createfiles.h" />
     <ClInclude Include="src\EasyCEFHooks.h" />
     <ClInclude Include="src\framework.h" />
-    <ClInclude Include="src\include\cef_accessibility_handler.h" />
-    <ClInclude Include="src\include\cef_api_hash.h" />
-    <ClInclude Include="src\include\cef_app.h" />
-    <ClInclude Include="src\include\cef_audio_handler.h" />
-    <ClInclude Include="src\include\cef_auth_callback.h" />
-    <ClInclude Include="src\include\cef_base.h" />
-    <ClInclude Include="src\include\cef_browser.h" />
-    <ClInclude Include="src\include\cef_browser_process_handler.h" />
-    <ClInclude Include="src\include\cef_callback.h" />
-    <ClInclude Include="src\include\cef_client.h" />
-    <ClInclude Include="src\include\cef_command_line.h" />
-    <ClInclude Include="src\include\cef_config.h" />
-    <ClInclude Include="src\include\cef_context_menu_handler.h" />
-    <ClInclude Include="src\include\cef_cookie.h" />
-    <ClInclude Include="src\include\cef_crash_util.h" />
-    <ClInclude Include="src\include\cef_devtools_message_observer.h" />
-    <ClInclude Include="src\include\cef_dialog_handler.h" />
-    <ClInclude Include="src\include\cef_display_handler.h" />
-    <ClInclude Include="src\include\cef_dom.h" />
-    <ClInclude Include="src\include\cef_download_handler.h" />
-    <ClInclude Include="src\include\cef_download_item.h" />
-    <ClInclude Include="src\include\cef_drag_data.h" />
-    <ClInclude Include="src\include\cef_drag_handler.h" />
-    <ClInclude Include="src\include\cef_extension.h" />
-    <ClInclude Include="src\include\cef_extension_handler.h" />
-    <ClInclude Include="src\include\cef_file_util.h" />
-    <ClInclude Include="src\include\cef_find_handler.h" />
-    <ClInclude Include="src\include\cef_focus_handler.h" />
-    <ClInclude Include="src\include\cef_frame.h" />
-    <ClInclude Include="src\include\cef_image.h" />
-    <ClInclude Include="src\include\cef_jsdialog_handler.h" />
-    <ClInclude Include="src\include\cef_keyboard_handler.h" />
-    <ClInclude Include="src\include\cef_life_span_handler.h" />
-    <ClInclude Include="src\include\cef_load_handler.h" />
-    <ClInclude Include="src\include\cef_media_router.h" />
-    <ClInclude Include="src\include\cef_menu_model.h" />
-    <ClInclude Include="src\include\cef_menu_model_delegate.h" />
-    <ClInclude Include="src\include\cef_navigation_entry.h" />
-    <ClInclude Include="src\include\cef_origin_whitelist.h" />
-    <ClInclude Include="src\include\cef_pack_resources.h" />
-    <ClInclude Include="src\include\cef_pack_strings.h" />
-    <ClInclude Include="src\include\cef_parser.h" />
-    <ClInclude Include="src\include\cef_path_util.h" />
-    <ClInclude Include="src\include\cef_print_handler.h" />
-    <ClInclude Include="src\include\cef_print_settings.h" />
-    <ClInclude Include="src\include\cef_process_message.h" />
-    <ClInclude Include="src\include\cef_process_util.h" />
-    <ClInclude Include="src\include\cef_registration.h" />
-    <ClInclude Include="src\include\cef_render_handler.h" />
-    <ClInclude Include="src\include\cef_render_process_handler.h" />
-    <ClInclude Include="src\include\cef_request.h" />
-    <ClInclude Include="src\include\cef_request_callback.h" />
-    <ClInclude Include="src\include\cef_request_context.h" />
-    <ClInclude Include="src\include\cef_request_context_handler.h" />
-    <ClInclude Include="src\include\cef_request_handler.h" />
-    <ClInclude Include="src\include\cef_resource_bundle.h" />
-    <ClInclude Include="src\include\cef_resource_bundle_handler.h" />
-    <ClInclude Include="src\include\cef_resource_handler.h" />
-    <ClInclude Include="src\include\cef_resource_request_handler.h" />
-    <ClInclude Include="src\include\cef_response.h" />
-    <ClInclude Include="src\include\cef_response_filter.h" />
-    <ClInclude Include="src\include\cef_sandbox_win.h" />
-    <ClInclude Include="src\include\cef_scheme.h" />
-    <ClInclude Include="src\include\cef_server.h" />
-    <ClInclude Include="src\include\cef_ssl_info.h" />
-    <ClInclude Include="src\include\cef_ssl_status.h" />
-    <ClInclude Include="src\include\cef_stream.h" />
-    <ClInclude Include="src\include\cef_string_visitor.h" />
-    <ClInclude Include="src\include\cef_task.h" />
-    <ClInclude Include="src\include\cef_thread.h" />
-    <ClInclude Include="src\include\cef_trace.h" />
-    <ClInclude Include="src\include\cef_urlrequest.h" />
-    <ClInclude Include="src\include\cef_v8.h" />
-    <ClInclude Include="src\include\cef_values.h" />
-    <ClInclude Include="src\include\cef_version.h" />
-    <ClInclude Include="src\include\cef_waitable_event.h" />
-    <ClInclude Include="src\include\cef_web_plugin.h" />
-    <ClInclude Include="src\include\cef_x509_certificate.h" />
-    <ClInclude Include="src\include\cef_xml_reader.h" />
-    <ClInclude Include="src\include\cef_zip_reader.h" />
     <ClInclude Include="src\pch.h" />
-    <ClInclude Include="src\timercpp.h" />
+    <ClInclude Include="src\utils.cpp" />
+    <ClInclude Include="src\utils.h" />
   </ItemGroup>
   <ItemGroup>
-    <Library Include="C:\PATH\vcpkg\installed\x86-windows\lib\workflow.lib" />
-    <Library Include="libcef.lib" />
-    <Library Include="src\libcef.lib" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="src\createfiles.cpp" />
+    <ClCompile Include="src\App.cpp" />
     <ClCompile Include="src\dllmain.cpp" />
     <ClCompile Include="src\EasyCEFHooks.cpp" />
     <ClCompile Include="src\pch.cpp" />

@@ -15,278 +15,29 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="json.hpp">
-      <Filter>头文件</Filter>
-    </ClInclude>
     <ClInclude Include="src\createfiles.h">
-      <Filter>源文件</Filter>
+      <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="src\EasyCEFHooks.h">
-      <Filter>源文件</Filter>
+      <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="src\framework.h">
-      <Filter>源文件</Filter>
+      <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="src\pch.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils.cpp">
       <Filter>源文件</Filter>
     </ClInclude>
-    <ClInclude Include="src\timercpp.h">
-      <Filter>源文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_accessibility_handler.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_api_hash.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_app.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_audio_handler.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_auth_callback.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_base.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_browser.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_browser_process_handler.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_callback.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_client.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_command_line.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_config.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_context_menu_handler.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_cookie.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_crash_util.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_devtools_message_observer.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_dialog_handler.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_display_handler.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_dom.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_download_handler.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_download_item.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_drag_data.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_drag_handler.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_extension.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_extension_handler.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_file_util.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_find_handler.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_focus_handler.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_frame.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_image.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_jsdialog_handler.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_keyboard_handler.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_life_span_handler.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_load_handler.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_media_router.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_menu_model.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_menu_model_delegate.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_navigation_entry.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_origin_whitelist.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_pack_resources.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_pack_strings.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_parser.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_path_util.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_print_handler.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_print_settings.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_process_message.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_process_util.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_registration.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_render_handler.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_render_process_handler.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_request.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_request_callback.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_request_context.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_request_context_handler.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_request_handler.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_resource_bundle.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_resource_bundle_handler.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_resource_handler.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_resource_request_handler.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_response.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_response_filter.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_sandbox_win.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_scheme.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_server.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_ssl_info.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_ssl_status.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_stream.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_string_visitor.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_task.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_thread.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_trace.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_urlrequest.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_v8.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_values.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_version.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_waitable_event.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_web_plugin.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_x509_certificate.h">
-      <Filter>头文件</Filter>
-    </ClInclude>
-    <ClInclude Include="src\include\cef_xml_reader.h">
+    <ClInclude Include="src\utils.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="src\include\cef_zip_reader.h">
+    <ClInclude Include="src\App.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Library Include="libcef.lib" />
-    <Library Include="C:\PATH\vcpkg\installed\x86-windows\lib\workflow.lib">
-      <Filter>源文件</Filter>
-    </Library>
-    <Library Include="src\libcef.lib">
-      <Filter>源文件</Filter>
-    </Library>
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="src\createfiles.cpp">
-      <Filter>源文件</Filter>
-    </ClCompile>
     <ClCompile Include="src\dllmain.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
@@ -294,6 +45,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="src\pch.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\App.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
