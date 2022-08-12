@@ -3,7 +3,9 @@
 #include "include/cef_v8.h"
 #include "include/cef_app.h"
 #include "include/cef_browser.h"
+#include "pystring/pystring.h"
 #include "include/capi/cef_client_capi.h"
+#include "include/capi/cef_app_capi.h"
 #include "include/internal/cef_export.h"
 #include "include/capi/cef_v8_capi.h"
 #include <string>
@@ -17,12 +19,14 @@ class EasyCEFHooks
 
 	static struct _cef_client_t* cef_client;
 	static PVOID origin_cef_browser_host_create_browser;
+	static PVOID origin_cef_initialize;
 	static PVOID origin_cef_get_keyboard_handler;
 	static PVOID origin_cef_load_handler;
 	static PVOID origin_cef_on_load_start;
 	static PVOID origin_cef_on_key_event;
 	static PVOID origin_cef_v8context_get_current_context;
-
+	static PVOID origin_on_before_command_line_processing;
+	static PVOID origin_command_line_append_switch;
 
 	static cef_v8context_t* hook_cef_v8context_get_current_context();
 
@@ -45,11 +49,22 @@ class EasyCEFHooks
 		const struct _cef_browser_settings_t* settings,
 		struct _cef_request_context_t* request_context);
 
+	static int hook_cef_initialize(const struct _cef_main_args_t* args,
+		const struct _cef_settings_t* settings,
+		cef_app_t* application,
+		void* windows_sandbox_info);
+
+	static void CEF_CALLBACK hook_on_before_command_line_processing(
+		struct _cef_app_t* self,
+		const cef_string_t* process_type,
+		struct _cef_command_line_t* command_line);
+
+	static void CEF_CALLBACK hook_command_line_append_switch(_cef_command_line_t* self, const cef_string_t* name);
 public:
 	static bool InstallHooks();
 	static bool UninstallHook();
 	static void executeJavaScript(_cef_frame_t* frame, string script, string url = "libeasycef/injext.js");
 	static std::function<void(_cef_client_t*, struct _cef_browser_t*, const struct _cef_key_event_t*)> onKeyEvent;
-	static std::function<void(struct _cef_browser_t* browser,struct _cef_frame_t* frame,cef_transition_type_t transition_type)> onLoadStart;
+	static std::function<void(struct _cef_browser_t* browser, struct _cef_frame_t* frame, cef_transition_type_t transition_type)> onLoadStart;
 };
 
