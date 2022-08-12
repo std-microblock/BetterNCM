@@ -38,6 +38,12 @@ const betterncm={
         },
         async getDataPath(){
             return await(await fetch(BETTERNCM_API_PATH+"/app/datapath")).text() 
+        },
+        async readConfig(key,def){
+            return await(await fetch(BETTERNCM_API_PATH+"/app/read_config?key="+key+"&default="+def)).text() 
+        },
+        async writeConfig(key,value){
+            return await(await fetch(BETTERNCM_API_PATH+"/app/read_config?key="+key+"&value="+value)).text() 
         }
     },ncm:{
         findNativeFunction(obj, identifiers) {
@@ -176,7 +182,10 @@ function dom(tag, settings, ...children) {
     return tmp
 }
 
+
+
 betterncm.utils.waitForElement(".g-mn-set").then(async (settingsDom) => {
+	let gpuRender = (await betterncm.app.readConfig("forceGPURender", "true") == "true");
     settingsDom.prepend(
         dom("div", { style: { marginLeft: "30px" } },
             dom("div", { style: { display: "flex", flexDirection: "column", alignItems: "center" } },
@@ -184,7 +193,13 @@ betterncm.utils.waitForElement(".g-mn-set").then(async (settingsDom) => {
                 dom("div", { innerText: "BetterNCM II", style: { fontSize: "20px", fontWeight: "700" } }),
                 dom("div", { innerText: "v" + await betterncm.app.getBetterNCMVersion() }),
                 dom("div", {},
-                    dom("a", { class: ["u-ibtn5", "u-ibtnsz8"], innerText: "Open Folder", onclick: async () => { await betterncm.app.exec(`explorer "${await betterncm.app.getDataPath()}"`) }, style: { margin: "10px" } }),
+                    dom("a", { class: ["u-ibtn5", "u-ibtnsz8"], innerText: "Open Folder", onclick: async () => { await betterncm.app.exec(`explorer "${await betterncm.app.getDataPath()}"`) }, style: { margin: "5px" } }), dom("a", {
+                        class: ["u-ibtn5", "u-ibtnsz8"], innerText: `GPU Render [${gpuRender ? "=" : " "}]`, onclick: async (e) => {
+                            gpuRender = !gpuRender;
+                            await betterncm.app.writeConfig("forceGPURender", gpuRender.toString());
+                            e.target.innerText = `GPU Render [${gpuRender ? "=" : "_"}] \n(Take effect after restart)`
+                        }, style: { margin: "5px" }
+                    })
                 )
             )
         ))
@@ -203,6 +218,22 @@ std::wstring s2ws(const std::string& s, bool isUtf8 = true)
 	return buf;
 }
 
+string App::readConfig(const string& key, const string& def) {
+	auto configPath = utils.datapath + "/config.json";
+	if (!fs::exists(configPath))utils.write_file_text(configPath, "{}");
+	auto json = nlohmann::json::parse(utils.read_to_string(configPath));
+	if (!(json[key].is_string()))json[key] = def;
+	utils.write_file_text(configPath, json.dump());
+	return json[key];
+}
+
+void App::writeConfig(const string& key, const string& val) {
+	auto configPath = utils.datapath + "/config.json";
+	if (!fs::exists(configPath))utils.write_file_text(configPath, "{}");
+	auto json = nlohmann::json::parse(utils.read_to_string(configPath));
+	json[key] = val;
+	utils.write_file_text(configPath, json.dump());
+}
 
 std::thread* App::create_server() {
 	return new std::thread([=] {
@@ -280,10 +311,8 @@ std::thread* App::create_server() {
 			auto path = req.get_param_value("path");
 
 			if (utils.check_legal_file_path(path)) {
-				ofstream file;
-				file.open(utils.datapath + "/" + path);
-				file << req.body;
-				file.close();
+				utils.write_file_text(utils.datapath + "/" + path, req.body);
+
 				res.status = 200;
 			}
 			else {
@@ -355,6 +384,14 @@ std::thread* App::create_server() {
 			res.set_content(version, "text/plain");
 			});
 
+		svr.Get("/api/app/read_config", [&](const httplib::Request& req, httplib::Response& res) {
+			res.set_content(readConfig(req.get_param_value("key"), req.get_param_value("default")), "text/plain");
+			});
+
+		svr.Get("/api/app/write_config", [&](const httplib::Request& req, httplib::Response& res) {
+			res.set_content(readConfig(req.get_param_value("key"), req.get_param_value("value")), "text/plain");
+			});
+
 		svr.set_mount_point("/local", utils.datapath);
 
 		svr.listen("0.0.0.0", 3248);
@@ -385,6 +422,13 @@ App::App() {
 			EasyCEFHooks::executeJavaScript(frame, loader_script);
 			EasyCEFHooks::executeJavaScript(frame, plugin_manager_script);
 		}
+	};
+
+	bool forceGPURender = readConfig("forceGPURender", "true") == "true";
+
+	EasyCEFHooks::onAddCommandLine = [&](string arg) {
+		if (forceGPURender)return pystring::index(arg, "gpu") == -1;
+		return true;
 	};
 
 	EasyCEFHooks::InstallHooks();

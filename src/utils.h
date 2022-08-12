@@ -12,6 +12,7 @@ public:
 	string datapath = string(getenv("USERPROFILE")) + "\\betterncm";
 
 	bool check_legal_file_path(const string& path);
+	void write_file_text(const string& path, const string& text);
 } utils;
 
 string Utils::read_to_string(const string& path) {
@@ -23,4 +24,11 @@ string Utils::read_to_string(const string& path) {
 
 bool Utils::check_legal_file_path(const string& path) {
 	return pystring::find(path, "..") == -1;
+}
+
+void Utils::write_file_text(const string& path, const string& text) {
+	ofstream file;
+	file.open(path);
+	file << text;
+	file.close();
 }

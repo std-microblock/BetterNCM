@@ -66,5 +66,6 @@ public:
 	static void executeJavaScript(_cef_frame_t* frame, string script, string url = "libeasycef/injext.js");
 	static std::function<void(_cef_client_t*, struct _cef_browser_t*, const struct _cef_key_event_t*)> onKeyEvent;
 	static std::function<void(struct _cef_browser_t* browser, struct _cef_frame_t* frame, cef_transition_type_t transition_type)> onLoadStart;
+	static std::function<bool(string)> onAddCommandLine;
 };
 

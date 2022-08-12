@@ -20,7 +20,7 @@ PVOID EasyCEFHooks::origin_command_line_append_switch = NULL;
 
 std::function<void(struct _cef_browser_t* browser, struct _cef_frame_t* frame, cef_transition_type_t transition_type)> EasyCEFHooks::onLoadStart = [](auto browser, auto frame, auto transition_type) {};
 std::function<void(_cef_client_t*, struct _cef_browser_t*, const struct _cef_key_event_t*)> EasyCEFHooks::onKeyEvent = [](auto client, auto browser, auto key) {};
-
+std::function<bool(string)> EasyCEFHooks::onAddCommandLine = [](string arg) { return true;  };
 void EasyCEFHooks::executeJavaScript(_cef_frame_t* frame, string script, string url) {
 	CefString exec_script = script;
 	CefString purl = url;
@@ -127,7 +127,7 @@ void CEF_CALLBACK EasyCEFHooks::hook_on_before_command_line_processing(
 }
 
 void CEF_CALLBACK EasyCEFHooks::hook_command_line_append_switch(_cef_command_line_t* self, const cef_string_t* name) {
-	if (pystring::index(CefString(name).ToString(), "gpu") == -1) {
+	if (onAddCommandLine(CefString(name).ToString())) {
 		CAST_TO(origin_command_line_append_switch, hook_command_line_append_switch)(self, name);
 	}
 }
