@@ -3,11 +3,15 @@
 #include "utils.h"
 #include "shellapi.h"
 #include "App.h"
+#include <Windows.h>
+#define WIN32_LEAN_AND_MEAN 
+
 namespace fs = std::filesystem;
 
 const string version = "0.2.0";
 const string api_script = R"(
 const BETTERNCM_API_PATH="http://localhost:3248/api"
+const BETTERNCM_FILES_PATH="http://localhost:3248/local"
 
 const betterncm={
     fs:{
@@ -19,6 +23,14 @@ const betterncm={
         },
         async writeFileText(path,content){
            return await(await fetch(BETTERNCM_API_PATH+"/fs/write_file_text?path="+encodeURIComponent(path),{method:"POST",body:content})).text() 
+        },
+		async writeFile(path,file){
+			let fd=new FormData()
+			fd.append("file",file)
+			await fetch(BETTERNCM_API_PATH+"/fs/write_file?path="+encodeURIComponent(path), {
+				  method: 'POST',
+				  body: fd
+			});
         },
         async mkdir(path){
            return await(await fetch(BETTERNCM_API_PATH+"/fs/mkdir?path="+encodeURIComponent(path))).text() 
@@ -88,70 +100,78 @@ const betterncm={
 )";
 
 const string loader_script = R"(
-async function loadPlugins(){
-    const loadedPlugins={}   
+async function loadPlugins() {
+    const loadedPlugins = {}
 
-    const AsyncFunction = (async function () {}).constructor;
-    const PageMap={
-        "/pub/app.html":"Main"
+    const AsyncFunction = (async function () { }).constructor;
+    const PageMap = {
+        "/pub/app.html": "Main"
     }
-    const PageName=PageMap[location.pathname]
+    const PageName = PageMap[location.pathname]
 
-    async function loadPlugin(pluginPath,devMode=false){
-        async function loadInject(filePath,devMode,manifest){
-            let code=await betterncm.fs.readFileText(filePath)
-            if(devMode){
-                setInterval(async ()=>{
-                    if(code!==(await betterncm.fs.readFileText(filePath)))document.location.reload()
-                },300)
+    async function loadPlugin(pluginPath, devMode = false) {
+        async function loadInject(filePath, devMode, manifest) {
+            let code = await betterncm.fs.readFileText(filePath)
+            if (devMode) {
+                setInterval(async () => {
+                    if (code !== (await betterncm.fs.readFileText(filePath))) document.location.reload()
+                }, 300)
             }
 
-             if(filePath.endsWith('.js')){
-                let plugin={
-                    onLoad(fn){this._load=fn},
-                    onConfig(fn){this._config=fn},
-                    onAllPluginsLoaded(fn){this._allLoaded=fn},
-                    getConfig(fn){},
+            if (filePath.endsWith('.js')) {
+                let plugin = {
+                    onLoad(fn) { this._load = fn },
+                    onConfig(fn) { this._config = fn },
+                    onAllPluginsLoaded(fn) { this._allLoaded = fn },
+                    getConfig(configKey, defaul) {
+                        let config = JSON.parse(localStorage["config.betterncm." + manifest.name] || "{}");
+                        return config[configKey] || defaul;
+                    },
+                    setConfig(configKey, value) {
+                        let config = JSON.parse(localStorage["config.betterncm." + manifest.name] || "{}");
+                        config[configKey] = value;
+                        localStorage["config.betterncm." + manifest.name] = JSON.stringify(config)
+                    },
                     pluginPath
                 }
-                new AsyncFunction("plugin",code).call(loadedPlugins[manifest.name],plugin)
-                await plugin._load?.call(loadedPlugins[manifest.name],plugin)
+                new AsyncFunction("plugin", code).call(loadedPlugins[manifest.name], plugin)
+                await plugin._load?.call(loadedPlugins[manifest.name], plugin)
                 loadedPlugins[manifest.name].injects.push(plugin);
-             }
+            }
         }
-        let manifest=JSON.parse(await betterncm.fs.readFileText(pluginPath+"/manifest.json"));    
+        let manifest = JSON.parse(await betterncm.fs.readFileText(pluginPath + "/manifest.json"));
 
-        loadedPlugins[manifest.name] = { manifest, finished:false, injects:[] }
+        loadedPlugins[manifest.name] = { manifest, finished: false, injects: [] }
 
         // Load Injects
-        let promises=[]
-        if(manifest.injects[PageName]){
-            for(let inject of manifest.injects[PageName]){
-                promises.push(loadInject(pluginPath+"/"+inject.file,devMode,manifest));
+        let promises = []
+        if (manifest.injects[PageName]) {
+            for (let inject of manifest.injects[PageName]) {
+                promises.push(loadInject(pluginPath + "/" + inject.file, devMode, manifest));
             }
         }
 
         await Promise.all(promises)
     }
 
-    let loadingPromises=[]
+    let loadingPromises = []
 
-    let pluginPaths=await betterncm.fs.readDir("./plugins_runtime");
-    for(let path of pluginPaths){
-        loadingPromises.push(loadPlugin(path).then(_=>_).catch(e=>{throw Error(`Failed to load plugin ${path}: ${e.toString()}`)}));
+    let pluginPaths = await betterncm.fs.readDir("./plugins_runtime");
+    for (let path of pluginPaths) {
+        loadingPromises.push(loadPlugin(path).then(_ => _).catch(e => { throw Error(`Failed to load plugin ${path}: ${e.toString()}`) }));
     }
 
-    if(await betterncm.fs.exists("./plugins_dev")){
-        let devPluginPaths=await betterncm.fs.readDir("./plugins_dev");
-        for(let path of devPluginPaths){
-            loadingPromises.push(loadPlugin(path, true).then(_=>_).catch(e=>{console.error(`Failed to load dev plugin ${path}: ${e.toString()}`)}));
+    if (await betterncm.fs.exists("./plugins_dev")) {
+        let devPluginPaths = await betterncm.fs.readDir("./plugins_dev");
+        for (let path of devPluginPaths) {
+            loadingPromises.push(loadPlugin(path, true).then(_ => _).catch(e => { console.error(`Failed to load dev plugin ${path}: ${e.toString()}`) }));
         }
     }
 
 
     await Promise.all(loadingPromises)
-    window.loadedPlugins=loadedPlugins
-    for(let name in loadedPlugins)loadedPlugins[name].injects.forEach(v=>v._allLoaded?.call(v, loadedPlugins))
+    window.loadedPlugins = loadedPlugins
+    for (let name in loadedPlugins) loadedPlugins[name].injects.forEach(v => v._allLoaded?.call(v, loadedPlugins))
 }
 
 loadPlugins()
@@ -180,7 +200,8 @@ function dom(tag, settings, ...children) {
     }
 
     for (let child of children) {
-        tmp.appendChild(child)
+		if(child)
+			tmp.appendChild(child)
     }
     return tmp
 }
@@ -194,12 +215,31 @@ betterncm.utils.waitForElement(".g-mn-set").then(async (settingsDom) => {
                 dom("img", { src: "https://s1.ax1x.com/2022/08/11/vGlJN8.png", style: { width: "60px" } }),
                 dom("div", { innerText: "BetterNCM II", style: { fontSize: "20px", fontWeight: "700" } }),
                 dom("div", { innerText: "v" + await betterncm.app.getBetterNCMVersion() }),
-                dom("div", { style:{ marginBottom:"20px" } },
+                dom("div", { style: { marginBottom: "20px" } },
                     dom("a", { class: ["u-ibtn5", "u-ibtnsz8"], innerText: "Open Folder", onclick: async () => { await betterncm.app.exec(`explorer "${await betterncm.app.getDataPath()}"`) }, style: { margin: "5px" } })
                 )
             ),
-            dom("div", { class:["BetterNCM-Plugin-Configs"] })
+            dom("div", { class: ["BetterNCM-Plugin-Configs"] })
         ))
+
+    await betterncm.utils.waitForFunction(() => window.loadedPlugins)
+
+    const tools = {
+        makeBtn(text, onclick, smaller = false, args={}) {
+            return dom("a", { class: ["u-ibtn5", smaller && "u-ibtnsz8"], innerText: text, onclick, ...args })
+        },
+        makeCheckbox(args={}) {
+            return dom("input", { type: "checkbox", ...args })
+        },
+        makeInput(value, args={}) {
+            return dom("input", { value, class: ["u-txt", "sc-flag"] , ...args})
+        }
+    }
+
+    for (let name in loadedPlugins){
+		document.querySelector(".BetterNCM-Plugin-Configs").appendChild(dom("div",{innerText:name,style:{fontSize:"18px",fontWeight:600}}))
+		document.querySelector(".BetterNCM-Plugin-Configs").appendChild(dom("div",{ style:{padding:"7px"} },loadedPlugins[name].injects[0]._config?.call(loadedPlugins[name], tools)))
+	}
 })
 )";
 
@@ -309,6 +349,25 @@ std::thread* App::create_server() {
 
 			if (utils.check_legal_file_path(path)) {
 				utils.write_file_text(utils.datapath + "/" + path, req.body);
+
+				res.status = 200;
+			}
+			else {
+				res.set_content("Error: Access Denied", "text/plain");
+				res.status = 400;
+			}
+			});
+
+		svr.Post("/api/fs/write_file", [&](const httplib::Request& req, httplib::Response& res) {
+			using namespace std;
+			namespace fs = std::filesystem;
+
+			auto path = req.get_param_value("path");
+
+			if (utils.check_legal_file_path(path)) {
+				auto file = req.get_file_value("file");
+				ofstream ofs(utils.datapath + "/" + path, ios::binary);
+				ofs << file.content;
 
 				res.status = 200;
 			}
