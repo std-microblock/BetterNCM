@@ -43,7 +43,7 @@ const betterncm={
             return await(await fetch(BETTERNCM_API_PATH+"/app/read_config?key="+key+"&default="+def)).text() 
         },
         async writeConfig(key,value){
-            return await(await fetch(BETTERNCM_API_PATH+"/app/read_config?key="+key+"&value="+value)).text() 
+            return await(await fetch(BETTERNCM_API_PATH+"/app/write_config?key="+key+"&value="+value)).text() 
         }
     },ncm:{
         findNativeFunction(obj, identifiers) {
