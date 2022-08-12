@@ -69,11 +69,14 @@ const betterncm={
     },
 	utils:{
 		waitForElement(selector,interval=100){
+			return betterncm.utils.waitForFunction(()=>document.querySelector(selector));
+		},waitForFunction(func,interval=100){
 			return new Promise((rs)=>{
 				let handle=setInterval(()=>{
-					if(document.querySelector(selector)){
+					let result=func();
+					if(result){
 						clearInterval(handle);
-						rs(document.querySelector(selector))
+						rs(result)
 					}
 				},interval)
 			})
@@ -185,23 +188,17 @@ function dom(tag, settings, ...children) {
 
 
 betterncm.utils.waitForElement(".g-mn-set").then(async (settingsDom) => {
-	let gpuRender = (await betterncm.app.readConfig("forceGPURender", "true") == "true");
     settingsDom.prepend(
         dom("div", { style: { marginLeft: "30px" } },
             dom("div", { style: { display: "flex", flexDirection: "column", alignItems: "center" } },
                 dom("img", { src: "https://s1.ax1x.com/2022/08/11/vGlJN8.png", style: { width: "60px" } }),
                 dom("div", { innerText: "BetterNCM II", style: { fontSize: "20px", fontWeight: "700" } }),
                 dom("div", { innerText: "v" + await betterncm.app.getBetterNCMVersion() }),
-                dom("div", {},
-                    dom("a", { class: ["u-ibtn5", "u-ibtnsz8"], innerText: "Open Folder", onclick: async () => { await betterncm.app.exec(`explorer "${await betterncm.app.getDataPath()}"`) }, style: { margin: "5px" } }), dom("a", {
-                        class: ["u-ibtn5", "u-ibtnsz8"], innerText: `GPU Render [${gpuRender ? "=" : " "}]`, onclick: async (e) => {
-                            gpuRender = !gpuRender;
-                            await betterncm.app.writeConfig("forceGPURender", gpuRender.toString());
-                            e.target.innerText = `GPU Render [${gpuRender ? "=" : "_"}] \n(Take effect after restart)`
-                        }, style: { margin: "5px" }
-                    })
+                dom("div", { style:{ marginBottom:"20px" } },
+                    dom("a", { class: ["u-ibtn5", "u-ibtnsz8"], innerText: "Open Folder", onclick: async () => { await betterncm.app.exec(`explorer "${await betterncm.app.getDataPath()}"`) }, style: { margin: "5px" } })
                 )
-            )
+            ),
+            dom("div", { class:["BetterNCM-Plugin-Configs"] })
         ))
 })
 )";
@@ -425,11 +422,8 @@ App::App() {
 		}
 	};
 
-	bool forceGPURender = readConfig("forceGPURender", "true") == "true";
-
 	EasyCEFHooks::onAddCommandLine = [&](string arg) {
-		if (forceGPURender)return pystring::index(arg, "gpu") == -1;
-		return true;
+		return pystring::index(arg, "gpu") == -1;
 	};
 
 	EasyCEFHooks::InstallHooks();
