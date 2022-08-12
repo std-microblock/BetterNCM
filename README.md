@@ -2,7 +2,7 @@
 <h1 align="center">BetterNCM II</h1>
 <h3 align="center">PC版网易云客户端插件管理器</h3>
 
-![Snipaste_2022-07-10_02-52-40](https://user-images.githubusercontent.com/66859419/178119152-69cde259-16a2-4f2f-a5b6-8e75c0364dba.png)
+![image](https://user-images.githubusercontent.com/66859419/184407472-b03bc162-5ab3-4126-9d1b-f73627875883.png)
 
 
 最新测试兼容版本：`2.10.3`
@@ -22,3 +22,23 @@
 
 想要添加主题/插件到主题商店的，可以联系我
 
+
+
+# V2开发进度
+- [x] JS注入
+  - [x] ScriptLoader
+  - [x] StyleLoader
+- [x] 强制GPU渲染
+- [x] 强制打开DevTools
+- [ ] 插件机制
+  - [x] 插件解压，加载
+  - [ ] 插件商城
+    - [ ] 更新提示&一键更新
+- [ ] 自检查更新&自动更新
+- [ ] 插件迁移
+  - [x] 各类主题插件
+  - [x] CSSLoader
+  - [x] 网易云精简插件 重写
+  - [ ] 操作增强
+  - [ ] 点歌姬
+- [ ] 安装器
