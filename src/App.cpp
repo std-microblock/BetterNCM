@@ -125,7 +125,8 @@ async function loadPlugins() {
                     onAllPluginsLoaded(fn) { this._allLoaded = fn },
                     getConfig(configKey, defaul) {
                         let config = JSON.parse(localStorage["config.betterncm." + manifest.name] || "{}");
-                        return config[configKey] || defaul;
+						if(config[configKey]!=undefined)return config[configKey]
+                        return defaul;
                     },
                     setConfig(configKey, value) {
                         let config = JSON.parse(localStorage["config.betterncm." + manifest.name] || "{}");
