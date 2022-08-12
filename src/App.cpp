@@ -389,7 +389,8 @@ std::thread* App::create_server() {
 			});
 
 		svr.Get("/api/app/write_config", [&](const httplib::Request& req, httplib::Response& res) {
-			res.set_content(readConfig(req.get_param_value("key"), req.get_param_value("value")), "text/plain");
+			writeConfig(req.get_param_value("key"), req.get_param_value("value"));
+			res.status = 200;
 			});
 
 		svr.set_mount_point("/local", utils.datapath);
