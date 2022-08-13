@@ -111,8 +111,6 @@ int EasyCEFHooks::hook_cef_initialize(const struct _cef_main_args_t* args,
 	application->on_before_command_line_processing = hook_on_before_command_line_processing;
 
 	s.command_line_args_disabled = true;
-	CefString ua = "lollol";
-	s.user_agent = *(ua.GetStruct());
 
 	return CAST_TO(origin_cef_initialize, hook_cef_initialize)(args, &s, application, windows_sandbox_info);
 }
