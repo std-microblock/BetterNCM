@@ -8,8 +8,8 @@
 
 namespace fs = std::filesystem;
 
-const string version = "0.2.0";
-const string api_script = R"(
+const auto version = "0.2.0";
+const auto api_script = R"(
 const BETTERNCM_API_PATH="http://localhost:3248/api"
 const BETTERNCM_FILES_PATH="http://localhost:3248/local"
 
@@ -99,7 +99,7 @@ const betterncm={
 }
 )";
 
-const string loader_script = R"(
+const auto loader_script = R"(
 async function loadPlugins() {
     const loadedPlugins = {}
 
@@ -178,7 +178,7 @@ async function loadPlugins() {
 loadPlugins()
 )";
 
-const string plugin_manager_script = R"(
+const auto plugin_manager_script = R"(
 // dom create tool
 function dom(tag, settings, ...children) {
     let tmp = document.createElement(tag);
@@ -242,6 +242,18 @@ betterncm.utils.waitForElement(".g-mn-set").then(async (settingsDom) => {
 		document.querySelector(".BetterNCM-Plugin-Configs").appendChild(dom("div",{ style:{padding:"7px"} },loadedPlugins[name].injects[0]._config?.call(loadedPlugins[name], tools)))
 	}
 })
+)";
+
+const auto list_fix_script = R"(
+betterncm.utils.waitForElement("head").then(head=>head.appendChild(dom("style",{innerHTML:`.m-plylist-pl2 ul .pl-di {
+    display: block !important;
+}
+
+.m-plylist-pl2 ul .lst {
+    padding: 0 !important;
+    counter-reset: tlistorder 0 !important;
+}
+`})));
 )";
 
 std::wstring s2ws(const std::string& s, bool isUtf8 = true)
@@ -479,11 +491,13 @@ App::App() {
 			EasyCEFHooks::executeJavaScript(frame, api_script);
 			EasyCEFHooks::executeJavaScript(frame, loader_script);
 			EasyCEFHooks::executeJavaScript(frame, plugin_manager_script);
+			EasyCEFHooks::executeJavaScript(frame, list_fix_script);
 		}
 	};
 
 	EasyCEFHooks::onAddCommandLine = [&](string arg) {
-		return pystring::index(arg, "gpu") == -1;
+		return pystring::index(arg, "disable-gpu") == -1;
+		return true;
 	};
 
 	EasyCEFHooks::InstallHooks();
