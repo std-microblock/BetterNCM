@@ -497,7 +497,6 @@ App::App() {
 
 	EasyCEFHooks::onAddCommandLine = [&](string arg) {
 		return pystring::index(arg, "disable-gpu") == -1;
-		return true;
 	};
 
 	EasyCEFHooks::InstallHooks();
