@@ -119,6 +119,10 @@ void CEF_CALLBACK EasyCEFHooks::hook_on_before_command_line_processing(
 	struct _cef_app_t* self,
 	const cef_string_t* process_type,
 	struct _cef_command_line_t* command_line) {
+
+	CefString str = "--disable-web-security";
+	command_line->append_switch(command_line, str.GetStruct());
+
 	origin_command_line_append_switch = command_line->append_switch;
 	command_line->append_switch = hook_command_line_append_switch;
 	CAST_TO(origin_on_before_command_line_processing, hook_on_before_command_line_processing)(self, process_type, command_line);

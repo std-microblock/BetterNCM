@@ -27,14 +27,14 @@
     <ClInclude Include="src\pch.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="src\utils.cpp">
-      <Filter>源文件</Filter>
-    </ClInclude>
     <ClInclude Include="src\utils.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="src\App.h">
       <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="src\resource.h">
+      <Filter>源文件</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -50,5 +50,16 @@
     <ClCompile Include="src\App.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
+    <ClCompile Include="src\utils.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="resource\PluginMarket.plugin" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="src\resource.rc">
+      <Filter>源文件</Filter>
+    </ResourceCompile>
   </ItemGroup>
 </Project>

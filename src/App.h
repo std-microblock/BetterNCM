@@ -1,5 +1,7 @@
 #pragma once
 
+#include "EasyCEFHooks.h"
+#include "shellapi.h"
 class App {
 	std::thread* server_thread;
 	thread* create_server();

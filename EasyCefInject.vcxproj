@@ -166,7 +166,7 @@ copy "$(TargetDir)BetterNCMII.dll" "C:\Program Files (x86)\Netease\CloudMusic\ms
     <ClInclude Include="src\EasyCEFHooks.h" />
     <ClInclude Include="src\framework.h" />
     <ClInclude Include="src\pch.h" />
-    <ClInclude Include="src\utils.cpp" />
+    <ClInclude Include="src\resource.h" />
     <ClInclude Include="src\utils.h" />
   </ItemGroup>
   <ItemGroup>
@@ -174,6 +174,13 @@ copy "$(TargetDir)BetterNCMII.dll" "C:\Program Files (x86)\Netease\CloudMusic\ms
     <ClCompile Include="src\dllmain.cpp" />
     <ClCompile Include="src\EasyCEFHooks.cpp" />
     <ClCompile Include="src\pch.cpp" />
+    <ClCompile Include="src\utils.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="resource\PluginMarket.plugin" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="src\resource.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

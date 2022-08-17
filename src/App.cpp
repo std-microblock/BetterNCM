@@ -1,7 +1,4 @@
 #include "pch.h"
-#include "EasyCEFHooks.h"
-#include "utils.h"
-#include "shellapi.h"
 #include "App.h"
 #include <Windows.h>
 #define WIN32_LEAN_AND_MEAN 
@@ -9,6 +6,9 @@
 namespace fs = std::filesystem;
 
 const auto version = "0.2.0";
+
+extern string datapath;
+
 const auto api_script = R"(
 const BETTERNCM_API_PATH="http://localhost:3248/api"
 const BETTERNCM_FILES_PATH="http://localhost:3248/local"
@@ -43,10 +43,13 @@ const betterncm={
         },
     },app:{
         async exec(cmd,ele=false){
-           return await(await fetch(BETTERNCM_API_PATH+"/app/exec"+(ele?"&ele=1":""),{method:"POST",body:cmd})).text() 
+           return await(await fetch(BETTERNCM_API_PATH+"/app/exec"+(ele?"_ele":""),{method:"POST",body:cmd})).text() 
         },
         async getBetterNCMVersion(){
             return await(await fetch(BETTERNCM_API_PATH+"/app/version")).text() 
+        },
+		async reloadPlugins(){
+            return await(await fetch(BETTERNCM_API_PATH+"/app/reload_plugin")).text() 
         },
         async getDataPath(){
             return await(await fetch(BETTERNCM_API_PATH+"/app/datapath")).text() 
@@ -56,6 +59,9 @@ const betterncm={
         },
         async writeConfig(key,value){
             return await(await fetch(BETTERNCM_API_PATH+"/app/write_config?key="+key+"&value="+value)).text() 
+        },
+        async getNCMPath(){
+            return await(await fetch(BETTERNCM_API_PATH+"/app/ncmpath")).text() 
         }
     },ncm:{
         findNativeFunction(obj, identifiers) {
@@ -142,7 +148,7 @@ async function loadPlugins() {
         }
         let manifest = JSON.parse(await betterncm.fs.readFileText(pluginPath + "/manifest.json"));
 
-        loadedPlugins[manifest.name] = { manifest, finished: false, injects: [] }
+        loadedPlugins[manifest.name] = { pluginPath, manifest, finished: false, injects: [] }
 
         // Load Injects
         let promises = []
@@ -201,8 +207,8 @@ function dom(tag, settings, ...children) {
     }
 
     for (let child of children) {
-		if(child)
-			tmp.appendChild(child)
+        if (child)
+            tmp.appendChild(child)
     }
     return tmp
 }
@@ -210,12 +216,46 @@ function dom(tag, settings, ...children) {
 
 
 betterncm.utils.waitForElement(".g-mn-set").then(async (settingsDom) => {
+    let updatey;
+    try {
+        let currentVersion = await betterncm.app.getBetterNCMVersion()
+        let ncmVersion = document.querySelector(".fstbtn>span").innerText.split(" ")[0]
+        let online = await (await fetch("https://gitee.com/microblock/better-ncm-v2-data/raw/master/betterncm/betterncm.json")).json()
+        let onlineSuitableVersions = online.versions.filter(v => v.supports.includes(ncmVersion))
+
+        if (onlineSuitableVersions.length === 0) updatey = dom("div", { innerText: decodeURI("BetterNCM%E6%9A%82%E6%9C%AA%E5%AE%98%E6%96%B9%E6%94%AF%E6%8C%81%E8%AF%A5%E7%89%88%E6%9C%AC%EF%BC%8C%E5%8F%AF%E8%83%BD%E4%BC%9A%E5%87%BA%E7%8E%B0Bug") });
+
+        if (currentVersion != onlineSuitableVersions[0].version) {
+            updatey = dom("div",
+                {
+                    style:
+                        { display: "flex", flexDirection: "column", alignItems: "center" }
+                },
+                dom("div",
+                    { innerText: decodeURI("BetterNCM%E6%9C%89%E6%9B%B4%E6%96%B0") + ` (${onlineSuitableVersions[0].version})` }), dom("a", {
+                        class: ["u-ibtn5", "u-ibtnsz8"], innerText: decodeURI("%E7%82%B9%E6%AD%A4%E6%9B%B4%E6%96%B0"),
+                        onclick: async () => {
+                            let ncmpath = await betterncm.app.getNCMPath(), datapath = await betterncm.app.getDataPath(), dllpath = datapath + "\\betterncm.dll";
+                            if (await betterncm.fs.exists("./betterncm.dll")) await betterncm.fs.remove("./betterncm.dll")
+
+                            await betterncm.fs.writeFile("./betterncm.dll", await (await fetch(onlineSuitableVersions[0].file)).blob())
+
+                            if (!ncmpath.toLowerCase().includes("system")) {
+                                betterncm.app.exec(`cmd /c @echo off & echo BetterNCM Updating... & cd "${ncmpath}" & taskkill /f /im cloudmusic.exe>nul & taskkill /f /im cloudmusicn.exe>nul & ping 127.0.0.1>nul & del msimg32.dll & move "${dllpath}" .\\msimg32.dll & start cloudmusic.exe`, true)
+                            }
+                        }
+                    }))
+        }
+
+    } catch (e) { }
+
     settingsDom.prepend(
         dom("div", { style: { marginLeft: "30px" } },
             dom("div", { style: { display: "flex", flexDirection: "column", alignItems: "center" } },
                 dom("img", { src: "https://s1.ax1x.com/2022/08/11/vGlJN8.png", style: { width: "60px" } }),
                 dom("div", { innerText: "BetterNCM II", style: { fontSize: "20px", fontWeight: "700" } }),
                 dom("div", { innerText: "v" + await betterncm.app.getBetterNCMVersion() }),
+                updatey,
                 dom("div", { style: { marginBottom: "20px" } },
                     dom("a", { class: ["u-ibtn5", "u-ibtnsz8"], innerText: "Open Folder", onclick: async () => { await betterncm.app.exec(`explorer "${await betterncm.app.getDataPath()}"`) }, style: { margin: "5px" } })
                 )
@@ -226,27 +266,27 @@ betterncm.utils.waitForElement(".g-mn-set").then(async (settingsDom) => {
     await betterncm.utils.waitForFunction(() => window.loadedPlugins)
 
     const tools = {
-        makeBtn(text, onclick, smaller = false, args={}) {
+        makeBtn(text, onclick, smaller = false, args = {}) {
             return dom("a", { class: ["u-ibtn5", smaller && "u-ibtnsz8"], innerText: text, onclick, ...args })
         },
-        makeCheckbox(args={}) {
+        makeCheckbox(args = {}) {
             return dom("input", { type: "checkbox", ...args })
         },
-        makeInput(value, args={}) {
-            return dom("input", { value, class: ["u-txt", "sc-flag"] , ...args})
+        makeInput(value, args = {}) {
+            return dom("input", { value, class: ["u-txt", "sc-flag"], ...args })
         }
     }
 
-    for (let name in loadedPlugins){
-		document.querySelector(".BetterNCM-Plugin-Configs").appendChild(dom("div",{innerText:name,style:{fontSize:"18px",fontWeight:600}}))
-		document.querySelector(".BetterNCM-Plugin-Configs").appendChild(dom("div",{ style:{padding:"7px"} },loadedPlugins[name].injects[0]._config?.call(loadedPlugins[name], tools)))
-	}
+    for (let name in loadedPlugins) {
+        document.querySelector(".BetterNCM-Plugin-Configs").appendChild(dom("div", { innerText: name, style: { fontSize: "18px", fontWeight: 600 } }))
+        document.querySelector(".BetterNCM-Plugin-Configs").appendChild(dom("div", { style: { padding: "7px" } }, loadedPlugins[name].injects[0]._config?.call(loadedPlugins[name], tools)))
+    }
 })
 )";
 
 const auto list_fix_script = R"(
 
-//betterncm.utils.waitForElement("head").then(head=>head.appendChild(dom("style",{innerHTML:`
+//betterncm.waitForElement("head").then(head=>head.appendChild(dom("style",{innerHTML:`
 //.m-plylist-pl2 ul .lst {
 //    padding: 0 !important;
 //    counter-reset: tlistorder 0 !important;
@@ -254,10 +294,10 @@ const auto list_fix_script = R"(
 //`})));
 //
 //
-//betterncm.utils.waitForElement(".lst").then(async ele=>{
+//betterncm.waitForElement(".lst").then(async ele=>{
 //while(1){
 //for(let child of document.querySelector(".lst").children){
-//    await betterncm.utils.delay(400)
+//    await betterncm.delay(400)
 //    child.style.display="block"
 //}
 //}
@@ -267,33 +307,56 @@ const auto list_fix_script = R"(
 
 )";
 
-std::wstring s2ws(const std::string& s, bool isUtf8 = true)
-{
-	int len;
-	int slength = (int)s.length() + 1;
-	len = MultiByteToWideChar(isUtf8 ? CP_UTF8 : CP_ACP, 0, s.c_str(), slength, 0, 0);
-	std::wstring buf;
-	buf.resize(len);
-	MultiByteToWideChar(isUtf8 ? CP_UTF8 : CP_ACP, 0, s.c_str(), slength,
-		const_cast<wchar_t*>(buf.c_str()), len);
-	return buf;
-}
 
 string App::readConfig(const string& key, const string& def) {
-	auto configPath = utils.datapath + "/config.json";
-	if (!fs::exists(configPath))utils.write_file_text(configPath, "{}");
-	auto json = nlohmann::json::parse(utils.read_to_string(configPath));
+	auto configPath = datapath + "/config.json";
+	if (!fs::exists(configPath))write_file_text(configPath, "{}");
+	auto json = nlohmann::json::parse(read_to_string(configPath));
 	if (!(json[key].is_string()))json[key] = def;
-	utils.write_file_text(configPath, json.dump());
+	write_file_text(configPath, json.dump());
 	return json[key];
 }
 
 void App::writeConfig(const string& key, const string& val) {
-	auto configPath = utils.datapath + "/config.json";
-	if (!fs::exists(configPath))utils.write_file_text(configPath, "{}");
-	auto json = nlohmann::json::parse(utils.read_to_string(configPath));
+	auto configPath = datapath + "/config.json";
+	if (!fs::exists(configPath))write_file_text(configPath, "{}");
+	auto json = nlohmann::json::parse(read_to_string(configPath));
 	json[key] = val;
-	utils.write_file_text(configPath, json.dump());
+	write_file_text(configPath, json.dump());
+}
+
+void exec(string cmd, bool ele) {
+	STARTUPINFOW si = { 0 };
+	si.cb = sizeof(si);
+	PROCESS_INFORMATION pi = { 0 };
+
+	vector<string> result;
+	pystring::split(cmd, result, " ");
+
+	vector<string> args;
+	for (int x = 1; x < result.size(); x++) {
+		args.push_back(result[x]);
+	}
+	auto file = s2ws(result[0]);
+	auto eargs = s2ws(pystring::join(" ", args));
+	SHELLEXECUTEINFO shExecInfo;
+	shExecInfo.lpFile = file.c_str();
+	shExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
+	shExecInfo.lpParameters = eargs.c_str();
+	shExecInfo.fMask = NULL;
+	shExecInfo.hwnd = NULL;
+	if (ele)
+		shExecInfo.lpVerb = L"runas";
+	else
+		shExecInfo.lpVerb = L"open";
+
+
+
+	shExecInfo.lpDirectory = NULL;
+	shExecInfo.nShow = SW_NORMAL;
+	shExecInfo.hInstApp = NULL;
+
+	ShellExecuteEx(&shExecInfo);
 }
 
 std::thread* App::create_server() {
@@ -307,9 +370,9 @@ std::thread* App::create_server() {
 
 			vector<string> paths;
 
-			if (utils.check_legal_file_path(path)) {
-				for (const auto& entry : fs::directory_iterator(utils.datapath + "/" + path))
-					paths.push_back(pystring::slice(entry.path().string(), utils.datapath.length() + 1));
+			if (check_legal_file_path(path)) {
+				for (const auto& entry : fs::directory_iterator(datapath + "/" + path))
+					paths.push_back(pystring::slice(entry.path().string(), datapath.length() + 1));
 			}
 			else {
 				paths.push_back("Error: Access Denied");
@@ -325,11 +388,11 @@ std::thread* App::create_server() {
 
 			auto path = req.get_param_value("path");
 
-			if (utils.check_legal_file_path(path)) {
-				res.set_content(utils.read_to_string(utils.datapath + "/" + path), "text/plain");
+			if (check_legal_file_path(path)) {
+				res.set_content(read_to_string(datapath + "/" + path), "text/plain");
 			}
 			else {
-				res.set_content("Error: Access Denied", "text/plain");
+				res.set_content("Error:Access Denied", "text/plain");
 				res.status = 400;
 			}
 			});
@@ -340,8 +403,8 @@ std::thread* App::create_server() {
 
 			auto path = req.get_param_value("path");
 
-			if (utils.check_legal_file_path(path)) {
-				fs::create_directories(utils.datapath + "/" + path);
+			if (check_legal_file_path(path)) {
+				fs::create_directories(datapath + "/" + path);
 				res.status = 200;
 			}
 			else {
@@ -356,8 +419,8 @@ std::thread* App::create_server() {
 
 			auto path = req.get_param_value("path");
 
-			if (utils.check_legal_file_path(path)) {
-				res.set_content(fs::exists(utils.datapath + "/" + path) ? "true" : "false", "text/plain");
+			if (check_legal_file_path(path)) {
+				res.set_content(fs::exists(datapath + "/" + path) ? "true" : "false", "text/plain");
 			}
 			else {
 				res.set_content("Error: Access Denied", "text/plain");
@@ -371,8 +434,8 @@ std::thread* App::create_server() {
 
 			auto path = req.get_param_value("path");
 
-			if (utils.check_legal_file_path(path)) {
-				utils.write_file_text(utils.datapath + "/" + path, req.body);
+			if (check_legal_file_path(path)) {
+				write_file_text(datapath + "/" + path, req.body);
 
 				res.status = 200;
 			}
@@ -388,9 +451,9 @@ std::thread* App::create_server() {
 
 			auto path = req.get_param_value("path");
 
-			if (utils.check_legal_file_path(path)) {
+			if (check_legal_file_path(path)) {
 				auto file = req.get_file_value("file");
-				ofstream ofs(utils.datapath + "/" + path, ios::binary);
+				ofstream ofs(datapath + "/" + path, ios::binary);
 				ofs << file.content;
 
 				res.status = 200;
@@ -407,8 +470,8 @@ std::thread* App::create_server() {
 
 			auto path = req.get_param_value("path");
 
-			if (utils.check_legal_file_path(path)) {
-				fs::remove_all(utils.datapath + "/" + path);
+			if (check_legal_file_path(path)) {
+				fs::remove_all(datapath + "/" + path);
 				res.status = 200;
 			}
 			else {
@@ -417,47 +480,29 @@ std::thread* App::create_server() {
 			}
 			});
 
+
+
 		svr.Post("/api/app/exec", [&](const httplib::Request& req, httplib::Response& res) {
 			auto cmd = req.body;
+			exec(cmd, false);
+			res.status = 200;
+			});
 
-			STARTUPINFOW si = { 0 };
-			si.cb = sizeof(si);
-			PROCESS_INFORMATION pi = { 0 };
-
-			vector<string> result;
-			pystring::split(cmd, result, " ");
-
-			vector<string> args;
-			for (int x = 1; x < result.size(); x++) {
-				args.push_back(result[x]);
-			}
-			auto file = s2ws(result[0]);
-			auto eargs = s2ws(pystring::join(" ", args));
-			SHELLEXECUTEINFO shExecInfo;
-			shExecInfo.lpFile = file.c_str();
-			shExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
-			shExecInfo.lpParameters = eargs.c_str();
-			shExecInfo.fMask = NULL;
-			shExecInfo.hwnd = NULL;
-			if (req.has_param("ele"))
-				shExecInfo.lpVerb = L"runas";
-			else
-				shExecInfo.lpVerb = L"open";
-
-
-
-			shExecInfo.lpDirectory = NULL;
-			shExecInfo.nShow = SW_NORMAL;
-			shExecInfo.hInstApp = NULL;
-
-			ShellExecuteEx(&shExecInfo);
-
-
+		svr.Post("/api/app/exec_ele", [&](const httplib::Request& req, httplib::Response& res) {
+			auto cmd = req.body;
+			exec(cmd, true);
 			res.status = 200;
 			});
 
 		svr.Get("/api/app/datapath", [&](const httplib::Request& req, httplib::Response& res) {
-			res.set_content(utils.datapath, "text/plain");
+			res.set_content(datapath, "text/plain");
+			});
+
+		svr.Get("/api/app/ncmpath", [&](const httplib::Request& req, httplib::Response& res) {
+			TCHAR buffer[MAX_PATH] = { 0 };
+			GetCurrentDirectory(MAX_PATH, buffer);
+			wstring path = buffer;
+			res.set_content(ws2s(path), "text/plain");
 			});
 
 		svr.Get("/api/app/version", [&](const httplib::Request& req, httplib::Response& res) {
@@ -473,7 +518,12 @@ std::thread* App::create_server() {
 			res.status = 200;
 			});
 
-		svr.set_mount_point("/local", utils.datapath);
+		svr.Get("/api/app/reload_plugin", [&](const httplib::Request& req, httplib::Response& res) {
+			extractPlugins();
+			res.status = 200;
+			});
+
+		svr.set_mount_point("/local", datapath);
 
 		svr.listen("0.0.0.0", 3248);
 		});
@@ -516,32 +566,32 @@ App::~App() {
 	delete server_thread;
 	EasyCEFHooks::UninstallHook();
 
-	if (fs::exists(utils.datapath + "/plugins_runtime"))fs::remove_all(utils.datapath + "/plugins_runtime");
+	if (fs::exists(datapath + "/plugins_runtime"))fs::remove_all(datapath + "/plugins_runtime");
 }
 
 
 void App::extractPlugins() {
 	error_code ec;
-	if (fs::exists(utils.datapath + "/plugins_runtime"))fs::remove_all(utils.datapath + "/plugins_runtime", ec);
+	if (fs::exists(datapath + "/plugins_runtime"))fs::remove_all(datapath + "/plugins_runtime", ec);
 
-	fs::create_directories(utils.datapath + "/plugins_runtime");
-	fs::create_directories(utils.datapath + "/plugins");
+	fs::create_directories(datapath + "/plugins_runtime");
 
-	for (auto file : fs::directory_iterator(utils.datapath + "/plugins")) {
+	for (auto file : fs::directory_iterator(datapath + "/plugins")) {
 		auto path = file.path().string();
 		if (pystring::endswith(path, ".plugin")) {
-			zip_extract(path.c_str(), (utils.datapath + "/plugins_runtime/tmp").c_str(), NULL, NULL);
+			zip_extract(path.c_str(), (datapath + "/plugins_runtime/tmp").c_str(), NULL, NULL);
 			try {
-				auto modManifest = nlohmann::json::parse(utils.read_to_string(utils.datapath + "/plugins_runtime/tmp/manifest.json"));
+				auto modManifest = nlohmann::json::parse(read_to_string(datapath + "/plugins_runtime/tmp/manifest.json"));
 				if (modManifest["manifest_version"] == 1) {
-					fs::rename(utils.datapath + "/plugins_runtime/tmp", utils.datapath + "/plugins_runtime/" + (string)modManifest["name"]);
+					write_file_text(datapath + "/plugins_runtime/tmp/.plugin.path.meta", pystring::slice(path, datapath.length()));
+					fs::rename(datapath + "/plugins_runtime/tmp", datapath + "/plugins_runtime/" + (string)modManifest["name"]);
 				}
 				else {
 					throw new exception("Unsupported manifest version.");
 				}
 			}
 			catch (exception e) {
-				fs::remove_all(utils.datapath + "/plugins_runtime/tmp");
+				fs::remove_all(datapath + "/plugins_runtime/tmp");
 			}
 
 		}

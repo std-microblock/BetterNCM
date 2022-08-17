@@ -8,6 +8,8 @@
 #include "include/capi/cef_app_capi.h"
 #include "include/internal/cef_export.h"
 #include "include/capi/cef_v8_capi.h"
+#include "utils.h"
+#include "shellapi.h"
 #include <string>
 using namespace std;
 

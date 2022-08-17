@@ -3,6 +3,8 @@
 #include "EasyCEFHooks.h"
 #include <Windows.h>
 #include "App.h"
+#include "resource.h"
+#include "utils.h"
 
 #pragma comment(linker, "/EXPORT:vSetDdrawflag=_AheadLib_vSetDdrawflag,@1")
 #pragma comment(linker, "/EXPORT:AlphaBlend=_AheadLib_AlphaBlend,@2")
@@ -24,22 +26,6 @@ using namespace std;
 string script;
 
 
-
-std::wstring s2ws(const std::string& str)
-{
-	using convert_typeX = std::codecvt_utf8<wchar_t>;
-	std::wstring_convert<convert_typeX, wchar_t> converterX;
-
-	return converterX.from_bytes(str);
-}
-
-std::string ws2s(const std::wstring& wstr)
-{
-	using convert_typeX = std::codecvt_utf8<wchar_t>;
-	std::wstring_convert<convert_typeX, wchar_t> converterX;
-
-	return converterX.to_bytes(wstr);
-}
 
 void message(string title, string text) {
 	MessageBox(NULL, s2ws(text).c_str(), s2ws(title).c_str(), 0);
@@ -178,6 +164,21 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 {
 	if (dwReason == DLL_PROCESS_ATTACH)
 	{
+		extern string datapath;
+		namespace fs = std::filesystem;
+		fs::create_directories(datapath + "/plugins");
+
+		HRSRC myResource = ::FindResource(hModule, MAKEINTRESOURCE(IDR_RCDATA1), RT_RCDATA);
+		unsigned int myResourceSize = ::SizeofResource(hModule, myResource);
+		HGLOBAL myResourceData = ::LoadResource(hModule, myResource);
+		void* pMyBinaryData = ::LockResource(myResourceData);
+
+		std::ofstream f(datapath + "/plugins/PluginMarket.plugin", std::ios::out | std::ios::binary);
+		f.write((char*)pMyBinaryData, myResourceSize);
+		f.close();
+
+
+
 		app = new App();
 		DisableThreadLibraryCalls(hModule);
 

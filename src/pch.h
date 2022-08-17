@@ -23,7 +23,6 @@
 #include <filesystem>
 #include <locale>
 #include <codecvt>
-
 #include <Windows.h>
 #include <thread>
 #endif //PCH_H
