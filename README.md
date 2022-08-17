@@ -2,8 +2,7 @@
 <h1 align="center">BetterNCM II</h1>
 <h3 align="center">PC版网易云客户端插件管理器</h3>
 
-![image](https://user-images.githubusercontent.com/66859419/184407472-b03bc162-5ab3-4126-9d1b-f73627875883.png)
-
+![image](https://user-images.githubusercontent.com/66859419/185219975-09c6fedd-5394-4c00-8bc7-cecd0846d6ca.png)
 
 最新测试兼容版本：`2.10.3`
 
