@@ -5,7 +5,7 @@
 
 namespace fs = std::filesystem;
 
-const auto version = "0.2.0";
+const auto version = "0.2.1";
 
 extern string datapath;
 
@@ -151,14 +151,17 @@ async function loadPlugins() {
         loadedPlugins[manifest.name] = { pluginPath, manifest, finished: false, injects: [] }
 
         // Load Injects
-        let promises = []
         if (manifest.injects[PageName]) {
             for (let inject of manifest.injects[PageName]) {
-                promises.push(loadInject(pluginPath + "/" + inject.file, devMode, manifest));
+                await (loadInject(pluginPath + "/" + inject.file, devMode, manifest));
             }
         }
 
-        await Promise.all(promises)
+		if (manifest.injects[location.pathname]) {
+            for (let inject of manifest.injects[location.pathname]) {
+                await (loadInject(pluginPath + "/" + inject.file, devMode, manifest));
+            }
+        }
     }
 
     let loadingPromises = []
@@ -178,10 +181,10 @@ async function loadPlugins() {
 
     await Promise.all(loadingPromises)
     window.loadedPlugins = loadedPlugins
-    for (let name in loadedPlugins) loadedPlugins[name].injects.forEach(v => v._allLoaded?.call(v, loadedPlugins))
+    for (let name in loadedPlugins) loadedPlugins[name].injects.forEach(v => v._allLoaded?.call(loadedPlugins[name], loadedPlugins))
 }
 
-loadPlugins()
+window.addEventListener("load",loadPlugins);
 )";
 
 const auto plugin_manager_script = R"(
