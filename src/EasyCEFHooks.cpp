@@ -17,6 +17,8 @@ PVOID EasyCEFHooks::origin_cef_load_handler = NULL;
 PVOID EasyCEFHooks::origin_cef_on_load_start = NULL;
 PVOID EasyCEFHooks::origin_on_before_command_line_processing = NULL;
 PVOID EasyCEFHooks::origin_command_line_append_switch = NULL;
+PVOID EasyCEFHooks::origin_cef_register_scheme_handler_factory = NULL;
+PVOID EasyCEFHooks::origin_cef_scheme_handler_create = NULL;
 
 std::function<void(struct _cef_browser_t* browser, struct _cef_frame_t* frame, cef_transition_type_t transition_type)> EasyCEFHooks::onLoadStart = [](auto browser, auto frame, auto transition_type) {};
 std::function<void(_cef_client_t*, struct _cef_browser_t*, const struct _cef_key_event_t*)> EasyCEFHooks::onKeyEvent = [](auto client, auto browser, auto key) {};
@@ -141,6 +143,7 @@ bool EasyCEFHooks::InstallHooks() {
 	origin_cef_v8context_get_current_context = DetourFindFunction("libcef.dll", "cef_v8context_get_current_context");
 	origin_cef_browser_host_create_browser = DetourFindFunction("libcef.dll", "cef_browser_host_create_browser_sync");
 	origin_cef_initialize = DetourFindFunction("libcef.dll", "cef_initialize");
+	origin_cef_register_scheme_handler_factory = DetourFindFunction("libcef.dll", "cef_register_scheme_handler_factory");
 
 	if (origin_cef_v8context_get_current_context)
 		DetourAttach(&origin_cef_v8context_get_current_context, (PVOID)hook_cef_v8context_get_current_context);
@@ -157,8 +160,67 @@ bool EasyCEFHooks::InstallHooks() {
 	else
 		return false;
 
+	if (origin_cef_register_scheme_handler_factory)
+		DetourAttach(&origin_cef_register_scheme_handler_factory, hook_cef_register_scheme_handler_factory);
+	else
+		return false;
+
 	LONG ret = DetourTransactionCommit();
 	return ret == NO_ERROR;
+}
+
+PVOID origin_read;
+
+PVOID origin_get_headers;
+
+void CEF_CALLBACK EasyCEFHooks::get_response_headers(struct _cef_resource_handler_t* self,
+	struct _cef_response_t* response,
+	int64* response_length,
+	cef_string_t* redirectUrl) {
+	CAST_TO(origin_get_headers, get_response_headers)(self, response, response_length, redirectUrl);
+
+	//CefString name = "";
+
+	//response->set_header_by_name(self, )
+}
+
+int CEF_CALLBACK EasyCEFHooks::read(struct _cef_resource_handler_t* self,
+	void* data_out,
+	int bytes_to_read,
+	int* bytes_read,
+	struct _cef_resource_read_callback_t* callback) {
+	int ret = CAST_TO(origin_read, read)(self, data_out, bytes_to_read, bytes_read, callback);
+
+
+
+	return ret;
+}
+
+_cef_resource_handler_t* CEF_CALLBACK EasyCEFHooks::hook_cef_scheme_handler_create(
+	struct _cef_scheme_handler_factory_t* self,
+	struct _cef_browser_t* browser,
+	struct _cef_frame_t* frame,
+	const cef_string_t* scheme_name,
+	struct _cef_request_t* request) {
+	auto ret = CAST_TO(origin_cef_scheme_handler_create, hook_cef_scheme_handler_create)(self, browser, frame, scheme_name, request);
+
+	//origin_get_headers = ret->get_response_headers;
+	//origin_read = ret->read;
+	//ret->read = read;
+
+	return ret;
+}
+
+int EasyCEFHooks::hook_cef_register_scheme_handler_factory(
+	const cef_string_t* scheme_name,
+	const cef_string_t* domain_name,
+	cef_scheme_handler_factory_t* factory) {
+
+
+	factory->create = hook_cef_scheme_handler_create;
+
+	int ret = CAST_TO(origin_cef_register_scheme_handler_factory, hook_cef_register_scheme_handler_factory)(scheme_name, domain_name, factory);
+	return ret;
 }
 
 bool EasyCEFHooks::UninstallHook()

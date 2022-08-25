@@ -29,6 +29,8 @@ class EasyCEFHooks
 	static PVOID origin_cef_v8context_get_current_context;
 	static PVOID origin_on_before_command_line_processing;
 	static PVOID origin_command_line_append_switch;
+	static PVOID origin_cef_register_scheme_handler_factory;
+	static PVOID origin_cef_scheme_handler_create;
 
 	static cef_v8context_t* hook_cef_v8context_get_current_context();
 
@@ -38,11 +40,34 @@ class EasyCEFHooks
 		cef_event_handle_t os_event);
 	static _cef_keyboard_handler_t* CEF_CALLBACK hook_cef_get_keyboard_handler(struct _cef_client_t* self);
 
+	static int CEF_CALLBACK read(struct _cef_resource_handler_t* self,
+		void* data_out,
+		int bytes_to_read,
+		int* bytes_read,
+		struct _cef_resource_read_callback_t* callback);
+
 	static _cef_load_handler_t* CEF_CALLBACK hook_cef_load_handler(struct _cef_client_t* self);
 	static void CEF_CALLBACK hook_cef_on_load_start(struct _cef_load_handler_t* self,
 		struct _cef_browser_t* browser,
 		struct _cef_frame_t* frame,
 		cef_transition_type_t transition_type);
+
+	static _cef_resource_handler_t* CEF_CALLBACK hook_cef_scheme_handler_create(
+		struct _cef_scheme_handler_factory_t* self,
+		struct _cef_browser_t* browser,
+		struct _cef_frame_t* frame,
+		const cef_string_t* scheme_name,
+		struct _cef_request_t* request);
+
+	static int hook_cef_register_scheme_handler_factory(
+		const cef_string_t* scheme_name,
+		const cef_string_t* domain_name,
+		cef_scheme_handler_factory_t* factory);
+
+	static void CEF_CALLBACK get_response_headers(struct _cef_resource_handler_t* self,
+		struct _cef_response_t* response,
+		int64* response_length,
+		cef_string_t* redirectUrl);
 
 	static int hook_cef_browser_host_create_browser(
 		const cef_window_info_t* windowInfo,
