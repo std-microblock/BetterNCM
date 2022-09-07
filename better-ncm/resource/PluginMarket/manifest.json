@@ -1,0 +1,12 @@
+{
+    "manifest_version":1,
+    "name":"PluginMarket",
+    "version":"0.1.0",
+    "injects":{
+        "Main":[
+            {
+                "file":"plugin.js"
+            }
+        ]
+    }
+}

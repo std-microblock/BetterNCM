@@ -96,9 +96,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         "cargo:rustc-cdylib-link-arg=/def:{}",
         out_dir.join("exports.def").to_str().unwrap()
     );
-    
+
     // Generate libcef binding
-    
 
     Ok(())
 }

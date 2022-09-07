@@ -1,6 +1,9 @@
 use std::{
     ffi::CString,
-    sync::atomic::{AtomicPtr, Ordering},
+    sync::{
+        atomic::{AtomicPtr, Ordering},
+        Mutex,
+    },
 };
 
 pub mod types;
@@ -8,12 +11,11 @@ use types::*;
 
 use detour::static_detour;
 use libc::*;
-use winapi::{
-    um::{
-        libloaderapi::{GetModuleHandleW, GetProcAddress},
-        winuser::{
-            CW_USEDEFAULT, WS_CLIPCHILDREN, WS_CLIPSIBLINGS, WS_OVERLAPPEDWINDOW, WS_VISIBLE, MSG, VK_F5, VK_F12,
-        },
+use winapi::um::{
+    libloaderapi::{GetModuleHandleW, GetProcAddress},
+    winuser::{
+        CW_USEDEFAULT, MSG, VK_F12, VK_F5, WS_CLIPCHILDREN, WS_CLIPSIBLINGS, WS_OVERLAPPEDWINDOW,
+        WS_VISIBLE,
     },
 };
 
@@ -40,19 +42,23 @@ static ORIGIN_CEF_LOAD_HANDLER: AtomicPtr<c_void> = AtomicPtr::new(std::ptr::nul
 static ORIGIN_CEF_KEYBOARD_HANDLER: AtomicPtr<c_void> = AtomicPtr::new(std::ptr::null_mut());
 
 static ORIGIN_CEF_CLIENT: AtomicPtr<CEFClient> = AtomicPtr::new(std::ptr::null_mut());
+static PUB_ON_LOAD_HOOK: Mutex<fn(&mut CEFBrowser, &mut CEFFrame, CEFTransitionType)> =
+    Mutex::new(|_, _, _| {});
 
 fn cef_v8context_get_current_context_hook() -> *mut c_void {
     unsafe { FnHookCEFV8ContextGetCurrentContextHook.call() }
 }
 
 unsafe extern "stdcall" fn on_load_start_hook(
-    _handler: *mut c_void,
-    _browser: *mut CEFBrowser,
+    _handler: *mut CEFLoadHandler,
+    browser: *mut CEFBrowser,
     frame: *mut CEFFrame,
-    _transition_type: CEFTransitionType,
+    transition_type: CEFTransitionType,
 ) {
-    if ((*frame).is_main)(frame) != 0 {
-        // 
+    let frame = &mut *frame;
+    let browser = &mut *browser;
+    if let Ok(hook) = PUB_ON_LOAD_HOOK.lock() {
+        (hook)(browser, frame, transition_type);
     }
 }
 
@@ -69,20 +75,20 @@ unsafe extern "stdcall" fn on_key_event_hook(
         } else if (*event).windows_key_code == VK_F12 {
             let host = ((*browser).get_host)(browser);
             let mut win_info: CEFWindowInfo = std::mem::zeroed();
-    
+
             win_info.style = WS_OVERLAPPEDWINDOW | WS_CLIPCHILDREN | WS_CLIPSIBLINGS | WS_VISIBLE;
             win_info.x = CW_USEDEFAULT;
             win_info.y = CW_USEDEFAULT;
             win_info.width = CW_USEDEFAULT;
             win_info.height = CW_USEDEFAULT;
-    
+
             win_info.window_name = "SteveXMH CEFInject DevTools".into();
-    
+
             let mut settings = CEFBrowserSettings {
                 size: std::mem::size_of::<CEFBrowserSettings>(),
                 ..std::mem::zeroed()
             };
-    
+
             let point: CEFPoint = std::mem::zeroed();
             let client = ORIGIN_CEF_CLIENT.load(Ordering::SeqCst);
             ((*host).show_dev_tools)(host, &win_info, client, &mut settings, &point);
@@ -105,7 +111,9 @@ unsafe extern "stdcall" fn get_load_handler_hook(client: *mut CEFClient) -> *mut
     }
 }
 
-unsafe extern "stdcall" fn get_keyboard_handler_hook(client: *mut CEFClient) -> *mut CEFKeyBoardHandler {
+unsafe extern "stdcall" fn get_keyboard_handler_hook(
+    client: *mut CEFClient,
+) -> *mut CEFKeyBoardHandler {
     let origin = ORIGIN_CEF_KEYBOARD_HANDLER.load(Ordering::SeqCst);
 
     if origin.is_null() {
@@ -129,7 +137,10 @@ fn cef_browser_host_create_browser_sync_hook(
     unsafe {
         ORIGIN_CEF_CLIENT.store(client, Ordering::SeqCst);
         ORIGIN_CEF_LOAD_HANDLER.store((*client).get_load_handler as *mut c_void, Ordering::SeqCst);
-        ORIGIN_CEF_KEYBOARD_HANDLER.store((*client).get_keyboard_handler as *mut c_void, Ordering::SeqCst);
+        ORIGIN_CEF_KEYBOARD_HANDLER.store(
+            (*client).get_keyboard_handler as *mut c_void,
+            Ordering::SeqCst,
+        );
         (*client).get_load_handler = get_load_handler_hook;
         (*client).get_keyboard_handler = get_keyboard_handler_hook;
         FnHookCEFBrowserHostCreateBrowserSyncHook.call(
@@ -188,5 +199,11 @@ pub fn install_hooks() {
                 }
             }
         }
+    }
+}
+
+pub fn set_on_load_handler(callback: fn(&mut CEFBrowser, &mut CEFFrame, CEFTransitionType)) {
+    if let Ok(mut hook) = PUB_ON_LOAD_HOOK.lock() {
+        *hook = callback;
     }
 }

@@ -4,12 +4,16 @@ mod config;
 mod hook;
 mod proxy_funcs;
 mod racy_cell;
+mod server;
 
 use std::os::windows::ffi::{OsStrExt, OsStringExt};
 use std::{ffi::OsString, path::PathBuf};
 
 use win32_error::Win32Error;
-use winapi::um::{libloaderapi::GetProcAddress, winnt::DLL_PROCESS_ATTACH};
+use winapi::um::{
+    libloaderapi::GetProcAddress,
+    winnt::{DLL_PROCESS_ATTACH, DLL_PROCESS_DETACH},
+};
 use winapi::um::{sysinfoapi::GetSystemDirectoryW, winuser::MAKEINTRESOURCEA};
 use winapi::{shared::minwindef::*, um::libloaderapi::LoadLibraryW};
 
@@ -69,6 +73,10 @@ extern "system" fn DllMain(_module: HINSTANCE, reason: DWORD, _reserved: LPVOID)
             } else {
                 TRUE
             }
+        }
+        DLL_PROCESS_DETACH => {
+            hook::uninstall_hook();
+            TRUE
         }
         _ => TRUE,
     }

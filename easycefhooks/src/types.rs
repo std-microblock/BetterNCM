@@ -1,5 +1,8 @@
 use libc::*;
-use winapi::{shared::windef::{HMENU, HWND}, um::winuser::MSG};
+use winapi::{
+    shared::windef::{HMENU, HWND},
+    um::winuser::MSG,
+};
 
 pub type CallbackFn<T = c_void, R = c_void> = unsafe extern "stdcall" fn(*mut T) -> R;
 
@@ -37,8 +40,12 @@ pub enum CEFTransitionType {
 pub struct CEFLoadHandler {
     pub base: CEFBase,
     pub(crate) on_loading_state_change: CallbackFn, // Placeholder
-    pub on_load_start:
-        unsafe extern "stdcall" fn(*mut c_void, *mut CEFBrowser, *mut CEFFrame, CEFTransitionType),
+    pub on_load_start: unsafe extern "stdcall" fn(
+        *mut CEFLoadHandler,
+        *mut CEFBrowser,
+        *mut CEFFrame,
+        CEFTransitionType,
+    ),
 }
 
 #[repr(C)]
@@ -66,8 +73,12 @@ pub struct CEFKeyEvent {
 pub struct CEFKeyBoardHandler {
     pub base: CEFBase,
     pub(crate) on_pre_key_event: CallbackFn, // Placeholder
-    pub on_key_event:
-        unsafe extern "stdcall" fn(*mut CEFKeyBoardHandler, *mut CEFBrowser, *const CEFKeyEvent, *mut MSG) -> c_int,
+    pub on_key_event: unsafe extern "stdcall" fn(
+        *mut CEFKeyBoardHandler,
+        *mut CEFBrowser,
+        *const CEFKeyEvent,
+        *mut MSG,
+    ) -> c_int,
 }
 
 #[repr(C)]
@@ -200,7 +211,7 @@ pub struct CEFBrowserHost {
     pub(crate) run_file_dialog: CallbackFn,   // Placeholder
     pub(crate) start_download: CallbackFn,    // Placeholder
     pub(crate) download_image: CallbackFn,    // Placeholder
-    pub(crate) print: CallbackFn,      // Placeholder
+    pub(crate) print: CallbackFn,             // Placeholder
     pub(crate) print_to_pdf: CallbackFn,      // Placeholder
     pub(crate) find: CallbackFn,              // Placeholder
     pub(crate) stop_finding: CallbackFn,      // Placeholder
@@ -222,7 +233,7 @@ pub struct CEFBrowser {
     pub(crate) can_go_forward: CallbackFn,                                            // Placeholder
     pub(crate) go_forward: CallbackFn,                                                // Placeholder
     pub(crate) is_loading: CallbackFn,                                                // Placeholder
-    pub reload: fn(*mut CEFBrowser) -> c_void,                                                    // Placeholder
+    pub reload: unsafe extern "stdcall" fn(*mut CEFBrowser) -> c_void,                // Placeholder
     pub(crate) reload_ignore_cache: CallbackFn,                                       // Placeholder
     pub(crate) stop_load: CallbackFn,                                                 // Placeholder
     pub(crate) get_identifier: CallbackFn,                                            // Placeholder
@@ -236,6 +247,18 @@ pub struct CEFBrowser {
     pub(crate) get_frame_count: CallbackFn,                                           // Placeholder
     pub(crate) get_frame_identifiers: CallbackFn,                                     // Placeholder
     pub(crate) get_frame_names: CallbackFn,                                           // Placeholder
+}
+
+impl CEFBrowser {
+    pub fn get_host(&mut self) -> *mut CEFBrowserHost {
+        unsafe { (self.get_host)(self) }
+    }
+
+    pub fn reload(&mut self) {
+        unsafe {
+            (self.reload)(self);
+        }
+    }
 }
 
 #[repr(C)]
@@ -256,22 +279,20 @@ pub struct CEFFrame {
     pub(crate) load_url: CallbackFn,     // Placeholder
     pub execute_java_script:
         unsafe extern "stdcall" fn(*mut CEFFrame, *mut CEFString, *mut CEFString, c_int) -> c_void,
-    pub is_main: unsafe extern "stdcall" fn(*mut CEFFrame) -> c_int,        // Placeholder
-    pub(crate) is_focused: CallbackFn,     // Placeholder
-    pub(crate) get_name: CallbackFn,       // Placeholder
-    pub(crate) get_identifier: CallbackFn, // Placeholder
-    pub(crate) get_parent: CallbackFn,     // Placeholder
-    pub(crate) get_url: CallbackFn,        // Placeholder
+    pub is_main: unsafe extern "stdcall" fn(*mut CEFFrame) -> c_int, // Placeholder
+    pub(crate) is_focused: CallbackFn,                               // Placeholder
+    pub(crate) get_name: CallbackFn,                                 // Placeholder
+    pub(crate) get_identifier: CallbackFn,                           // Placeholder
+    pub(crate) get_parent: CallbackFn,                               // Placeholder
+    pub(crate) get_url: CallbackFn,                                  // Placeholder
     pub get_browser: unsafe extern "stdcall" fn(*mut CEFFrame) -> *mut CEFBrowser,
 }
 
 impl CEFFrame {
     pub fn is_main(&mut self) -> bool {
-        unsafe {
-            (self.is_main)(self) != 0
-        }
+        unsafe { (self.is_main)(self) != 0 }
     }
-    
+
     pub fn execute_java_script(&mut self, code: &str) {
         unsafe {
             (self.execute_java_script)(self, &mut code.into(), &mut "".into(), 0);
