@@ -1,0 +1,13 @@
+[workspace]
+members = [
+    "better-ncm",
+    "easycefhooks"
+]
+
+[profile.release]
+lto = true
+codegen-units = 1
+panic = "abort"
+opt-level = "z"
+debug = false
+strip = true

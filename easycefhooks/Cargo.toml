@@ -1,0 +1,11 @@
+[package]
+name = "easycefhooks"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+winapi = {version = "0.3.9", features = ["minwindef", "winnt", "winuser", "libloaderapi", "sysinfoapi", "consoleapi"]}
+detour = { version = "0.8.1", features = ["nightly"] }
+libc = "0.2.132"
