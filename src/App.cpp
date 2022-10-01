@@ -556,6 +556,17 @@ App::App() {
 			EasyCEFHooks::executeJavaScript(frame, loader_script);
 			EasyCEFHooks::executeJavaScript(frame, plugin_manager_script);
 			EasyCEFHooks::executeJavaScript(frame, list_fix_script);
+
+			auto loadStartupScripts = [&](string path) {
+				for (const auto file : fs::directory_iterator(path)) {
+					if (fs::exists(file.path().string() + "/startup_script.js")) {
+						EasyCEFHooks::executeJavaScript(frame, read_to_string(file.path().string() + "/startup_script.js"));
+					}
+				}
+			};
+
+			loadStartupScripts(datapath + "/plugins_runtime");
+			loadStartupScripts(datapath + "/plugins_dev");
 		}
 	};
 
