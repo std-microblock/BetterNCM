@@ -106,11 +106,10 @@ int EasyCEFHooks::hook_cef_initialize(const struct _cef_main_args_t* args,
 
 	_cef_settings_t s = *settings;
 	s.background_color = 0x000000ff;
+	s.ignore_certificate_errors = true;
 
 	origin_on_before_command_line_processing = application->on_before_command_line_processing;
 	application->on_before_command_line_processing = hook_on_before_command_line_processing;
-
-	s.command_line_args_disabled = true;
 
 	return CAST_TO(origin_cef_initialize, hook_cef_initialize)(args, &s, application, windows_sandbox_info);
 }
