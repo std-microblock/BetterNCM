@@ -42,8 +42,8 @@ const betterncm={
            return await(await fetch(BETTERNCM_API_PATH+"/fs/remove?path="+encodeURIComponent(path))).text() 
         },
     },app:{
-        async exec(cmd,ele=false){
-           return await(await fetch(BETTERNCM_API_PATH+"/app/exec"+(ele?"_ele":""),{method:"POST",body:cmd})).text() 
+        async exec(cmd,ele=false, showWindow=false){
+           return await(await fetch(BETTERNCM_API_PATH+"/app/exec"+(ele?"_ele":"")+(showWindow?"?_showWindow":""),{method:"POST",body:cmd})).text() 
         },
         async getBetterNCMVersion(){
             return await(await fetch(BETTERNCM_API_PATH+"/app/version")).text() 
@@ -328,7 +328,7 @@ void App::writeConfig(const string& key, const string& val) {
 	write_file_text(configPath, json.dump());
 }
 
-void exec(string cmd, bool ele) {
+void exec(string cmd, bool ele, bool showWindow = false) {
 	STARTUPINFOW si = { 0 };
 	si.cb = sizeof(si);
 	PROCESS_INFORMATION pi = { 0 };
@@ -356,7 +356,8 @@ void exec(string cmd, bool ele) {
 
 
 	shExecInfo.lpDirectory = NULL;
-	shExecInfo.nShow = SW_HIDE;
+	if (showWindow)shExecInfo.nShow = SW_SHOW;
+	else shExecInfo.nShow = SW_HIDE;
 	shExecInfo.hInstApp = NULL;
 
 	ShellExecuteEx(&shExecInfo);
@@ -487,13 +488,14 @@ std::thread* App::create_server() {
 
 		svr.Post("/api/app/exec", [&](const httplib::Request& req, httplib::Response& res) {
 			auto cmd = req.body;
-			exec(cmd, false);
+			exec(cmd, false, req.has_param("_showWindow"));
 			res.status = 200;
 			});
 
 		svr.Post("/api/app/exec_ele", [&](const httplib::Request& req, httplib::Response& res) {
+
 			auto cmd = req.body;
-			exec(cmd, true);
+			exec(cmd, true, req.has_param("_showWindow"));
 			res.status = 200;
 			});
 
