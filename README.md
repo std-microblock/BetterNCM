@@ -2,31 +2,10 @@
 <h1 align="center">BetterNCM II</h1>
 <h3 align="center">PC版网易云客户端插件管理器</h3>
 
-![image](https://user-images.githubusercontent.com/66859419/186859984-ac64b338-d649-410f-a156-8f7d676bc7a9.png)
-
+![image](https://user-images.githubusercontent.com/66859419/193439006-0de4218d-e349-4e54-aaad-10da72ab93fc.png)
 
 最新测试兼容版本：`2.10.3`
 
 # 安装
-## Windows
-使用[BetterNCM Installer](https://github.com/MicroCBer/BetterNCM-Installer)一键安装~
 
-# V2开发进度
-- [x] JS注入
-  - [x] ScriptLoader
-  - [x] StyleLoader
-- [x] 强制GPU渲染
-- [x] 强制打开DevTools
-- [x] 插件机制
-  - [x] 插件解压，加载
-  - [x] 插件商城
-    - [x] 更新提示&一键更新
-- [x] 自检查更新&自动更新
-- [x] 插件迁移
-  - [x] 各类主题插件
-  - [x] CSSLoader
-    - [x] 随机背景图 
-  - [x] 网易云精简插件 重写
-  - [x] 操作增强
-  - [x] 点歌姬
-- [x] 安装器
+使用[BetterNCM Installer](https://github.com/MicroCBer/BetterNCM-Installer)一键安装~
