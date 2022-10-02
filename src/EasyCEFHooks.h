@@ -49,6 +49,7 @@ class EasyCEFHooks
 		struct _cef_client_t* client,
 		const cef_string_t* url,
 		const struct _cef_browser_settings_t* settings,
+		struct _cef_dictionary_value_t* extra_info,
 		struct _cef_request_context_t* request_context);
 
 	static int hook_cef_initialize(const struct _cef_main_args_t* args,

@@ -85,6 +85,7 @@ int EasyCEFHooks::hook_cef_browser_host_create_browser(
 	struct _cef_client_t* client,
 	const cef_string_t* url,
 	const struct _cef_browser_settings_t* settings,
+	struct _cef_dictionary_value_t* extra_info,
 	struct _cef_request_context_t* request_context) {
 
 
