@@ -356,7 +356,7 @@ void exec(string cmd, bool ele) {
 
 
 	shExecInfo.lpDirectory = NULL;
-	shExecInfo.nShow = SW_SHOW;
+	shExecInfo.nShow = SW_HIDE;
 	shExecInfo.hInstApp = NULL;
 
 	ShellExecuteEx(&shExecInfo);
