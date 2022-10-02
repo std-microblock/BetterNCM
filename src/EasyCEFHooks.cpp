@@ -96,7 +96,7 @@ int EasyCEFHooks::hook_cef_browser_host_create_browser(
 	client->get_load_handler = hook_cef_load_handler;
 
 	int origin = CAST_TO(origin_cef_browser_host_create_browser, hook_cef_browser_host_create_browser)
-		(windowInfo, client, url, settings, request_context);
+		(windowInfo, client, url, settings, extra_info, request_context);
 	return origin;
 }
 
@@ -107,7 +107,6 @@ int EasyCEFHooks::hook_cef_initialize(const struct _cef_main_args_t* args,
 
 	_cef_settings_t s = *settings;
 	s.background_color = 0x000000ff;
-	s.ignore_certificate_errors = true;
 
 	origin_on_before_command_line_processing = application->on_before_command_line_processing;
 	application->on_before_command_line_processing = hook_on_before_command_line_processing;
@@ -120,12 +119,18 @@ void CEF_CALLBACK EasyCEFHooks::hook_on_before_command_line_processing(
 	const cef_string_t* process_type,
 	struct _cef_command_line_t* command_line) {
 
-	CefString str = "--disable-web-security";
-	command_line->append_switch(command_line, str.GetStruct());
+		{
+			CefString str = "disable-web-security";
+			command_line->append_switch(command_line, str.GetStruct());
+		}
+		{
+			CefString str = "ignore-certificate-errors";
+			command_line->append_switch(command_line, str.GetStruct());
+		}
 
-	origin_command_line_append_switch = command_line->append_switch;
-	command_line->append_switch = hook_command_line_append_switch;
-	CAST_TO(origin_on_before_command_line_processing, hook_on_before_command_line_processing)(self, process_type, command_line);
+		origin_command_line_append_switch = command_line->append_switch;
+		command_line->append_switch = hook_command_line_append_switch;
+		CAST_TO(origin_on_before_command_line_processing, hook_on_before_command_line_processing)(self, process_type, command_line);
 }
 
 void CEF_CALLBACK EasyCEFHooks::hook_command_line_append_switch(_cef_command_line_t* self, const cef_string_t* name) {
