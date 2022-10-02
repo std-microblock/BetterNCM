@@ -5,7 +5,7 @@
 
 namespace fs = std::filesystem;
 
-const auto version = "0.2.1";
+const auto version = "0.2.2";
 
 extern string datapath;
 
