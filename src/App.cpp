@@ -260,7 +260,7 @@ betterncm.utils.waitForElement(".g-mn-set").then(async (settingsDom) => {
                 dom("div", { innerText: "v" + await betterncm.app.getBetterNCMVersion() }),
                 updatey,
                 dom("div", { style: { marginBottom: "20px" } },
-                    dom("a", { class: ["u-ibtn5", "u-ibtnsz8"], innerText: "Open Folder", onclick: async () => { await betterncm.app.exec(`explorer "${await betterncm.app.getDataPath()}"`) }, style: { margin: "5px" } })
+                    dom("a", { class: ["u-ibtn5", "u-ibtnsz8"], innerText: "Open Folder", onclick: async () => { await betterncm.app.exec(`explorer "${await betterncm.app.getDataPath()}"`,false,true) }, style: { margin: "5px" } })
                 )
             ),
             dom("div", { class: ["BetterNCM-Plugin-Configs"] })
