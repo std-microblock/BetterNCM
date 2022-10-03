@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "App.h"
 #include <Windows.h>
+#include "CommDlg.h"
 #define WIN32_LEAN_AND_MEAN 
 
 namespace fs = std::filesystem;
@@ -65,7 +66,12 @@ const betterncm={
         },
 		async showConsole(){
 			return await(await fetch(BETTERNCM_API_PATH+"/app/show_console")).text() 
-		}
+		},
+		async openFileDialog(filter,initialDir){
+			if(initialDir==undefined)initialDir=await betterncm.app.getDataPath();
+            return await(await fetch(BETTERNCM_API_PATH+"/app/open_file_dialog?filter="+encodeURIComponent(filter)+"&initialDir="+encodeURIComponent(initialDir))).text() 
+        }
+
     },ncm:{
         findNativeFunction(obj, identifiers) {
             for (var key in obj) {
@@ -536,6 +542,26 @@ std::thread* App::create_server() {
 			AllocConsole();
 			freopen("CONOUT$", "w", stdout);
 			res.status = 200;
+			});
+
+		svr.Get("/api/app/open_file_dialog", [&](const httplib::Request& req, httplib::Response& res) {
+			TCHAR szBuffer[MAX_PATH] = { 0 };
+			OPENFILENAME ofn = { 0 };
+			ofn.lStructSize = sizeof(ofn);
+			ofn.hwndOwner = NULL;
+			auto filter = s2ws(req.get_param_value("filter"));
+			ofn.lpstrFilter = filter.c_str();
+			auto initialDir = s2ws(req.get_param_value("initialDir"));
+			ofn.lpstrInitialDir = initialDir.c_str();
+			ofn.lpstrFile = szBuffer;
+			ofn.nMaxFile = sizeof(szBuffer) / sizeof(*szBuffer);
+			ofn.nFilterIndex = 0;
+			ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_EXPLORER;
+			BOOL bSel = GetOpenFileName(&ofn);
+
+			wstring path = szBuffer;
+			res.set_content(ws2s(path), "text/plain");
+
 			});
 
 
