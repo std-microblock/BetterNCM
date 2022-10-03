@@ -264,7 +264,7 @@ betterncm.utils.waitForElement(".g-mn-set").then(async (settingsDom) => {
                 updatey,
                 dom("div", { style: { marginBottom: "20px" } },
                     dom("a", { class: ["u-ibtn5", "u-ibtnsz8"], innerText: "Open Folder", onclick: async () => { await betterncm.app.exec(`explorer "${await betterncm.app.getDataPath()}"`,false,true) }, style: { margin: "5px" } }),
-					dom("a", { class: ["u-ibtn5", "u-ibtnsz8"], innerText: "Show Console", onclick: async () => { await betterncm.app.showConsole(e) }, style: { margin: "5px" } })
+					dom("a", { class: ["u-ibtn5", "u-ibtnsz8"], innerText: "Show Console", onclick: async () => { await betterncm.app.showConsole() }, style: { margin: "5px" } })
                 )
             ),
             dom("div", { class: ["BetterNCM-Plugin-Configs"] })
@@ -378,13 +378,13 @@ std::thread* App::create_server() {
 
 			vector<string> paths;
 
-			if (check_legal_file_path(path)) {
-				for (const auto& entry : fs::directory_iterator(datapath + "/" + path))
-					paths.push_back(pystring::slice(entry.path().string(), datapath.length() + 1));
+			if (path[1] == ':') {
+				for (const auto& entry : fs::directory_iterator(path))
+					paths.push_back(entry.path().string());
 			}
 			else {
-				paths.push_back("Error: Access Denied");
-				res.status = 400;
+				for (const auto& entry : fs::directory_iterator(datapath + "/" + path))
+					paths.push_back(pystring::slice(entry.path().string(), datapath.length() + 1));
 			}
 
 			res.set_content(((nlohmann::json)paths).dump(), "application/json");
@@ -396,12 +396,11 @@ std::thread* App::create_server() {
 
 			auto path = req.get_param_value("path");
 
-			if (check_legal_file_path(path)) {
+			if (path[1] != ':') {
 				res.set_content(read_to_string(datapath + "/" + path), "text/plain");
 			}
 			else {
-				res.set_content("Error:Access Denied", "text/plain");
-				res.status = 400;
+				res.set_content(read_to_string(path), "text/plain");
 			}
 			});
 
@@ -411,13 +410,13 @@ std::thread* App::create_server() {
 
 			auto path = req.get_param_value("path");
 
-			if (check_legal_file_path(path)) {
+			if (path[1] != ':') {
 				fs::create_directories(datapath + "/" + path);
 				res.status = 200;
 			}
 			else {
-				res.set_content("Error: Access Denied", "text/plain");
-				res.status = 400;
+				fs::create_directories(path);
+				res.status = 200;
 			}
 			});
 
@@ -427,12 +426,11 @@ std::thread* App::create_server() {
 
 			auto path = req.get_param_value("path");
 
-			if (check_legal_file_path(path)) {
+			if (path[1] != ':') {
 				res.set_content(fs::exists(datapath + "/" + path) ? "true" : "false", "text/plain");
 			}
 			else {
-				res.set_content("Error: Access Denied", "text/plain");
-				res.status = 400;
+				res.set_content(fs::exists(path) ? "true" : "false", "text/plain");
 			}
 			});
 
@@ -442,14 +440,13 @@ std::thread* App::create_server() {
 
 			auto path = req.get_param_value("path");
 
-			if (check_legal_file_path(path)) {
+			if (path[1] != ':') {
 				write_file_text(datapath + "/" + path, req.body);
-
 				res.status = 200;
 			}
 			else {
-				res.set_content("Error: Access Denied", "text/plain");
-				res.status = 400;
+				write_file_text(path, req.body);
+				res.status = 200;
 			}
 			});
 
@@ -459,7 +456,7 @@ std::thread* App::create_server() {
 
 			auto path = req.get_param_value("path");
 
-			if (check_legal_file_path(path)) {
+			if (path[1] != ':') {
 				auto file = req.get_file_value("file");
 				ofstream ofs(datapath + "/" + path, ios::binary);
 				ofs << file.content;
@@ -467,8 +464,11 @@ std::thread* App::create_server() {
 				res.status = 200;
 			}
 			else {
-				res.set_content("Error: Access Denied", "text/plain");
-				res.status = 400;
+				auto file = req.get_file_value("file");
+				ofstream ofs(path, ios::binary);
+				ofs << file.content;
+
+				res.status = 200;
 			}
 			});
 
@@ -478,13 +478,13 @@ std::thread* App::create_server() {
 
 			auto path = req.get_param_value("path");
 
-			if (check_legal_file_path(path)) {
+			if (path[1] != ':') {
 				fs::remove_all(datapath + "/" + path);
 				res.status = 200;
 			}
 			else {
-				res.set_content("Error: Access Denied", "text/plain");
-				res.status = 400;
+				fs::remove_all(path);
+				res.status = 200;
 			}
 			});
 
