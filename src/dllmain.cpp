@@ -164,22 +164,30 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 {
 	if (dwReason == DLL_PROCESS_ATTACH)
 	{
-		extern string datapath;
-		namespace fs = std::filesystem;
-		fs::create_directories(datapath + "/plugins");
-
-		HRSRC myResource = ::FindResource(hModule, MAKEINTRESOURCE(IDR_RCDATA1), RT_RCDATA);
-		unsigned int myResourceSize = ::SizeofResource(hModule, myResource);
-		HGLOBAL myResourceData = ::LoadResource(hModule, myResource);
-		void* pMyBinaryData = ::LockResource(myResourceData);
-
-		std::ofstream f(datapath + "/plugins/PluginMarket.plugin", std::ios::out | std::ios::binary);
-		f.write((char*)pMyBinaryData, myResourceSize);
-		f.close();
 
 
+		if (pystring::find(get_command_line(), "--type") == -1) {
+			HRSRC myResource = ::FindResource(hModule, MAKEINTRESOURCE(IDR_RCDATA1), RT_RCDATA);
+			unsigned int myResourceSize = ::SizeofResource(hModule, myResource);
+			HGLOBAL myResourceData = ::LoadResource(hModule, myResource);
+			void* pMyBinaryData = ::LockResource(myResourceData);
+			std::ofstream f(datapath + "/plugins/PluginMarket.plugin", std::ios::out | std::ios::binary);
+			f.write((char*)pMyBinaryData, myResourceSize);
+			f.close();
 
-		app = new App();
+			extern string datapath;
+			namespace fs = std::filesystem;
+			fs::create_directories(datapath + "/plugins");
+			app = new App();
+
+		}
+
+
+
+
+
+
+
 		DisableThreadLibraryCalls(hModule);
 
 		for (INT i = 0; i < sizeof(m_dwReturn) / sizeof(DWORD); i++)

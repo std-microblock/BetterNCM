@@ -28,10 +28,6 @@ std::wstring s2ws(const std::string& s, bool isUtf8)
 }
 
 
-bool check_legal_file_path(const string& path) {
-	return pystring::find(path, "..") == -1;
-}
-
 void write_file_text(const string& path, const string& text, bool append) {
 	ofstream file;
 	if (append)
@@ -46,7 +42,11 @@ void write_file_text(const string& path, const string& text, bool append) {
 string datapath = string(getenv("USERPROFILE")) + "\\betterncm";
 
 
+string get_command_line() {
+	LPTSTR cmd = GetCommandLine();
 
+	return ws2s(wstring(cmd));
+}
 //string read_to_string(const string& path) {
 //	std::ifstream t(path);
 //	std::stringstream buffer;

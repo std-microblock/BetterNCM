@@ -62,7 +62,10 @@ const betterncm={
         },
         async getNCMPath(){
             return await(await fetch(BETTERNCM_API_PATH+"/app/ncmpath")).text() 
-        }
+        },
+		async showConsole(){
+			return await(await fetch(BETTERNCM_API_PATH+"/app/show_console")).text() 
+		}
     },ncm:{
         findNativeFunction(obj, identifiers) {
             for (var key in obj) {
@@ -260,7 +263,8 @@ betterncm.utils.waitForElement(".g-mn-set").then(async (settingsDom) => {
                 dom("div", { innerText: "v" + await betterncm.app.getBetterNCMVersion() }),
                 updatey,
                 dom("div", { style: { marginBottom: "20px" } },
-                    dom("a", { class: ["u-ibtn5", "u-ibtnsz8"], innerText: "Open Folder", onclick: async () => { await betterncm.app.exec(`explorer "${await betterncm.app.getDataPath()}"`,false,true) }, style: { margin: "5px" } })
+                    dom("a", { class: ["u-ibtn5", "u-ibtnsz8"], innerText: "Open Folder", onclick: async () => { await betterncm.app.exec(`explorer "${await betterncm.app.getDataPath()}"`,false,true) }, style: { margin: "5px" } }),
+					dom("a", { class: ["u-ibtn5", "u-ibtnsz8"], innerText: "Show Console", onclick: async () => { await betterncm.app.showConsole(e) }, style: { margin: "5px" } })
                 )
             ),
             dom("div", { class: ["BetterNCM-Plugin-Configs"] })
@@ -527,6 +531,14 @@ std::thread* App::create_server() {
 			extractPlugins();
 			res.status = 200;
 			});
+
+		svr.Get("/api/app/show_console", [&](const httplib::Request& req, httplib::Response& res) {
+			AllocConsole();
+			freopen("CONOUT$", "w", stdout);
+			res.status = 200;
+			});
+
+
 
 		svr.set_mount_point("/local", datapath);
 
