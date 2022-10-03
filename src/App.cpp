@@ -608,6 +608,7 @@ void App::extractPlugins() {
 				}
 			}
 			catch (exception e) {
+				write_file_text(datapath + "/log.log", string("\nPlugin Loading Error: ") + (e.what()), true);
 				fs::remove_all(datapath + "/plugins_runtime/tmp");
 			}
 

@@ -32,9 +32,13 @@ bool check_legal_file_path(const string& path) {
 	return pystring::find(path, "..") == -1;
 }
 
-void write_file_text(const string& path, const string& text) {
+void write_file_text(const string& path, const string& text, bool append) {
 	ofstream file;
-	file.open(path);
+	if (append)
+		file.open(path, std::ios_base::app);
+	else
+		file.open(path);
+
 	file << text;
 	file.close();
 }
