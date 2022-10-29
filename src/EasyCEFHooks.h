@@ -13,7 +13,7 @@
 #include <string>
 using namespace std;
 
-
+// TODO: refactor...
 class EasyCEFHooks
 {
 	static _cef_frame_t* frame;
