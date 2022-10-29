@@ -164,6 +164,7 @@ copy "$(TargetDir)BetterNCMII.dll" "C:\Program Files (x86)\Netease\CloudMusic\ms
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\App.h" />
+    <ClInclude Include="src\BetterNCMPlugin.h" />
     <ClInclude Include="src\createfiles.h" />
     <ClInclude Include="src\EasyCEFHooks.h" />
     <ClInclude Include="src\framework.h" />
@@ -173,6 +174,7 @@ copy "$(TargetDir)BetterNCMII.dll" "C:\Program Files (x86)\Netease\CloudMusic\ms
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\App.cpp" />
+    <ClCompile Include="src\BetterNCMPlugin.cpp" />
     <ClCompile Include="src\dllmain.cpp" />
     <ClCompile Include="src\EasyCEFHooks.cpp" />
     <ClCompile Include="src\pch.cpp" />

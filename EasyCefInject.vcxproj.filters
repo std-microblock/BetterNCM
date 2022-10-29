@@ -36,6 +36,9 @@
     <ClInclude Include="src\resource.h">
       <Filter>源文件</Filter>
     </ClInclude>
+    <ClInclude Include="src\BetterNCMPlugin.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\dllmain.cpp">
@@ -51,6 +54,9 @@
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="src\utils.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="src\BetterNCMPlugin.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>

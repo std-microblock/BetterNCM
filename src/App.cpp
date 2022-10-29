@@ -2,6 +2,7 @@
 #include "App.h"
 #include <Windows.h>
 #include "CommDlg.h"
+#include "BetterNCMPlugin.h"
 #define WIN32_LEAN_AND_MEAN 
 
 namespace fs = std::filesystem;
@@ -573,7 +574,7 @@ std::thread* App::create_server() {
 }
 
 App::App() {
-	extractPlugins();
+	auto plugins=extractPlugins();
 
 	server_thread = create_server();
 
@@ -611,8 +612,23 @@ App::App() {
 		}
 	};
 
-	EasyCEFHooks::onAddCommandLine = [&](string arg) {
+	EasyCEFHooks::onAddCommandLineCalled = [&](string arg) {
 		return pystring::index(arg, "disable-gpu") == -1;
+	};
+
+	string chromePluginsStr = "";
+
+	for (auto const& plugin : plugins) {
+		chromePluginsStr+=plugin.cef_plugin+",";
+	}
+
+	EasyCEFHooks::onAddCommandLine = [&](_cef_command_line_t* command_line) {
+		
+		{
+			CefString str = "load-extension";
+			CefString v = chromePluginsStr.c_str();
+			command_line->append_switch_with_value(command_line, str.GetStruct(),v.GetStruct());
+		}
 	};
 
 	EasyCEFHooks::InstallHooks();
@@ -625,11 +641,12 @@ App::~App() {
 }
 
 
-void App::extractPlugins() {
+vector<BetterNCMPlugin> App::extractPlugins() {
 	error_code ec;
 	if (fs::exists(datapath + "/plugins_runtime"))fs::remove_all(datapath + "/plugins_runtime", ec);
 
 	fs::create_directories(datapath + "/plugins_runtime");
+	vector<BetterNCMPlugin> plugins;
 
 	for (auto file : fs::directory_iterator(datapath + "/plugins")) {
 		auto path = file.path().string();
@@ -637,6 +654,10 @@ void App::extractPlugins() {
 			zip_extract(path.c_str(), (datapath + "/plugins_runtime/tmp").c_str(), NULL, NULL);
 			try {
 				auto modManifest = nlohmann::json::parse(read_to_string(datapath + "/plugins_runtime/tmp/manifest.json"));
+
+				if(modManifest["cef_plugin"].is_string())
+					plugins.push_back(BetterNCMPlugin{.cef_plugin = datapath + "/plugins_runtime/" + (string)modManifest["name"] + "/" + modManifest["cef_plugin"].get<string>()});
+		
 				if (modManifest["manifest_version"] == 1) {
 					write_file_text(datapath + "/plugins_runtime/tmp/.plugin.path.meta", pystring::slice(path, datapath.length()));
 					fs::rename(datapath + "/plugins_runtime/tmp", datapath + "/plugins_runtime/" + (string)modManifest["name"]);
@@ -652,4 +673,6 @@ void App::extractPlugins() {
 
 		}
 	}
+
+	return plugins;
 }
