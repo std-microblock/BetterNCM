@@ -22,6 +22,9 @@ const betterncm={
         async readFileText(path){
            return await(await fetch(BETTERNCM_API_PATH+"/fs/read_file_text?path="+encodeURIComponent(path))).text() 
         },
+		async unzip(path,dist=path+"_extracted/"){
+           return await(await fetch(BETTERNCM_API_PATH+"/fs/unzip_file?path="+encodeURIComponent(path)+"&dist="+encodeURIComponent(dist))).text() 
+        },
         async writeFileText(path,content){
            return await(await fetch(BETTERNCM_API_PATH+"/fs/write_file_text?path="+encodeURIComponent(path),{method:"POST",body:content})).text() 
         },
@@ -408,6 +411,29 @@ std::thread* App::create_server() {
 			else {
 				res.set_content(read_to_string(path), "text/plain");
 			}
+			});
+
+		svr.Get("/api/fs/unzip_file", [&](const httplib::Request& req, httplib::Response& res) {
+			using namespace std;
+			namespace fs = std::filesystem;
+
+			auto path = req.get_param_value("path");
+
+			auto dist = req.get_param_value("dist");
+
+
+
+			if (path[1] != ':') {
+				path = datapath + "/" + path;
+			}
+			
+			if (dist[1] != ':') {
+				dist = datapath + "/" + dist;
+			}
+
+			zip_extract(path.c_str(), dist.c_str(), NULL, NULL);
+
+			res.set_content("ok", "text/plain");
 			});
 
 		svr.Get("/api/fs/mkdir", [&](const httplib::Request& req, httplib::Response& res) {
