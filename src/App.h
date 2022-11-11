@@ -4,7 +4,7 @@
 #include "shellapi.h"
 class App {
 	std::thread* server_thread;
-	thread* create_server();
+	thread* create_server(string apiKey);
 	void extractPlugins();
 	string readConfig(const string& key, const string& def);
 	void writeConfig(const string& key, const string& val);

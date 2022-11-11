@@ -17,62 +17,63 @@ const BETTERNCM_FILES_PATH="http://localhost:3248/local"
 const betterncm={
     fs:{
         async readDir(path){
-           return await(await fetch(BETTERNCM_API_PATH+"/fs/read_dir?path="+encodeURIComponent(path))).json() 
+           return await(await fetch(BETTERNCM_API_PATH+"/fs/read_dir?path="+encodeURIComponent(path),{headers:{BETTERNCM_API_KEY}})).json() 
         },
         async readFileText(path){
-           return await(await fetch(BETTERNCM_API_PATH+"/fs/read_file_text?path="+encodeURIComponent(path))).text() 
+           return await(await fetch(BETTERNCM_API_PATH+"/fs/read_file_text?path="+encodeURIComponent(path),{headers:{BETTERNCM_API_KEY}})).text() 
         },
 		async unzip(path,dist=path+"_extracted/"){
-           return await(await fetch(BETTERNCM_API_PATH+"/fs/unzip_file?path="+encodeURIComponent(path)+"&dist="+encodeURIComponent(dist))).text() 
+           return await(await fetch(BETTERNCM_API_PATH+"/fs/unzip_file?path="+encodeURIComponent(path)+"&dist="+encodeURIComponent(dist),{headers:{BETTERNCM_API_KEY}})).text() 
         },
         async writeFileText(path,content){
-           return await(await fetch(BETTERNCM_API_PATH+"/fs/write_file_text?path="+encodeURIComponent(path),{method:"POST",body:content})).text() 
+           return await(await fetch(BETTERNCM_API_PATH+"/fs/write_file_text?path="+encodeURIComponent(path),{method:"POST",body:content,headers:{BETTERNCM_API_KEY}})).text() 
         },
 		async writeFile(path,file){
 			let fd=new FormData()
 			fd.append("file",file)
 			await fetch(BETTERNCM_API_PATH+"/fs/write_file?path="+encodeURIComponent(path), {
 				  method: 'POST',
-				  body: fd
+				  body: fd,
+				  headers:{BETTERNCM_API_KEY}
 			});
         },
         async mkdir(path){
-           return await(await fetch(BETTERNCM_API_PATH+"/fs/mkdir?path="+encodeURIComponent(path))).text() 
+           return await(await fetch(BETTERNCM_API_PATH+"/fs/mkdir?path="+encodeURIComponent(path),{headers:{BETTERNCM_API_KEY}})).text() 
         },
         async exists(path){
-           return await(await fetch(BETTERNCM_API_PATH+"/fs/exists?path="+encodeURIComponent(path))).json() 
+           return await(await fetch(BETTERNCM_API_PATH+"/fs/exists?path="+encodeURIComponent(path),{headers:{BETTERNCM_API_KEY}})).json() 
         },
         async remove(path){
-           return await(await fetch(BETTERNCM_API_PATH+"/fs/remove?path="+encodeURIComponent(path))).text() 
+           return await(await fetch(BETTERNCM_API_PATH+"/fs/remove?path="+encodeURIComponent(path),{headers:{BETTERNCM_API_KEY}})).text() 
         },
     },app:{
         async exec(cmd,ele=false, showWindow=false){
-           return await(await fetch(BETTERNCM_API_PATH+"/app/exec"+(ele?"_ele":"")+(showWindow?"?_showWindow":""),{method:"POST",body:cmd})).text() 
+           return await(await fetch(BETTERNCM_API_PATH+"/app/exec"+(ele?"_ele":"")+(showWindow?"?_showWindow":""),{method:"POST",body:cmd, headers:{BETTERNCM_API_KEY}})).text() 
         },
         async getBetterNCMVersion(){
-            return await(await fetch(BETTERNCM_API_PATH+"/app/version")).text() 
+            return await(await fetch(BETTERNCM_API_PATH+"/app/version",{headers:{BETTERNCM_API_KEY}})).text() 
         },
 		async reloadPlugins(){
-            return await(await fetch(BETTERNCM_API_PATH+"/app/reload_plugin")).text() 
+            return await(await fetch(BETTERNCM_API_PATH+"/app/reload_plugin",{headers:{BETTERNCM_API_KEY}})).text() 
         },
         async getDataPath(){
-            return await(await fetch(BETTERNCM_API_PATH+"/app/datapath")).text() 
+            return await(await fetch(BETTERNCM_API_PATH+"/app/datapath",{headers:{BETTERNCM_API_KEY}})).text() 
         },
         async readConfig(key,def){
-            return await(await fetch(BETTERNCM_API_PATH+"/app/read_config?key="+key+"&default="+def)).text() 
+            return await(await fetch(BETTERNCM_API_PATH+"/app/read_config?key="+key+"&default="+def,{headers:{BETTERNCM_API_KEY}})).text() 
         },
         async writeConfig(key,value){
-            return await(await fetch(BETTERNCM_API_PATH+"/app/write_config?key="+key+"&value="+value)).text() 
+            return await(await fetch(BETTERNCM_API_PATH+"/app/write_config?key="+key+"&value="+value,{headers:{BETTERNCM_API_KEY}})).text() 
         },
         async getNCMPath(){
-            return await(await fetch(BETTERNCM_API_PATH+"/app/ncmpath")).text() 
+            return await(await fetch(BETTERNCM_API_PATH+"/app/ncmpath",{headers:{BETTERNCM_API_KEY}})).text() 
         },
 		async showConsole(){
-			return await(await fetch(BETTERNCM_API_PATH+"/app/show_console")).text() 
+			return await(await fetch(BETTERNCM_API_PATH+"/app/show_console",{headers:{BETTERNCM_API_KEY}})).text() 
 		},
 		async openFileDialog(filter,initialDir){
 			if(initialDir==undefined)initialDir=await betterncm.app.getDataPath();
-            return await(await fetch(BETTERNCM_API_PATH+"/app/open_file_dialog?filter="+encodeURIComponent(filter)+"&initialDir="+encodeURIComponent(initialDir))).text() 
+            return await(await fetch(BETTERNCM_API_PATH+"/app/open_file_dialog?filter="+encodeURIComponent(filter)+"&initialDir="+encodeURIComponent(initialDir),{headers:{BETTERNCM_API_KEY}})).text() 
         }
 
     },ncm:{
@@ -376,10 +377,15 @@ void exec(string cmd, bool ele, bool showWindow = false) {
 	ShellExecuteEx(&shExecInfo);
 }
 
-std::thread* App::create_server() {
+#define checkApiKey if (!req.has_header("BETTERNCM_API_KEY") || req.get_header_value("BETTERNCM_API_KEY") != apiKey) { res.status = 401; return; }
+
+std::thread* App::create_server(string apiKey) {
 	return new std::thread([=] {
 		httplib::Server svr;
-		svr.Get("/api/fs/read_dir", [&](const httplib::Request& req, httplib::Response& res) {
+
+
+	svr.Get("/api/fs/read_dir", [&](const httplib::Request& req, httplib::Response& res) {
+			checkApiKey;
 			using namespace std;
 			namespace fs = std::filesystem;
 
@@ -400,6 +406,7 @@ std::thread* App::create_server() {
 			});
 
 		svr.Get("/api/fs/read_file_text", [&](const httplib::Request& req, httplib::Response& res) {
+			checkApiKey;
 			using namespace std;
 			namespace fs = std::filesystem;
 
@@ -414,6 +421,7 @@ std::thread* App::create_server() {
 			});
 
 		svr.Get("/api/fs/unzip_file", [&](const httplib::Request& req, httplib::Response& res) {
+			checkApiKey;
 			using namespace std;
 			namespace fs = std::filesystem;
 
@@ -437,6 +445,7 @@ std::thread* App::create_server() {
 			});
 
 		svr.Get("/api/fs/mkdir", [&](const httplib::Request& req, httplib::Response& res) {
+			checkApiKey;
 			using namespace std;
 			namespace fs = std::filesystem;
 
@@ -453,6 +462,7 @@ std::thread* App::create_server() {
 			});
 
 		svr.Get("/api/fs/exists", [&](const httplib::Request& req, httplib::Response& res) {
+			checkApiKey;
 			using namespace std;
 			namespace fs = std::filesystem;
 
@@ -467,6 +477,7 @@ std::thread* App::create_server() {
 			});
 
 		svr.Post("/api/fs/write_file_text", [&](const httplib::Request& req, httplib::Response& res) {
+			checkApiKey;
 			using namespace std;
 			namespace fs = std::filesystem;
 
@@ -483,6 +494,7 @@ std::thread* App::create_server() {
 			});
 
 		svr.Post("/api/fs/write_file", [&](const httplib::Request& req, httplib::Response& res) {
+			checkApiKey;
 			using namespace std;
 			namespace fs = std::filesystem;
 
@@ -505,6 +517,7 @@ std::thread* App::create_server() {
 			});
 
 		svr.Get("/api/fs/remove", [&](const httplib::Request& req, httplib::Response& res) {
+			checkApiKey;
 			using namespace std;
 			namespace fs = std::filesystem;
 
@@ -523,23 +536,26 @@ std::thread* App::create_server() {
 
 
 		svr.Post("/api/app/exec", [&](const httplib::Request& req, httplib::Response& res) {
+			checkApiKey;
 			auto cmd = req.body;
 			exec(cmd, false, req.has_param("_showWindow"));
 			res.status = 200;
 			});
 
 		svr.Post("/api/app/exec_ele", [&](const httplib::Request& req, httplib::Response& res) {
-
+			checkApiKey;
 			auto cmd = req.body;
 			exec(cmd, true, req.has_param("_showWindow"));
 			res.status = 200;
 			});
 
 		svr.Get("/api/app/datapath", [&](const httplib::Request& req, httplib::Response& res) {
+			checkApiKey;
 			res.set_content(datapath, "text/plain");
 			});
 
 		svr.Get("/api/app/ncmpath", [&](const httplib::Request& req, httplib::Response& res) {
+			checkApiKey;
 			TCHAR buffer[MAX_PATH] = { 0 };
 			GetCurrentDirectory(MAX_PATH, buffer);
 			wstring path = buffer;
@@ -547,30 +563,36 @@ std::thread* App::create_server() {
 			});
 
 		svr.Get("/api/app/version", [&](const httplib::Request& req, httplib::Response& res) {
+			checkApiKey;
 			res.set_content(version, "text/plain");
 			});
 
 		svr.Get("/api/app/read_config", [&](const httplib::Request& req, httplib::Response& res) {
+			checkApiKey;
 			res.set_content(readConfig(req.get_param_value("key"), req.get_param_value("default")), "text/plain");
 			});
 
 		svr.Get("/api/app/write_config", [&](const httplib::Request& req, httplib::Response& res) {
+			checkApiKey;
 			writeConfig(req.get_param_value("key"), req.get_param_value("value"));
 			res.status = 200;
 			});
 
 		svr.Get("/api/app/reload_plugin", [&](const httplib::Request& req, httplib::Response& res) {
+			checkApiKey;
 			extractPlugins();
 			res.status = 200;
 			});
 
 		svr.Get("/api/app/show_console", [&](const httplib::Request& req, httplib::Response& res) {
+			checkApiKey;
 			AllocConsole();
 			freopen("CONOUT$", "w", stdout);
 			res.status = 200;
 			});
 
 		svr.Get("/api/app/open_file_dialog", [&](const httplib::Request& req, httplib::Response& res) {
+			checkApiKey;
 			TCHAR szBuffer[MAX_PATH] = { 0 };
 			OPENFILENAME ofn = { 0 };
 			ofn.lStructSize = sizeof(ofn);
@@ -598,10 +620,32 @@ std::thread* App::create_server() {
 		});
 }
 
+// https://stackoverflow.com/questions/440133/how-do-i-create-a-random-alpha-numeric-string-in-c
+std::string random_string(std::string::size_type length)
+{
+	static auto& chrs = "0123456789"
+		"abcdefghijklmnopqrstuvwxyz"
+		"ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+	thread_local static std::mt19937 rg{ std::random_device{}() };
+	thread_local static std::uniform_int_distribution<std::string::size_type> pick(0, sizeof(chrs) - 2);
+
+	std::string s;
+
+	s.reserve(length);
+
+	while (length--)
+		s += chrs[pick(rg)];
+
+	return s;
+}
+
 App::App() {
 	extractPlugins();
 
-	server_thread = create_server();
+	auto apiKey = random_string(1024);
+
+	server_thread = create_server(apiKey);
 
 	EasyCEFHooks::onKeyEvent = [](auto client, auto browser, auto event) {
 		if (event->type == KEYEVENT_KEYUP && event->windows_key_code == 123) {
@@ -615,9 +659,10 @@ App::App() {
 		}
 	};
 
-	EasyCEFHooks::onLoadStart = [](_cef_browser_t* browser, _cef_frame_t* frame, auto transition_type) {
+	EasyCEFHooks::onLoadStart = [=](_cef_browser_t* browser, _cef_frame_t* frame, auto transition_type) {
 		if (frame->is_main(frame) && frame->is_valid(frame)) {
 			wstring url = frame->get_url(frame)->str;
+			EasyCEFHooks::executeJavaScript(frame, "const BETTERNCM_API_KEY='" + apiKey + "';");
 			EasyCEFHooks::executeJavaScript(frame, api_script);
 			EasyCEFHooks::executeJavaScript(frame, loader_script);
 			EasyCEFHooks::executeJavaScript(frame, plugin_manager_script);
