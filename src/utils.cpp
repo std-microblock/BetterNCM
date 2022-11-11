@@ -39,7 +39,7 @@ void write_file_text(const string& path, const string& text, bool append) {
 	file.close();
 }
 
-string datapath = string(getenv("USERPROFILE")) + "\\betterncm";
+string datapath = getenv("BETTERNCM_PROFILE")? string(getenv("BETTERNCM_PROFILE")) :  string(getenv("USERPROFILE")) + "\\betterncm";
 
 
 string get_command_line() {
