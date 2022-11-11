@@ -7,10 +7,10 @@
 
 
 ***
-最新测试兼容版本：`2.10.4`
+最新测试兼容版本：`2.10.5`
 
 
-![image](https://user-images.githubusercontent.com/66859419/193439006-0de4218d-e349-4e54-aaad-10da72ab93fc.png)
+![image](https://user-images.githubusercontent.com/66859419/201413911-e9f952d3-e44f-46f6-b496-150420bcf733.png)
 
 
 
