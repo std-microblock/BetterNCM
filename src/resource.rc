@@ -50,7 +50,7 @@ END
 // RCDATA
 //
 
-IDR_RCDATA1             RCDATA                  "D:\\Projects\\BetterNCM\\resource\\PluginMarket.plugin"
+IDR_RCDATA1             RCDATA                  "../resource/PluginMarket.plugin"
 
 #endif    // 中文(简体，中国) resources
 /////////////////////////////////////////////////////////////////////////////
