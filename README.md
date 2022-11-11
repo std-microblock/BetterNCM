@@ -1,8 +1,3 @@
-<h1 align="center">注意：请勿在公网上运行此插件</h1>
-
-<br>
-
-
 <div align="center"><image width="140em" src="https://user-images.githubusercontent.com/66859419/183120498-1dede5b4-0666-4891-b95f-c3a812b3f12f.png" /></div>
 <h1 align="center">BetterNCM II</h1>
 <h3 align="center">PC版网易云客户端插件管理器</h3>
