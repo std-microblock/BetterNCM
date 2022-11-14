@@ -650,12 +650,18 @@ App::App() {
 	EasyCEFHooks::onKeyEvent = [](auto client, auto browser, auto event) {
 		if (event->type == KEYEVENT_KEYUP && event->windows_key_code == 123) {
 			auto cef_browser_host = browser->get_host(browser);
-			CefWindowInfo windowInfo{};
-			CefBrowserSettings settings{};
-			CefPoint point{};
-			windowInfo.SetAsPopup(NULL, "EasyCEFInject DevTools");
-
-			cef_browser_host->show_dev_tools(cef_browser_host, &windowInfo, client, &settings, &point);
+			if (browser->get_host(browser)->has_dev_tools(cef_browser_host))
+			{
+				browser->get_host(browser)->close_dev_tools(cef_browser_host);
+			}
+			else
+			{
+				CefWindowInfo windowInfo {};
+				CefBrowserSettings settings {};
+				CefPoint point {};
+				windowInfo.SetAsPopup(NULL, "EasyCEFInject DevTools");
+				cef_browser_host->show_dev_tools(cef_browser_host, &windowInfo, client, &settings, &point);
+			}
 		}
 	};
 
