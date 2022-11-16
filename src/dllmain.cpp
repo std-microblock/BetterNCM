@@ -89,7 +89,7 @@ namespace AheadLib
 	}
 }
 using namespace AheadLib;
-
+#pragma runtime_checks( "", off )
 ALCDECL AheadLib_vSetDdrawflag(void)
 {
 	__asm PUSH m_dwReturn[0 * TYPE long];
@@ -159,7 +159,7 @@ ALCDECL AheadLib_TransparentBlt(void)
 	__asm XCHG EAX, [ESP];
 	__asm RET;
 }
-
+#pragma runtime_checks( "", restore )
 BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 {
 	if (dwReason == DLL_PROCESS_ATTACH)

@@ -382,7 +382,7 @@ void exec(string cmd, bool ele, bool showWindow = false) {
 std::thread* App::create_server(string apiKey) {
 	return new std::thread([=] {
 		httplib::Server svr;
-
+		this->httpServer = &svr;
 
 	svr.Get("/api/fs/read_dir", [&](const httplib::Request& req, httplib::Response& res) {
 			checkApiKey;
@@ -648,7 +648,13 @@ App::App() {
 	server_thread = create_server(apiKey);
 
 	EasyCEFHooks::onKeyEvent = [](auto client, auto browser, auto event) {
-		if (event->type == KEYEVENT_KEYUP && event->windows_key_code == 123) {
+		if (event->type == KEYEVENT_KEYUP && 
+#if _DEBUG
+			event->windows_key_code == 122 //DEBUG模式下改成F11
+#else
+			event->windows_key_code == 123
+#endif
+			) {
 			auto cef_browser_host = browser->get_host(browser);
 			CefWindowInfo windowInfo{};
 			CefBrowserSettings settings{};
@@ -689,7 +695,12 @@ App::App() {
 	EasyCEFHooks::InstallHooks();
 }
 App::~App() {
+	if (httpServer)
+		httpServer->stop(); //看实现基本是线程安全的
+	if (WaitForSingleObject(server_thread->native_handle(), 4000) == WAIT_TIMEOUT)
+		::TerminateThread((HANDLE)server_thread->native_handle(), 0);
 	delete server_thread;
+	httpServer = nullptr;
 	EasyCEFHooks::UninstallHook();
 
 	if (fs::exists(datapath + "/plugins_runtime"))fs::remove_all(datapath + "/plugins_runtime");
