@@ -697,8 +697,10 @@ App::App() {
 App::~App() {
 	if (httpServer)
 		httpServer->stop(); //看实现基本是线程安全的
-	if (WaitForSingleObject(server_thread->native_handle(), 4000) == WAIT_TIMEOUT)
-		::TerminateThread((HANDLE)server_thread->native_handle(), 0);
+	HANDLE hThread = server_thread->native_handle();
+	if (WaitForSingleObject(hThread, 4000) == WAIT_TIMEOUT)
+		::TerminateThread(hThread, 0);
+	server_thread->detach(); 
 	delete server_thread;
 	httpServer = nullptr;
 	EasyCEFHooks::UninstallHook();
