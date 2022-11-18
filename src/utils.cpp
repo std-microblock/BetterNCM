@@ -51,6 +51,13 @@ string getEnvironment(const string& key) {
 
 string datapath ="\\betterncm";
 
+string getNCMPath() {
+	wchar_t buffer[MAX_PATH];
+	GetModuleFileNameW(NULL, buffer, MAX_PATH);
+	std::wstring::size_type pos = std::wstring(buffer).find_last_of(L"\\/");
+
+	return ws2s(std::wstring(buffer).substr(0, pos));
+}
 
 string get_command_line() {
 	LPTSTR cmd = GetCommandLine();
