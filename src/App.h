@@ -3,6 +3,7 @@
 #include "EasyCEFHooks.h"
 #include "shellapi.h"
 class App {
+	httplib::Server* httpServer = nullptr;
 	std::thread* server_thread;
 	thread* create_server(string apiKey);
 	void extractPlugins();
