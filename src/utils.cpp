@@ -8,11 +8,16 @@ string read_to_string(const string& path) {
 	return string(buffer.str());
 }
 
-string ws2s(const wstring& str) {
-	using convert_typeX = std::codecvt_utf8<wchar_t>;
-	std::wstring_convert<convert_typeX, wchar_t> converterX;
-
-	return converterX.to_bytes(str);
+// https://stackoverflow.com/questions/4804298/how-to-convert-wstring-into-string   (modified)
+string ws2s(wstring const& str)
+{
+	std::string strTo;
+	char* szTo = new char[str.length() + 1];
+	szTo[str.size()] = '\0';
+	WideCharToMultiByte(CP_ACP, 0, str.c_str(), -1, szTo, (int)str.length(), NULL, NULL);
+	strTo = szTo;
+	delete szTo;
+	return strTo;
 }
 
 std::wstring s2ws(const std::string& s, bool isUtf8)
@@ -39,7 +44,20 @@ void write_file_text(const string& path, const string& text, bool append) {
 	file.close();
 }
 
-string datapath = getenv("BETTERNCM_PROFILE")? string(getenv("BETTERNCM_PROFILE")) :  string(getenv("USERPROFILE")) + "\\betterncm";
+// https://stackoverflow.com/questions/4130180/how-to-use-vs-c-getenvironmentvariable-as-cleanly-as-possible
+string getEnvironment(const string& key) {
+	DWORD bufferSize = 65535; //Limit according to http://msdn.microsoft.com/en-us/library/ms683188.aspx
+	std::wstring buff;
+	buff.resize(bufferSize);
+	bufferSize = GetEnvironmentVariableW(s2ws(key).c_str(), &buff[0], bufferSize);
+	if (!bufferSize)
+		//error
+		buff.resize(bufferSize);
+
+	return ws2s(buff);
+}
+
+string datapath = getenv("BETTERNCM_PROFILE")? getEnvironment("BETTERNCM_PROFILE"): getEnvironment("USERPROFILE") + "\\betterncm";
 
 
 string get_command_line() {
