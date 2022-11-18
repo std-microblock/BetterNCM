@@ -46,18 +46,10 @@ void write_file_text(const string& path, const string& text, bool append) {
 
 // https://stackoverflow.com/questions/4130180/how-to-use-vs-c-getenvironmentvariable-as-cleanly-as-possible
 string getEnvironment(const string& key) {
-	DWORD bufferSize = 65535; //Limit according to http://msdn.microsoft.com/en-us/library/ms683188.aspx
-	std::wstring buff;
-	buff.resize(bufferSize);
-	bufferSize = GetEnvironmentVariableW(s2ws(key).c_str(), &buff[0], bufferSize);
-	if (!bufferSize)
-		//error
-		buff.resize(bufferSize);
-
-	return ws2s(buff);
+	return ws2s(wstring(_wgetenv(s2ws(key).c_str())));
 }
 
-string datapath = getenv("BETTERNCM_PROFILE")? getEnvironment("BETTERNCM_PROFILE"): getEnvironment("USERPROFILE") + "\\betterncm";
+string datapath ="\\betterncm";
 
 
 string get_command_line() {

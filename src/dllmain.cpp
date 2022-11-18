@@ -167,19 +167,41 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 
 
 		if (pystring::find(get_command_line(), "--type") == -1) {
-			HRSRC myResource = ::FindResource(hModule, MAKEINTRESOURCE(IDR_RCDATA1), RT_RCDATA);
-			unsigned int myResourceSize = ::SizeofResource(hModule, myResource);
-			HGLOBAL myResourceData = ::LoadResource(hModule, myResource);
-			void* pMyBinaryData = ::LockResource(myResourceData);
-			std::ofstream f(datapath + "/plugins/PluginMarket.plugin", std::ios::out | std::ios::binary);
-			f.write((char*)pMyBinaryData, myResourceSize);
-			f.close();
-
 			extern string datapath;
 			namespace fs = std::filesystem;
-			fs::create_directories(datapath + "/plugins");
-			app = new App();
 
+			// Pick data folder
+			if (getenv("BETTERNCM_PROFILE")) {
+				datapath = getEnvironment("BETTERNCM_PROFILE");
+			}
+			else {
+				if (fs::exists(getEnvironment("USERPROFILE")+"\\betterncm")) {
+					datapath = getEnvironment("USERPROFILE") + "\\betterncm";
+				}
+				else {
+					datapath = "C:\\betterncm";
+				}
+			}
+
+			if ((int)fs::status(datapath).permissions() & (int)std::filesystem::perms::owner_write) {
+				// Create data folder
+				fs::create_directories(datapath + "/plugins");
+
+				// PluginMarket
+				HRSRC myResource = ::FindResource(hModule, MAKEINTRESOURCE(IDR_RCDATA1), RT_RCDATA);
+				unsigned int myResourceSize = ::SizeofResource(hModule, myResource);
+				HGLOBAL myResourceData = ::LoadResource(hModule, myResource);
+				void* pMyBinaryData = ::LockResource(myResourceData);
+				std::ofstream f(datapath + "/plugins/PluginMarket.plugin", std::ios::out | std::ios::binary);
+				f.write((char*)pMyBinaryData, myResourceSize);
+				f.close();
+
+				// Inject NCM
+				app = new App();
+			}
+			else {
+				warn("BetterNCM访问数据目录失败！可能需要以管理员身份运行或更改数据目录。\n\nBetterNCM将不会运行");
+			}
 		}
 
 
