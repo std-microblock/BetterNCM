@@ -76,6 +76,11 @@ void CEF_CALLBACK EasyCEFHooks::hook_cef_on_load_start(struct _cef_load_handler_
 	struct _cef_browser_t* browser,
 	struct _cef_frame_t* frame,
 	cef_transition_type_t transition_type) {
+
+	auto cef_browser_host = browser->get_host(browser);
+	auto hwnd = browser->get_host(browser)->get_window_handle(cef_browser_host);
+	SetLayeredWindowAttributes(hwnd, NULL, NULL, NULL);
+
 	CAST_TO(origin_cef_on_load_start, hook_cef_on_load_start)(self, browser, frame, transition_type);
 	onLoadStart(browser, frame, transition_type);
 }
