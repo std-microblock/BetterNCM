@@ -167,6 +167,11 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 
 
 		if (pystring::find(get_command_line(), "--type") == -1) {
+			AllocConsole();
+			freopen("CONOUT$", "w", stdout);
+			ShowWindow(GetConsoleWindow(),SW_HIDE);
+			
+
 			extern string datapath;
 			namespace fs = std::filesystem;
 

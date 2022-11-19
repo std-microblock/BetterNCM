@@ -602,8 +602,7 @@ std::thread* App::create_server(string apiKey) {
 
 		svr.Get("/api/app/show_console", [&](const httplib::Request& req, httplib::Response& res) {
 			checkApiKey;
-			AllocConsole();
-			freopen("CONOUT$", "w", stdout);
+			ShowWindow(GetConsoleWindow(), SW_SHOW);
 			res.status = 200;
 			});
 
