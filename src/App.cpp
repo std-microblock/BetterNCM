@@ -197,7 +197,19 @@ async function loadPlugins() {
     for (let name in loadedPlugins) loadedPlugins[name].injects.forEach(v => v._allLoaded?.call(loadedPlugins[name], loadedPlugins))
 }
 
-window.addEventListener("load",loadPlugins);
+window.addEventListener("load",async ()=>{
+	await loadPlugins();
+	if(!("PluginMarket" in loadedPlugins)){
+		let attempts=parseInt(localStorage["cc.microblock.loader.reloadPluginAttempts"]||"0");
+		if(attempts<3){
+			localStorage["cc.microblock.loader.reloadPluginAttempts"] = attempts+1;
+			document.location.reload()
+		}else{
+			localStorage["cc.microblock.loader.reloadPluginAttempts"] = "0";
+			alert("Failed to load plugins! Attempted for "+ attempts +" times");
+		}
+	}
+});
 )";
 
 const auto plugin_manager_script = R"(
@@ -274,7 +286,8 @@ betterncm.utils.waitForElement(".g-mn-set").then(async (settingsDom) => {
                 updatey,
                 dom("div", { style: { marginBottom: "20px" } },
                     dom("a", { class: ["u-ibtn5", "u-ibtnsz8"], innerText: "Open Folder", onclick: async () => { await betterncm.app.exec(`explorer "${await betterncm.app.getDataPath()}"`,false,true) }, style: { margin: "5px" } }),
-					dom("a", { class: ["u-ibtn5", "u-ibtnsz8"], innerText: "Show Console", onclick: async () => { await betterncm.app.showConsole() }, style: { margin: "5px" } })
+					dom("a", { class: ["u-ibtn5", "u-ibtnsz8"], innerText: "Show Console", onclick: async () => { await betterncm.app.showConsole() }, style: { margin: "5px" } }),
+					dom("a", { class: ["u-ibtn5", "u-ibtnsz8"], innerText: "Reload Plugins", onclick: async () => { await betterncm.app.reloadPlugins();document.location.reload(); }, style: { margin: "5px" } }),
                 )
             ),
             dom("div", { class: ["BetterNCM-Plugin-Configs"] })
