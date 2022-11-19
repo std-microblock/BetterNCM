@@ -6,7 +6,7 @@
 
 namespace fs = std::filesystem;
 
-const auto version = "0.2.5";
+const auto version = "0.2.4";
 
 extern string datapath;
 
@@ -285,7 +285,7 @@ betterncm.utils.waitForElement(".g-mn-set").then(async (settingsDom) => {
                 dom("div", { innerText: "v" + await betterncm.app.getBetterNCMVersion() }),
                 updatey,
                 dom("div", { style: { marginBottom: "20px" } },
-                    dom("a", { class: ["u-ibtn5", "u-ibtnsz8"], innerText: "Open Folder", onclick: async () => { await betterncm.app.exec(`explorer "${await betterncm.app.getDataPath()}"`,false,true) }, style: { margin: "5px" } }),
+                    dom("a", { class: ["u-ibtn5", "u-ibtnsz8"], innerText: "Open Folder", onclick: async () => { await betterncm.app.exec(`explorer "${(await betterncm.app.getDataPath()).replace(/\//g,"\\")}"`,false,true) }, style: { margin: "5px" } }),
 					dom("a", { class: ["u-ibtn5", "u-ibtnsz8"], innerText: "Show Console", onclick: async () => { await betterncm.app.showConsole() }, style: { margin: "5px" } }),
 					dom("a", { class: ["u-ibtn5", "u-ibtnsz8"], innerText: "Reload Plugins", onclick: async () => { await betterncm.app.reloadPlugins();document.location.reload(); }, style: { margin: "5px" } }),
                 )
