@@ -68,7 +68,7 @@ string get_command_line() {
 }
 
 
-
+// https://stackoverflow.com/questions/9524393/how-to-capture-part-of-the-screen-and-save-it-to-a-bmp
 bool screenCapturePart( LPCWSTR fname) {
 	HDC hdcSource = GetDC(NULL);
 	HDC hdcMemory = CreateCompatibleDC(hdcSource);
