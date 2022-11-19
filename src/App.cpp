@@ -685,7 +685,7 @@ std::string random_string(std::string::size_type length)
 App::App() {
 	extractPlugins();
 
-	auto apiKey = random_string(1024);
+	auto apiKey = random_string(64);
 
 	server_thread = create_server(apiKey);
 
