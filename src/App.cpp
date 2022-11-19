@@ -249,7 +249,8 @@ function dom(tag, settings, ...children) {
 
 
 
-betterncm.utils.waitForElement(".g-mn-set").then((settingsDom)=>{(async () => {
+betterncm.utils.waitForElement(".g-mn-set").then(async(settingsDom)=>{
+
  settingsDom.prepend(
         dom("div", { style: { marginLeft: "30px" } },
             dom("div", { style: { display: "flex", flexDirection: "column", alignItems: "center" } },
@@ -264,7 +265,10 @@ betterncm.utils.waitForElement(".g-mn-set").then((settingsDom)=>{(async () => {
                 )
             ),
             dom("div", { class: ["BetterNCM-Plugin-Configs"] })
-        ))
+        ));
+
+(async () => {
+
 
     try {
         let currentVersion = await betterncm.app.getBetterNCMVersion()
