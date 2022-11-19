@@ -15,3 +15,6 @@ string getNCMPath();
 string get_command_line();
 
 extern string datapath;
+
+bool screenCapturePart(LPCWSTR fname);
+bool saveBitmap(LPCWSTR filename, HBITMAP bmp, HPALETTE pal);

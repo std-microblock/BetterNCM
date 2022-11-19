@@ -53,6 +53,12 @@ const betterncm={
         async getBetterNCMVersion(){
             return await(await fetch(BETTERNCM_API_PATH+"/app/version",{headers:{BETTERNCM_API_KEY}})).text() 
         },
+		async takeBackgroundScreenshot(){
+            return await(await fetch(BETTERNCM_API_PATH+"/app/bg_screenshot",{headers:{BETTERNCM_API_KEY}})).text() 
+        },
+		async getNCMWinPos(){
+            return await(await fetch(BETTERNCM_API_PATH+"/app/get_win_position")).json() 
+        },
 		async reloadPlugins(){
             return await(await fetch(BETTERNCM_API_PATH+"/app/reload_plugin",{headers:{BETTERNCM_API_KEY}})).text() 
         },
@@ -601,6 +607,32 @@ std::thread* App::create_server(string apiKey) {
 			res.status = 200;
 			});
 
+		svr.Get("/api/app/bg_screenshot", [&](const httplib::Request& req, httplib::Response& res) {
+			checkApiKey;
+			HWND ncmWin = FindWindow(L"OrpheusBrowserHost", NULL);
+			SetWindowDisplayAffinity(ncmWin, WDA_EXCLUDEFROMCAPTURE);
+			screenCapturePart(s2ws(datapath + "/screenshot.bmp").c_str());
+			res.set_content("http://localhost:3248/local/screenshot.bmp", "text/plain");
+			SetWindowDisplayAffinity(ncmWin, WDA_NONE);
+			});
+
+		svr.Get("/api/app/get_win_position", [&](const httplib::Request& req, httplib::Response& res) {
+			HWND ncmWin = FindWindow(L"OrpheusBrowserHost", NULL);
+			int x=0, y=0;
+			RECT rect = { NULL };
+
+			int xo = GetSystemMetrics(SM_XVIRTUALSCREEN);
+			int yo = GetSystemMetrics(SM_YVIRTUALSCREEN);
+
+			if (GetWindowRect(ncmWin, &rect)) {
+				x = rect.left;
+				y = rect.top;
+			}
+
+			res.set_content((string("{\"x\":")) + to_string(x-xo) + ",\"y\":" + to_string(y-yo) + "}", "application/json");
+
+			});
+
 		svr.Get("/api/app/open_file_dialog", [&](const httplib::Request& req, httplib::Response& res) {
 			checkApiKey;
 			TCHAR szBuffer[MAX_PATH] = { 0 };
@@ -626,7 +658,7 @@ std::thread* App::create_server(string apiKey) {
 
 		svr.set_mount_point("/local", datapath);
 
-		svr.listen("0.0.0.0", 3248);
+		svr.listen("127.0.0.1", 3248);
 		});
 }
 
