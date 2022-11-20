@@ -6,7 +6,7 @@
 
 namespace fs = std::filesystem;
 
-const auto version = "0.2.5";
+const auto version = "0.2.4";
 
 extern string datapath;
 
@@ -294,7 +294,7 @@ betterncm.utils.waitForElement(".g-mn-set").then(async(settingsDom)=>{
                             await betterncm.fs.writeFile("./betterncm.dll", await (await fetch(onlineSuitableVersions[0].file)).blob())
 
                             if (!ncmpath.toLowerCase().includes("system")) {
-                                betterncm.app.exec(`cmd /c @echo off & echo BetterNCM Updating... & cd "${ncmpath}" & taskkill /f /im cloudmusic.exe>nul & taskkill /f /im cloudmusicn.exe>nul & ping 127.0.0.1>nul & del msimg32.dll & move "${dllpath}" .\\msimg32.dll & start cloudmusic.exe`, true)
+                                betterncm.app.exec(`cmd /c @echo off & echo BetterNCM Updating... & cd /d C:/ & cd C:/ & cd /d ${ncmpath[0]}:/ & cd "${ncmpath}" & taskkill /f /im cloudmusic.exe>nul & taskkill /f /im cloudmusicn.exe>nul & ping 127.0.0.1>nul & del msimg32.dll & move "${dllpath}" .\\msimg32.dll & start cloudmusic.exe`, true)
                             }
                         }
                     })))
