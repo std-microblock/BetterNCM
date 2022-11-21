@@ -160,12 +160,13 @@ ALCDECL AheadLib_TransparentBlt(void)
 	__asm RET;
 }
 #pragma runtime_checks( "", restore )
+HMODULE  g_hModule = nullptr;
+
 BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 {
 	if (dwReason == DLL_PROCESS_ATTACH)
 	{
-
-
+		g_hModule = hModule;
 		if (pystring::find(get_command_line(), "--type") == -1) {
 			AllocConsole();
 			freopen("CONOUT$", "w", stdout);

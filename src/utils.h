@@ -18,3 +18,5 @@ extern string datapath;
 
 bool screenCapturePart(LPCWSTR fname);
 bool saveBitmap(LPCWSTR filename, HBITMAP bmp, HPALETTE pal);
+
+std::string load_string_resource(LPCTSTR name);

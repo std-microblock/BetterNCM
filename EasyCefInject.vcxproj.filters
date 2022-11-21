@@ -13,6 +13,9 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="js">
+      <UniqueIdentifier>{9b7ac9ec-3265-4fee-9a91-e4463edd1b18}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\createfiles.h">
@@ -56,6 +59,15 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="resource\PluginMarket.plugin" />
+    <None Include="src\api.js">
+      <Filter>js</Filter>
+    </None>
+    <None Include="src\loader.js">
+      <Filter>js</Filter>
+    </None>
+    <None Include="src\plugin_manager.js">
+      <Filter>js</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="src\resource.rc">
