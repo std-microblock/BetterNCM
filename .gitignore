@@ -32,3 +32,8 @@
 .vs/
 Debug/
 Release/
+
+# https://github.com/microsoft/vcpkg/blob/master/.gitignore
+*.user
+*.aps
+
