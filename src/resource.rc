@@ -51,7 +51,9 @@ END
 //
 
 IDR_RCDATA1             RCDATA                  "../resource/PluginMarket.plugin"
-
+api.js                  RCDATA                  "api.js"
+loader.js               RCDATA                  "loader.js"
+plugin_manager.js       RCDATA                  "plugin_manager.js"
 #endif    // 中文(简体，中国) resources
 /////////////////////////////////////////////////////////////////////////////
 

@@ -1,8 +1,10 @@
 #include "pch.h"
-#include "utils.h"
 #include <ole2.h>
 #include <olectl.h>
+#include "utils.h"
+#include <assert.h>
 
+extern HMODULE g_hModule;
 string read_to_string(const string& path) {
 	std::ifstream t(path);
 	std::stringstream buffer;
@@ -150,6 +152,32 @@ bool saveBitmap(LPCWSTR filename, HBITMAP bmp, HPALETTE pal)
 	picture->Release();
 
 	return result;
+}
+
+std::string load_string_resource(LPCTSTR name)
+{
+	HRSRC hRes = FindResource(g_hModule, name, RT_RCDATA);
+	assert(hRes);
+	DWORD size = SizeofResource(g_hModule, hRes);
+	HGLOBAL hGlobal = LoadResource(g_hModule, hRes);
+	assert(hGlobal);
+
+	std::string ret;
+
+	const uint8_t bom[3] = { 0xEF, 0xBB, 0xBF };
+	uint8_t * ptr = (uint8_t*)LockResource(hGlobal);
+	
+	if (size >= 3 && memcmp(bom, ptr, 3) == 0)
+	{
+		ret.assign((char*)ptr + 3, (size_t)size - 3);
+	}
+	else
+	{
+		ret.assign((char*)ptr, (size_t)size);
+	}
+
+	UnlockResource(ptr);
+	return ret;
 }
 
 //string read_to_string(const string& path) {
