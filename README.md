@@ -23,3 +23,8 @@
 # 安装
 
 使用[BetterNCM Installer](https://github.com/MicroCBer/BetterNCM-Installer)一键安装~
+
+
+# Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=MicroCBer/BetterNCM&type=Date)](https://star-history.com/#MicroCBer/BetterNCM&Date)
