@@ -6,6 +6,7 @@
 #include "pystring/pystring.h"
 #include "include/capi/cef_client_capi.h"
 #include "include/capi/cef_app_capi.h"
+#include "include/capi/cef_zip_reader_capi.h"
 #include "include/internal/cef_export.h"
 #include "include/capi/cef_v8_capi.h"
 #include "utils.h"
@@ -27,10 +28,22 @@ class EasyCEFHooks
 	static PVOID origin_cef_on_load_start;
 	static PVOID origin_cef_on_key_event;
 	static PVOID origin_cef_v8context_get_current_context;
+	static PVOID origin_cef_zip_reader_create;
 	static PVOID origin_on_before_command_line_processing;
 	static PVOID origin_command_line_append_switch;
+<<<<<<< Updated upstream
 	static PVOID origin_cef_register_scheme_handler_factory;
 	static PVOID origin_cef_scheme_handler_create;
+=======
+	static PVOID origin_cef_zip_reader_read_file;
+
+	static int CEF_CALLBACK hook_cef_zip_reader_read_file(struct _cef_zip_reader_t* self,
+		void* buffer,
+		size_t bufferSize);
+
+	static cef_zip_reader_t* hook_cef_zip_reader_create(
+		struct _cef_stream_reader_t* stream);
+>>>>>>> Stashed changes
 
 	static cef_v8context_t* hook_cef_v8context_get_current_context();
 

@@ -9,6 +9,7 @@ cef_v8context_t* EasyCEFHooks::contextl = NULL;
 
 struct _cef_client_t* EasyCEFHooks::cef_client = NULL;
 PVOID EasyCEFHooks::origin_cef_browser_host_create_browser = NULL;
+PVOID EasyCEFHooks::origin_cef_zip_reader_create = NULL;
 PVOID EasyCEFHooks::origin_cef_initialize = NULL;
 PVOID EasyCEFHooks::origin_cef_get_keyboard_handler = NULL;
 PVOID EasyCEFHooks::origin_cef_on_key_event = NULL;
@@ -17,8 +18,12 @@ PVOID EasyCEFHooks::origin_cef_load_handler = NULL;
 PVOID EasyCEFHooks::origin_cef_on_load_start = NULL;
 PVOID EasyCEFHooks::origin_on_before_command_line_processing = NULL;
 PVOID EasyCEFHooks::origin_command_line_append_switch = NULL;
+<<<<<<< Updated upstream
 PVOID EasyCEFHooks::origin_cef_register_scheme_handler_factory = NULL;
 PVOID EasyCEFHooks::origin_cef_scheme_handler_create = NULL;
+=======
+PVOID EasyCEFHooks::origin_cef_zip_reader_read_file=NULL;
+>>>>>>> Stashed changes
 
 std::function<void(struct _cef_browser_t* browser, struct _cef_frame_t* frame, cef_transition_type_t transition_type)> EasyCEFHooks::onLoadStart = [](auto browser, auto frame, auto transition_type) {};
 std::function<void(_cef_client_t*, struct _cef_browser_t*, const struct _cef_key_event_t*)> EasyCEFHooks::onKeyEvent = [](auto client, auto browser, auto key) {};
@@ -27,6 +32,22 @@ void EasyCEFHooks::executeJavaScript(_cef_frame_t* frame, string script, string 
 	CefString exec_script = script;
 	CefString purl = url;
 	frame->execute_java_script(frame, exec_script.GetStruct(), purl.GetStruct(), 0);
+}
+
+cef_zip_reader_t* EasyCEFHooks::hook_cef_zip_reader_create(_cef_stream_reader_t* stream)
+{
+	cef_zip_reader_t* reader = CAST_TO(origin_cef_zip_reader_create, hook_cef_zip_reader_create)(stream);
+	origin_cef_zip_reader_read_file = reader->read_file;
+	reader->read_file = hook_cef_zip_reader_read_file;
+	return reader;
+}
+
+int CEF_CALLBACK EasyCEFHooks::hook_cef_zip_reader_read_file(struct _cef_zip_reader_t* self,
+	void* buffer,
+	size_t bufferSize) {
+	self->get_file_name(self);
+	return 0;
+	return CAST_TO(origin_cef_zip_reader_read_file, hook_cef_zip_reader_read_file)(self, buffer, bufferSize);
 }
 
 cef_v8context_t* EasyCEFHooks::hook_cef_v8context_get_current_context() {
@@ -160,8 +181,14 @@ bool EasyCEFHooks::InstallHooks() {
 	else
 		return false;
 
+<<<<<<< Updated upstream
 	if (origin_cef_register_scheme_handler_factory)
 		DetourAttach(&origin_cef_register_scheme_handler_factory, hook_cef_register_scheme_handler_factory);
+=======
+	origin_cef_zip_reader_create = DetourFindFunction("libcef.dll", "cef_zip_reader_create");
+	if (origin_cef_zip_reader_create)
+		DetourAttach(&origin_cef_zip_reader_create, hook_cef_zip_reader_create);
+>>>>>>> Stashed changes
 	else
 		return false;
 
