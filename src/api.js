@@ -83,6 +83,9 @@ const betterncm = {
         {
             return await (await fetch(BETTERNCM_API_PATH + "/app/show_console", { headers: { BETTERNCM_API_KEY } })).text();
         },
+        async setRoundedCorner(enable=true) {
+            return await (await fetch(BETTERNCM_API_PATH + "/app/set_rounded_corner?enable=" + (enable ? "true" : "false"), { headers: { BETTERNCM_API_KEY } })).text();
+        },
         async openFileDialog(filter, initialDir)
         {
             if (initialDir == undefined) initialDir = await betterncm.app.getDataPath();

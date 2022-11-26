@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "App.h"
 #include <Windows.h>
+#include "dwmapi.h"
 #include "CommDlg.h"
 #define WIN32_LEAN_AND_MEAN 
 
@@ -298,6 +299,20 @@ std::thread* App::create_server(string apiKey) {
 			ShowWindow(GetConsoleWindow(), SW_SHOW);
 			res.status = 200;
 		});
+
+		svr.Get("/api/app/set_rounded_corner", [&](const httplib::Request& req, httplib::Response& res) {
+			checkApiKey;
+			bool enable = req.get_param_value("enable") == "true";
+			HWND ncmWin = FindWindow(L"OrpheusBrowserHost", NULL);
+			DWM_WINDOW_CORNER_PREFERENCE preference = enable? DWMWCP_ROUND : DWMWCP_DONOTROUND;
+			DwmSetWindowAttribute(ncmWin, DWMWA_WINDOW_CORNER_PREFERENCE, &preference, sizeof(preference));
+
+			HWND ncmShadow=NULL;
+			while(ncmShadow = FindWindowEx(NULL, ncmShadow, L"OrpheusShadow", NULL))
+				ShowWindow(ncmShadow,enable?SW_HIDE:SW_SHOW);
+
+			res.status = 200;
+			});
 
 		svr.Get("/api/app/bg_screenshot", [&](const httplib::Request& req, httplib::Response& res) {
 			checkApiKey;
