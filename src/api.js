@@ -90,6 +90,9 @@ const betterncm = {
         {
             if (initialDir == undefined) initialDir = await betterncm.app.getDataPath();
             return await (await fetch(BETTERNCM_API_PATH + "/app/open_file_dialog?filter=" + encodeURIComponent(filter) + "&initialDir=" + encodeURIComponent(initialDir), { headers: { BETTERNCM_API_KEY } })).text();
+        },
+        async isLightTheme() {
+            return (await (await fetch(BETTERNCM_API_PATH + "/app/is_light_theme", { headers: { BETTERNCM_API_KEY } })).text())==="true";
         }
 
     },
