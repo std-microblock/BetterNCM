@@ -309,7 +309,7 @@ std::thread* App::create_server(string apiKey) {
 
 			HWND ncmShadow=NULL;
 			while(ncmShadow = FindWindowEx(NULL, ncmShadow, L"OrpheusShadow", NULL))
-				ShowWindow(ncmShadow,enable?SW_HIDE:SW_SHOW);
+				ShowWindow(ncmShadow,enable? SW_FORCEMINIMIZE:SW_NORMAL);
 
 			res.status = 200;
 			});
