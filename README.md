@@ -12,13 +12,13 @@
 
 
 
+
+
+![image](https://user-images.githubusercontent.com/66859419/204120694-a716c6a0-3b2a-4f99-9a2b-f93dd917a367.png)
+
+
 ***
-最新测试兼容版本：`2.10.5`
-
-
-![image](https://user-images.githubusercontent.com/66859419/201413911-e9f952d3-e44f-46f6-b496-150420bcf733.png)
-
-
+最新测试兼容版本：`2.10.6`
 
 # 安装
 
