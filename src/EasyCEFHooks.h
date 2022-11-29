@@ -14,21 +14,22 @@
 using namespace std;
 
 // TODO: refactor...
-class EasyCEFHooks
+namespace EasyCEFHooks
 {
-	static _cef_frame_t* frame;
-	static cef_v8context_t* contextl;
+	//static _cef_frame_t* frame;
+	//static cef_v8context_t* contextl;
 
-	static struct _cef_client_t* cef_client;
-	static PVOID origin_cef_browser_host_create_browser;
-	static PVOID origin_cef_initialize;
-	static PVOID origin_cef_get_keyboard_handler;
-	static PVOID origin_cef_load_handler;
-	static PVOID origin_cef_on_load_start;
-	static PVOID origin_cef_on_key_event;
-	static PVOID origin_cef_v8context_get_current_context;
-	static PVOID origin_on_before_command_line_processing;
-	static PVOID origin_command_line_append_switch;
+	//static struct _cef_client_t* cef_client;
+	//static PVOID origin_cef_browser_host_create_browser;
+	//static PVOID origin_cef_initialize;
+	//static PVOID origin_cef_get_keyboard_handler;
+	//static PVOID origin_cef_load_handler;
+	//static PVOID origin_cef_on_load_start;
+	//static PVOID origin_cef_on_key_event;
+	//static PVOID origin_cef_v8context_get_current_context;
+	//static PVOID origin_on_before_command_line_processing;
+	//static PVOID origin_command_line_append_switch;
+/*
 
 	static cef_v8context_t* hook_cef_v8context_get_current_context();
 
@@ -63,12 +64,12 @@ class EasyCEFHooks
 		struct _cef_command_line_t* command_line);
 
 	static void CEF_CALLBACK hook_command_line_append_switch(_cef_command_line_t* self, const cef_string_t* name);
-public:
-	static bool InstallHooks();
-	static bool UninstallHook();
-	static void executeJavaScript(_cef_frame_t* frame, string script, string url = "libeasycef/injext.js");
-	static std::function<void(_cef_client_t*, struct _cef_browser_t*, const struct _cef_key_event_t*)> onKeyEvent;
-	static std::function<void(struct _cef_browser_t* browser, struct _cef_frame_t* frame, cef_transition_type_t transition_type)> onLoadStart;
-	static std::function<bool(string)> onAddCommandLine;
+*/
+	 bool InstallHooks();
+	 bool UninstallHook();
+	 void executeJavaScript(_cef_frame_t* frame, string script, string url = "libeasycef/injext.js");
+	 extern std::function<void(_cef_client_t*, struct _cef_browser_t*, const struct _cef_key_event_t*)> onKeyEvent;
+	 extern std::function<void(struct _cef_browser_t* browser, struct _cef_frame_t* frame, cef_transition_type_t transition_type)> onLoadStart;
+	 extern std::function<bool(string)> onAddCommandLine;
 };
 
