@@ -19,4 +19,14 @@ extern string datapath;
 bool screenCapturePart(LPCWSTR fname);
 bool saveBitmap(LPCWSTR filename, HBITMAP bmp, HPALETTE pal);
 
+template<typename T>
+void alert(T item)
+{
+	//this accepts all types that supports operator << 
+	std::ostringstream os;
+	os << item;
+	MessageBoxA(NULL, os.str().c_str(), "Message", MB_OK | MB_ICONINFORMATION);
+}
+
+
 std::string load_string_resource(LPCTSTR name);
