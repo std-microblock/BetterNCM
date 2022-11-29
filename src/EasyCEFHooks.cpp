@@ -177,9 +177,9 @@ void CEF_CALLBACK EasyCEFHooks::get_response_headers(struct _cef_resource_handle
 	struct _cef_response_t* response,
 	int64* response_length,
 	cef_string_t* redirectUrl) {
-	*response_length = -1;
+	//*response_length = -1;
 	CAST_TO(origin_get_headers, get_response_headers)(self, response, response_length, redirectUrl);
-	*response_length = -1;
+	//*response_length = -1;
 	//CefString name = "";
 
 	//response->set_header_by_name(self, )
@@ -194,11 +194,13 @@ int CEF_CALLBACK EasyCEFHooks::read(struct _cef_resource_handler_t* self,
 	struct _cef_resource_read_callback_t* callback) {
 	//
 	int ret = 0;
+	if (!urlMap.contains(self)) {
+		*bytes_read = 0;
+		return 0;
+	}
+
 	if (urlMap[self].ends_with(".js")) {
-		if (!urlMap.contains(self)) {
-			*bytes_read = 0;
-			return 0;
-		}
+		
 		cout << urlMap[self] << " || \n";
 		urlMap.erase(self);
 		
