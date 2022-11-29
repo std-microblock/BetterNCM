@@ -191,7 +191,7 @@ int CEF_CALLBACK EasyCEFHooks::read(struct _cef_resource_handler_t* self,
 	void* data_out,
 	int bytes_to_read,
 	int* bytes_read,
-	struct _cef_resource_read_callback_t* callback) {
+	struct _cef_callback_t* callback) {
 	//
 	int ret = 0;
 	if (!urlMap.contains(self)) {
@@ -199,7 +199,9 @@ int CEF_CALLBACK EasyCEFHooks::read(struct _cef_resource_handler_t* self,
 		return 0;
 	}
 
-	if (urlMap[self].ends_with(".js")) {
+	
+	ret = CAST_TO(origin_read, read)(self, data_out, bytes_to_read, bytes_read, callback);
+	if (bytes_to_read-10>*bytes_read && urlMap[self].ends_with(".js")) {
 		
 		cout << urlMap[self] << " || \n";
 		urlMap.erase(self);
@@ -210,21 +212,18 @@ int CEF_CALLBACK EasyCEFHooks::read(struct _cef_resource_handler_t* self,
 		//*((char*)data_out) = '8';
 		//((char*)data_out) = *s.c_str();
 		//bytes_to_read = s->length();
-		//ret = CAST_TO(origin_read, read)(self, data_out ,bytes_to_read, bytes_read, callback);
+		
 
 		//
 		auto s = string((char*)data_out, (size_t)*bytes_read);
 		cout << s;
-		s="console.log('codeeeee modification!!!!!');";
+		s+="console.log('codeeeee modification!!!!!');";
 		char* cstr = new char[s.length() + 1];
 
 		strcpy((char*)data_out, s.c_str());
 		*bytes_read = s.length();
 		//callback->cont(callback);
 		return 1;
-	}
-	else {
-		ret = CAST_TO(origin_read, read)(self, data_out, bytes_to_read, bytes_read, callback);
 	}
 	
 	
@@ -252,8 +251,8 @@ _cef_resource_handler_t* CEF_CALLBACK EasyCEFHooks::hook_cef_scheme_handler_crea
 	urlMap[ret] = url.ToString();
 	origin_get_headers = ret->get_response_headers;
 	ret->get_response_headers = get_response_headers;
-	origin_read = ret->read;
-	ret->read = read;
+	origin_read = ret->read_response;
+	ret->read_response = read;
 
 
 	return ret;
