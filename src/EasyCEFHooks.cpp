@@ -177,21 +177,61 @@ void CEF_CALLBACK EasyCEFHooks::get_response_headers(struct _cef_resource_handle
 	struct _cef_response_t* response,
 	int64* response_length,
 	cef_string_t* redirectUrl) {
+	*response_length = -1;
 	CAST_TO(origin_get_headers, get_response_headers)(self, response, response_length, redirectUrl);
-
+	*response_length = -1;
 	//CefString name = "";
 
 	//response->set_header_by_name(self, )
 }
 
+map<_cef_resource_handler_t*, string> urlMap;
+
 int CEF_CALLBACK EasyCEFHooks::read(struct _cef_resource_handler_t* self,
 	void* data_out,
 	int bytes_to_read,
 	int* bytes_read,
-	struct _cef_resource_read_callback_t* callback) {
-	int ret = CAST_TO(origin_read, read)(self, data_out, bytes_to_read, bytes_read, callback);
+	struct _cef_callback_t* callback) {
+	//
+	int ret = 0;
+	if (urlMap[self].ends_with(".js")) {
+		if (!urlMap.contains(self)) {
+			*bytes_read = 0;
+			return 0;
+		}
+		cout << urlMap[self] << " || \n";
+		urlMap.erase(self);
+		
+		
+		// do stuff
 
+		//*((char*)data_out) = '8';
+		//((char*)data_out) = *s.c_str();
+		//bytes_to_read = s->length();
+		ret = CAST_TO(origin_read, read)(self, data_out ,bytes_to_read, bytes_read, callback);
 
+		//
+		auto s = string((char*)data_out, (size_t)*bytes_read);
+		cout << s;
+		s="console.log('codeeeee modifaction!!!!!');";
+		char* cstr = new char[s.length() + 1];
+
+		strcpy((char*)data_out, s.c_str());
+		*bytes_read = s.length();
+		//callback->cont(callback);
+		return 1;
+	}
+	else {
+		ret = CAST_TO(origin_read, read)(self, data_out, bytes_to_read, bytes_read, callback);
+	}
+	
+	
+	try {
+	/*	
+		if (s.starts_with("<!doctype html>")) {
+
+		}*/
+	}catch(PVOID e){}
 
 	return ret;
 }
@@ -202,11 +242,17 @@ _cef_resource_handler_t* CEF_CALLBACK EasyCEFHooks::hook_cef_scheme_handler_crea
 	struct _cef_frame_t* frame,
 	const cef_string_t* scheme_name,
 	struct _cef_request_t* request) {
-	auto ret = CAST_TO(origin_cef_scheme_handler_create, hook_cef_scheme_handler_create)(self, browser, frame, scheme_name, request);
-
+	_cef_resource_handler_t* ret = CAST_TO(origin_cef_scheme_handler_create, hook_cef_scheme_handler_create)(self, browser, frame, scheme_name, request);
+	// scheme_name;
+	//alert(ret->read);
 	//origin_get_headers = ret->get_response_headers;
-	//origin_read = ret->read;
-	//ret->read = read;
+	CefString url = request->get_url(request);
+	urlMap[ret] = url.ToString();
+	origin_get_headers = ret->get_response_headers;
+	ret->get_response_headers = get_response_headers;
+	origin_read = ret->read_response;
+	ret->read_response = read;
+
 
 	return ret;
 }
@@ -216,8 +262,11 @@ int EasyCEFHooks::hook_cef_register_scheme_handler_factory(
 	const cef_string_t* domain_name,
 	cef_scheme_handler_factory_t* factory) {
 
-
+	origin_cef_scheme_handler_create = factory->create;
 	factory->create = hook_cef_scheme_handler_create;
+
+	CefString a = scheme_name;
+	//alert(a.ToString());
 
 	int ret = CAST_TO(origin_cef_register_scheme_handler_factory, hook_cef_register_scheme_handler_factory)(scheme_name, domain_name, factory);
 	return ret;

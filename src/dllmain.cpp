@@ -164,6 +164,8 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 {
 	if (dwReason == DLL_PROCESS_ATTACH)
 	{
+		AllocConsole();
+		freopen("CONOUT$", "w", stdout);
 		extern string datapath;
 		namespace fs = std::filesystem;
 		fs::create_directories(datapath + "/plugins");

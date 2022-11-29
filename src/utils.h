@@ -11,4 +11,13 @@ bool check_legal_file_path(const string& path);
 std::wstring s2ws(const std::string& s, bool isUtf8 = true);
 void write_file_text(const string& path, const string& text);
 
+template<typename T>
+void alert(T item)
+{
+	//this accepts all types that supports operator << 
+	std::ostringstream os;
+	os << item;
+	MessageBoxA(NULL, os.str().c_str(), "Message", MB_OK | MB_ICONINFORMATION);
+}
+
 extern string datapath;

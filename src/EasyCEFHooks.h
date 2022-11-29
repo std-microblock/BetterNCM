@@ -44,7 +44,7 @@ class EasyCEFHooks
 		void* data_out,
 		int bytes_to_read,
 		int* bytes_read,
-		struct _cef_resource_read_callback_t* callback);
+		struct _cef_callback_t* callback);
 
 	static _cef_load_handler_t* CEF_CALLBACK hook_cef_load_handler(struct _cef_client_t* self);
 	static void CEF_CALLBACK hook_cef_on_load_start(struct _cef_load_handler_t* self,
