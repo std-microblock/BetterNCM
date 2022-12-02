@@ -19,8 +19,8 @@ PVOID origin_on_before_command_line_processing = NULL;
 PVOID origin_command_line_append_switch = NULL;
 PVOID origin_cef_register_scheme_handler_factory = NULL;
 PVOID origin_cef_scheme_handler_create = NULL;
-PVOID origin_scheme_handler_read=NULL;
-PVOID origin_get_headers=NULL;
+PVOID origin_scheme_handler_read = NULL;
+PVOID origin_get_headers = NULL;
 
 std::function<void(struct _cef_browser_t* browser, struct _cef_frame_t* frame, cef_transition_type_t transition_type)> EasyCEFHooks::onLoadStart = [](auto browser, auto frame, auto transition_type) {};
 std::function<void(_cef_client_t*, struct _cef_browser_t*, const struct _cef_key_event_t*)> EasyCEFHooks::onKeyEvent = [](auto client, auto browser, auto key) {};
@@ -151,7 +151,7 @@ int hook_cef_initialize(const struct _cef_main_args_t* args,
 
 class CefRequestMITMProcess {
 	const static int bytesPerTime = 65535;
-	
+
 public:
 	string url;
 	vector<char> data;
@@ -166,13 +166,13 @@ public:
 	void fillData(_cef_resource_handler_t* self, _cef_callback_t* callback);
 	wstring getDataStr() {
 		try {
-			return utf8_to_wstring(string(data.begin(),data.end()));
+			return utf8_to_wstring(string(data.begin(), data.end()));
 		}
 		catch (logic_error e) {
 			alert(e.what());
 			return L"";
 		}
-		
+
 	}
 
 	bool dataFilled() {
@@ -182,7 +182,7 @@ public:
 	int sendData(void* data_out,
 		int bytes_to_read,
 		int* bytes_read) {
-		int dataSize = min(bytes_to_read, data.size()-dataPointer);
+		int dataSize = min(bytes_to_read, data.size() - dataPointer);
 
 #ifdef DEBUG
 		cout << dataSize << " bytes copied\n";
@@ -193,13 +193,13 @@ public:
 			return 0;
 		}
 
-		std::copy(std::next(data.begin() , dataPointer),
-			std::next(data.begin(), dataPointer+dataSize), 
+		std::copy(std::next(data.begin(), dataPointer),
+			std::next(data.begin(), dataPointer + dataSize),
 			(char*)data_out);
 
 		dataPointer += dataSize;
 		*bytes_read = dataSize;
-		
+
 		return 1;
 	}
 };
@@ -211,15 +211,15 @@ int CEF_CALLBACK hook_scheme_handler_read(struct _cef_resource_handler_t* self,
 	int bytes_to_read,
 	int* bytes_read,
 	struct _cef_callback_t* callback) {
-	cout << urlMap[self].url<<" "<< urlMap[self].dataFilled() << endl;
+	cout << urlMap[self].url << " " << urlMap[self].dataFilled() << endl;
 	if (urlMap[self].dataFilled()) {
 		return urlMap[self].sendData(data_out, bytes_to_read, bytes_read);
 	}
 
 	auto processor = EasyCEFHooks::onHijackRequest(urlMap[self].url);
-	
+
 	if (processor) {
-		cout << urlMap[self].url<< " hijacked" << endl;
+		cout << urlMap[self].url << " hijacked" << endl;
 		urlMap[self].fillData(self, callback);
 		urlMap[self].fillData(wstring_to_utf_8(processor(urlMap[self].getDataStr())));
 		return urlMap[self].sendData(data_out, bytes_to_read, bytes_read);
@@ -251,21 +251,21 @@ _cef_resource_handler_t* CEF_CALLBACK hook_cef_scheme_handler_create(
 
 
 
-void CefRequestMITMProcess::fillData(_cef_resource_handler_t* self, _cef_callback_t* callback){
+void CefRequestMITMProcess::fillData(_cef_resource_handler_t* self, _cef_callback_t* callback) {
 	if (data.size())return;
 	int* bytes_read = new int(0);
-	char* outdata=new char[bytesPerTime];
+	char* outdata = new char[bytesPerTime];
 	_cef_callback_t a{};
-	while(CAST_TO(origin_scheme_handler_read, hook_scheme_handler_read)
-		(self,outdata, bytesPerTime - 1, bytes_read, &a)){
-		data.insert(data.end(), outdata, outdata+(*bytes_read));
+	while (CAST_TO(origin_scheme_handler_read, hook_scheme_handler_read)
+		(self, outdata, bytesPerTime - 1, bytes_read, &a)) {
+		data.insert(data.end(), outdata, outdata + (*bytes_read));
 		datasize += *bytes_read;
-		
+
 		*bytes_read = 0;
 	}
 }
 
- 
+
 int hook_cef_register_scheme_handler_factory(
 	const cef_string_t* scheme_name,
 	const cef_string_t* domain_name,

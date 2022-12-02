@@ -15,12 +15,12 @@ using namespace std;
 
 namespace EasyCEFHooks
 {
-	 bool InstallHooks();
-	 bool UninstallHook();
-	 void executeJavaScript(_cef_frame_t* frame, string script, string url = "libeasycef/injext.js");
-	 extern std::function<void(_cef_client_t*, struct _cef_browser_t*, const struct _cef_key_event_t*)> onKeyEvent;
-	 extern std::function<void(struct _cef_browser_t* browser, struct _cef_frame_t* frame, cef_transition_type_t transition_type)> onLoadStart;
-	 extern std::function<bool(string)> onAddCommandLine;
-	 extern std::function<std::function<wstring(wstring)>(string)> onHijackRequest;
+	bool InstallHooks();
+	bool UninstallHook();
+	void executeJavaScript(_cef_frame_t* frame, string script, string url = "libeasycef/injext.js");
+	extern std::function<void(_cef_client_t*, struct _cef_browser_t*, const struct _cef_key_event_t*)> onKeyEvent;
+	extern std::function<void(struct _cef_browser_t* browser, struct _cef_frame_t* frame, cef_transition_type_t transition_type)> onLoadStart;
+	extern std::function<bool(string)> onAddCommandLine;
+	extern std::function<std::function<wstring(wstring)>(string)> onHijackRequest;
 };
 

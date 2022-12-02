@@ -169,7 +169,7 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 		if (pystring::find(get_command_line(), "--type") == -1) {
 			AllocConsole();
 			freopen("CONOUT$", "w", stdout);
-			
+
 #ifndef DEBUG
 			//ShowWindow(GetConsoleWindow(), SW_HIDE);
 #endif
@@ -182,7 +182,7 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 				datapath = getEnvironment("BETTERNCM_PROFILE");
 			}
 			else {
-				if ((int)fs::status(getEnvironment("USERPROFILE") + "\\betterncm").permissions() & (int)std::filesystem::perms::owner_write){
+				if ((int)fs::status(getEnvironment("USERPROFILE") + "\\betterncm").permissions() & (int)std::filesystem::perms::owner_write) {
 					datapath = getEnvironment("USERPROFILE") + "\\betterncm";
 				}
 				else {

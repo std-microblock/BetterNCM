@@ -54,7 +54,7 @@ string getEnvironment(const string& key) {
 	return ws2s(wstring(_wgetenv(s2ws(key).c_str())));
 }
 
-string datapath ="\\betterncm";
+string datapath = "\\betterncm";
 
 string getNCMPath() {
 	wchar_t buffer[MAX_PATH];
@@ -72,7 +72,7 @@ string get_command_line() {
 
 
 // https://stackoverflow.com/questions/9524393/how-to-capture-part-of-the-screen-and-save-it-to-a-bmp
-bool screenCapturePart( LPCWSTR fname) {
+bool screenCapturePart(LPCWSTR fname) {
 	HDC hdcSource = GetDC(NULL);
 	HDC hdcMemory = CreateCompatibleDC(hdcSource);
 
@@ -166,8 +166,8 @@ std::string load_string_resource(LPCTSTR name)
 	std::string ret;
 
 	const uint8_t bom[3] = { 0xEF, 0xBB, 0xBF };
-	uint8_t * ptr = (uint8_t*)LockResource(hGlobal);
-	
+	uint8_t* ptr = (uint8_t*)LockResource(hGlobal);
+
 	if (size >= 3 && memcmp(bom, ptr, 3) == 0)
 	{
 		ret.assign((char*)ptr + 3, (size_t)size - 3);
@@ -276,7 +276,7 @@ semver::version getNCMExecutableVersion() {
 	{
 		LPSTR verData = new char[verSize];
 
-		if (GetFileVersionInfo(s2ws(getNCMPath()+"\\cloudmusic.exe").c_str(), verHandle, verSize, verData))
+		if (GetFileVersionInfo(s2ws(getNCMPath() + "\\cloudmusic.exe").c_str(), verHandle, verSize, verData))
 		{
 			if (VerQueryValue(verData, L"\\", (VOID FAR * FAR*) & lpBuffer, &size))
 			{
