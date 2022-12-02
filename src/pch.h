@@ -11,6 +11,7 @@
 // 添加要在此处预编译的标头
 #include "framework.h"
 #include "kubazip/zip/zip.h"
+#include <regex>
 #include <string>
 #include <fstream>
 #include <sstream>
@@ -25,4 +26,5 @@
 #include <codecvt>
 #include <Windows.h>
 #include <thread>
+#include "neargye/semver.hpp"
 #endif //PCH_H

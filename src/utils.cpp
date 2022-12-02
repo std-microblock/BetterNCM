@@ -3,6 +3,7 @@
 #include <olectl.h>
 #include "utils.h"
 #include <assert.h>
+#pragma comment(lib, "version.lib")
 
 extern HMODULE g_hModule;
 string read_to_string(const string& path) {
@@ -263,4 +264,45 @@ std::wstring utf8_to_wstring(const std::string& utf8)
 		}
 	}
 	return utf16;
+}
+
+semver::version getNCMExecutableVersion() {
+	DWORD  verHandle = 0;
+	UINT   size = 0;
+	LPBYTE lpBuffer = NULL;
+	DWORD  verSize = GetFileVersionInfoSize(s2ws(getNCMPath() + "\\cloudmusic.exe").c_str(), &verHandle);
+
+	if (verSize != NULL)
+	{
+		LPSTR verData = new char[verSize];
+
+		if (GetFileVersionInfo(s2ws(getNCMPath()+"\\cloudmusic.exe").c_str(), verHandle, verSize, verData))
+		{
+			if (VerQueryValue(verData, L"\\", (VOID FAR * FAR*) & lpBuffer, &size))
+			{
+				if (size)
+				{
+					VS_FIXEDFILEINFO* verInfo = (VS_FIXEDFILEINFO*)lpBuffer;
+					if (verInfo->dwSignature == 0xfeef04bd)
+					{
+						return semver::version{
+							(uint8_t)((verInfo->dwFileVersionMS >> 16) & 0xffff),
+							(uint8_t)((verInfo->dwFileVersionMS >> 0) & 0xffff),
+							(uint8_t)((verInfo->dwFileVersionLS >> 16) & 0xffff)
+						};
+					}
+				}
+			}
+		}
+		delete[] verData;
+	}
+}
+
+std::wstring wreplaceAll(std::wstring str, const std::wstring& from, const std::wstring& to) {
+	size_t start_pos = 0;
+	while ((start_pos = str.find(from, start_pos)) != std::wstring::npos) {
+		str.replace(start_pos, from.length(), to);
+		start_pos += to.length(); // Handles case where 'to' is a substring of 'from'
+	}
+	return str;
 }

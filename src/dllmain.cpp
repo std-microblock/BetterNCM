@@ -26,7 +26,6 @@ using namespace std;
 string script;
 
 
-
 void message(string title, string text) {
 	MessageBox(NULL, s2ws(text).c_str(), s2ws(title).c_str(), 0);
 }
@@ -172,7 +171,7 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 			freopen("CONOUT$", "w", stdout);
 			
 #ifndef DEBUG
-			ShowWindow(GetConsoleWindow(), SW_HIDE);
+			//ShowWindow(GetConsoleWindow(), SW_HIDE);
 #endif
 
 			extern string datapath;

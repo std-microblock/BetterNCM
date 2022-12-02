@@ -25,6 +25,8 @@ PVOID origin_get_headers=NULL;
 std::function<void(struct _cef_browser_t* browser, struct _cef_frame_t* frame, cef_transition_type_t transition_type)> EasyCEFHooks::onLoadStart = [](auto browser, auto frame, auto transition_type) {};
 std::function<void(_cef_client_t*, struct _cef_browser_t*, const struct _cef_key_event_t*)> EasyCEFHooks::onKeyEvent = [](auto client, auto browser, auto key) {};
 std::function<bool(string)> EasyCEFHooks::onAddCommandLine = [](string arg) { return true;  };
+std::function<std::function<wstring(wstring)>(string)> EasyCEFHooks::onHijackRequest = [](string url) { return nullptr; };
+
 
 cef_v8context_t* hook_cef_v8context_get_current_context() {
 	cef_v8context_t* context = CAST_TO(origin_cef_v8context_get_current_context, hook_cef_v8context_get_current_context)();
@@ -202,9 +204,6 @@ public:
 	}
 };
 
-
-
-
 map<_cef_resource_handler_t*, CefRequestMITMProcess> urlMap;
 
 int CEF_CALLBACK hook_scheme_handler_read(struct _cef_resource_handler_t* self,
@@ -212,28 +211,17 @@ int CEF_CALLBACK hook_scheme_handler_read(struct _cef_resource_handler_t* self,
 	int bytes_to_read,
 	int* bytes_read,
 	struct _cef_callback_t* callback) {
+	cout << urlMap[self].url<<" "<< urlMap[self].dataFilled() << endl;
+	if (urlMap[self].dataFilled()) {
+		return urlMap[self].sendData(data_out, bytes_to_read, bytes_read);
+	}
 
-	int ret = 0;
-	if (!urlMap.contains(self)) {
-		*bytes_read = 0;
-		return 0;
-	}	
-
-	vector<string> result;
-	pystring::split(urlMap[self].url, result,"/");
-
-	auto fileName=result[result.size() - 1];
-
-	if(pystring::index(result[result.size()-1],"?")!=-1)
-		pystring::split(result[result.size()-1], result, "?"),fileName=result[0];
-
+	auto processor = EasyCEFHooks::onHijackRequest(urlMap[self].url);
 	
-	if (fileName.ends_with(".js")) {
-		if (!urlMap[self].dataFilled()) {
-			cout << urlMap[self].url<< " hijacked" << endl;
-			urlMap[self].fillData(self, callback);
-			urlMap[self].fillData(urlMap[self].getDataStr()+L"\n\nconsole.log('loool');");
-		}
+	if (processor) {
+		cout << urlMap[self].url<< " hijacked" << endl;
+		urlMap[self].fillData(self, callback);
+		urlMap[self].fillData(wstring_to_utf_8(processor(urlMap[self].getDataStr())));
 		return urlMap[self].sendData(data_out, bytes_to_read, bytes_read);
 	}
 	else {
@@ -251,19 +239,13 @@ _cef_resource_handler_t* CEF_CALLBACK hook_cef_scheme_handler_create(
 	const cef_string_t* scheme_name,
 	struct _cef_request_t* request) {
 	_cef_resource_handler_t* ret = CAST_TO(origin_cef_scheme_handler_create, hook_cef_scheme_handler_create)(self, browser, frame, scheme_name, request);
-	// scheme_name;
-	//alert(ret->read);
-	//origin_get_headers = ret->get_response_headers;
 	CefString url = request->get_url(request);
 	urlMap[ret] = CefRequestMITMProcess{
 		url.ToString()
 	};
-	//origin_get_headers = ret->get_response_headers;
-	//ret->get_response_headers = get_response_headers;
+
 	origin_scheme_handler_read = ret->read_response;
 	ret->read_response = hook_scheme_handler_read;
-
-
 	return ret;
 }
 
@@ -291,8 +273,6 @@ int hook_cef_register_scheme_handler_factory(
 
 	origin_cef_scheme_handler_create = factory->create;
 	factory->create = hook_cef_scheme_handler_create;
-
-	//CefString a = scheme_name;
 
 	int ret = CAST_TO(origin_cef_register_scheme_handler_factory, hook_cef_register_scheme_handler_factory)(scheme_name, domain_name, factory);
 	return ret;

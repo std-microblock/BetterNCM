@@ -422,8 +422,10 @@ std::string random_string(std::string::size_type length)
 }
 
 App::App() {
+	
+	cout << "BetterNCM v" << version << " running on NCM " << getNCMExecutableVersion() << endl;
 	extractPlugins();
-
+	
 	auto apiKey = random_string(64);
 
 	server_thread = create_server(apiKey);
@@ -474,6 +476,71 @@ App::App() {
 			loadStartupScripts(datapath + "/plugins_runtime");
 			loadStartupScripts(datapath + "/plugins_dev");
 		}
+	};
+
+
+	auto loadHijacking = [&](string path) {
+		vector<nlohmann::json> satisfied_hijacks;
+		if (fs::exists(path))
+			for (const auto file : fs::directory_iterator(path)) {
+				try {
+					if (fs::exists(file.path().string() + "/manifest.json")) {
+						auto json = nlohmann::json::parse(read_to_string(file.path().string() + "/manifest.json"));
+						for (const auto [version, hijack] : json["hijacks"].items()) {
+							if (semver::range::satisfies(getNCMExecutableVersion(), version)) {
+								for (auto h : hijack)
+									h["base_path"] = file.path().string();
+
+								satisfied_hijacks.push_back(hijack);
+								break;
+							}
+						}
+					}
+				}
+				catch (std::exception e) {
+					alert(e.what());
+				}
+			}
+		return satisfied_hijacks;
+	};
+
+	vector<nlohmann::json> satisfied_hijacks = loadHijacking(datapath + "/plugins_runtime");
+
+	EasyCEFHooks::onHijackRequest = [=](string url)->std::function<wstring(wstring)> {
+		vector<nlohmann::json> this_hijacks;
+
+		for (const auto hijack : satisfied_hijacks)
+			if (hijack[url].is_object())
+				this_hijacks.push_back(hijack[url]);
+
+		
+		auto satisfied_hijacks_dev = loadHijacking(datapath + "/plugins_dev");
+			for (const auto hijack : satisfied_hijacks_dev)
+				if (hijack[url].is_object())
+					this_hijacks.push_back(hijack[url]);
+		
+		
+		if(this_hijacks.size())
+			return [=](wstring code) {
+			for (const auto hijack : this_hijacks) {
+				if (hijack["type"].get<string>() == "regex") {
+					const std::wregex hijack_regex{ utf8_to_wstring(hijack["from"].get<string>()) };
+					code = std::regex_replace(code,hijack_regex, utf8_to_wstring(hijack["to"].get<string>()));
+				}
+
+				if (hijack["type"].get<string>() == "replace") {
+					wcout << utf8_to_wstring(hijack["from"].get<string>())<< utf8_to_wstring(hijack["to"].get<string>());
+					code = wreplaceAll(code, utf8_to_wstring(hijack["from"].get<string>()), utf8_to_wstring(hijack["to"].get<string>()));
+				}
+			}
+			return code;
+		};
+
+		return nullptr;
+		//return [&](wstring source) {
+		//	
+		//	//return wstring();
+		//};
 	};
 
 	EasyCEFHooks::onAddCommandLine = [&](string arg) {
