@@ -169,7 +169,6 @@ copy "$(TargetDir)BetterNCMII.dll" "J:\Program Files (x86)\Netease\CloudMusic\ms
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\App.h" />
-    <ClInclude Include="src\createfiles.h" />
     <ClInclude Include="src\EasyCEFHooks.h" />
     <ClInclude Include="src\framework.h" />
     <ClInclude Include="src\pch.h" />
