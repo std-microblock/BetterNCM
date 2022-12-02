@@ -211,7 +211,6 @@ int CEF_CALLBACK hook_scheme_handler_read(struct _cef_resource_handler_t* self,
 	int bytes_to_read,
 	int* bytes_read,
 	struct _cef_callback_t* callback) {
-	cout << urlMap[self].url << " " << urlMap[self].dataFilled() << endl;
 	if (urlMap[self].dataFilled()) {
 		return urlMap[self].sendData(data_out, bytes_to_read, bytes_read);
 	}
@@ -222,7 +221,11 @@ int CEF_CALLBACK hook_scheme_handler_read(struct _cef_resource_handler_t* self,
 		cout << urlMap[self].url << " hijacked" << endl;
 		urlMap[self].fillData(self, callback);
 		urlMap[self].fillData(wstring_to_utf_8(processor(urlMap[self].getDataStr())));
-		return urlMap[self].sendData(data_out, bytes_to_read, bytes_read);
+		if (urlMap[self].sendData(data_out, bytes_to_read, bytes_read))return 1;
+		else {
+			urlMap.erase(self);
+			return 0;
+		}
 	}
 	else {
 		return CAST_TO(origin_scheme_handler_read, hook_scheme_handler_read)(self, data_out, bytes_to_read, bytes_read, callback);

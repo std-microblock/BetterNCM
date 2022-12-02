@@ -510,14 +510,20 @@ App::App() {
 		vector<nlohmann::json> this_hijacks;
 
 		for (const auto hijack : satisfied_hijacks)
-			if (hijack[url].is_object())
-				this_hijacks.push_back(hijack[url]);
+			for (const auto [hij_url, hij] : hijack.items()) {
+				if (pystring::startswith(url, hij_url))
+					this_hijacks.push_back(hij);
+			}
 
 
 		auto satisfied_hijacks_dev = loadHijacking(datapath + "/plugins_dev");
-		for (const auto hijack : satisfied_hijacks_dev)
-			if (hijack[url].is_object())
-				this_hijacks.push_back(hijack[url]);
+		for (const auto hijack : satisfied_hijacks_dev) {
+			for (const auto [hij_url, hij] : hijack.items()) {
+				if (pystring::startswith(url, hij_url))
+					this_hijacks.push_back(hij);
+			}
+		}
+
 
 
 		if (this_hijacks.size())
