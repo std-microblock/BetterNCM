@@ -306,3 +306,13 @@ std::wstring wreplaceAll(std::wstring str, const std::wstring& from, const std::
 	}
 	return str;
 }
+
+void alert(const wchar_t* item)
+{
+	MessageBoxW(NULL, item, L"BetterNCM", MB_OK | MB_ICONINFORMATION);
+}
+
+void alert(const wstring* item)
+{
+	MessageBoxW(NULL, item->c_str(), L"BetterNCM", MB_OK | MB_ICONINFORMATION);
+}

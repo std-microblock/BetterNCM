@@ -19,13 +19,16 @@ extern string datapath;
 bool screenCapturePart(LPCWSTR fname);
 bool saveBitmap(LPCWSTR filename, HBITMAP bmp, HPALETTE pal);
 
+// https://stackoverflow.com/questions/1394053/how-to-write-a-generic-alert-message-using-win32
+void alert(const wchar_t* item);
+void alert(const wstring* item);
 template<typename T>
 void alert(T item)
 {
 	//this accepts all types that supports operator << 
 	std::ostringstream os;
 	os << item;
-	MessageBoxA(NULL, os.str().c_str(), "Message", MB_OK | MB_ICONINFORMATION);
+	MessageBoxA(NULL, os.str().c_str(), "BetterNCM", MB_OK | MB_ICONINFORMATION);
 }
 
 

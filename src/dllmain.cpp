@@ -30,9 +30,6 @@ void message(string title, string text) {
 	MessageBox(NULL, s2ws(text).c_str(), s2ws(title).c_str(), 0);
 }
 
-void warn(string text) {
-	message("BetterNCM 警告", text);
-}
 
 namespace AheadLib
 {
@@ -207,7 +204,7 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 				app = new App();
 			}
 			else {
-				warn("BetterNCM访问数据目录失败！可能需要以管理员身份运行或更改数据目录。\n\nBetterNCM将不会运行");
+				alert(L"BetterNCM访问数据目录失败！可能需要以管理员身份运行或更改数据目录。\n\nBetterNCM将不会运行");
 			}
 		}
 
