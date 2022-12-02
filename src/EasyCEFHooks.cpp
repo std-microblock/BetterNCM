@@ -164,7 +164,7 @@ public:
 	void fillData(_cef_resource_handler_t* self, _cef_callback_t* callback);
 	wstring getDataStr() {
 		try {
-			return s2ws(string(data.begin(),data.end()));
+			return utf8_to_wstring(string(data.begin(),data.end()));
 		}
 		catch (logic_error e) {
 			alert(e.what());
@@ -217,10 +217,7 @@ int CEF_CALLBACK hook_scheme_handler_read(struct _cef_resource_handler_t* self,
 	if (!urlMap.contains(self)) {
 		*bytes_read = 0;
 		return 0;
-	}
-
-
-	
+	}	
 
 	vector<string> result;
 	pystring::split(urlMap[self].url, result,"/");
@@ -238,17 +235,6 @@ int CEF_CALLBACK hook_scheme_handler_read(struct _cef_resource_handler_t* self,
 			urlMap[self].fillData(urlMap[self].getDataStr()+L"\n\nconsole.log('loool');");
 		}
 		return urlMap[self].sendData(data_out, bytes_to_read, bytes_read);
-		/*auto s = urlMap[self].getDataStr();
-
-
-		s += L"\n\nconsole.log('l')";
-
-		wcout << s;
-
-		strcpy((char*)data_out,toUtf8(s).c_str());
-		*bytes_read = s.length();
-		urlMap.erase(self);
-		return 1;*/
 	}
 	else {
 		return CAST_TO(origin_scheme_handler_read, hook_scheme_handler_read)(self, data_out, bytes_to_read, bytes_read, callback);
