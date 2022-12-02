@@ -17,6 +17,10 @@ PVOID origin_cef_load_handler = NULL;
 PVOID origin_cef_on_load_start = NULL;
 PVOID origin_on_before_command_line_processing = NULL;
 PVOID origin_command_line_append_switch = NULL;
+PVOID origin_cef_register_scheme_handler_factory = NULL;
+PVOID origin_cef_scheme_handler_create = NULL;
+PVOID origin_scheme_handler_read=NULL;
+PVOID origin_get_headers=NULL;
 
 std::function<void(struct _cef_browser_t* browser, struct _cef_frame_t* frame, cef_transition_type_t transition_type)> EasyCEFHooks::onLoadStart = [](auto browser, auto frame, auto transition_type) {};
 std::function<void(_cef_client_t*, struct _cef_browser_t*, const struct _cef_key_event_t*)> EasyCEFHooks::onKeyEvent = [](auto client, auto browser, auto key) {};
@@ -143,6 +147,171 @@ int hook_cef_initialize(const struct _cef_main_args_t* args,
 
 
 
+class CefRequestMITMProcess {
+	const static int bytesPerTime = 65535;
+	
+public:
+	string url;
+	vector<char> data;
+	int datasize = 0;
+	int dataPointer = 0;
+	void fillData(wstring s) {
+		fillData(wstring_to_utf_8(s));
+	};
+	void fillData(string s) {
+		data = std::vector<char>(s.begin(), s.end());
+	};
+	void fillData(_cef_resource_handler_t* self, _cef_callback_t* callback);
+	wstring getDataStr() {
+		try {
+			return s2ws(string(data.begin(),data.end()));
+		}
+		catch (logic_error e) {
+			alert(e.what());
+			return L"";
+		}
+		
+	}
+
+	bool dataFilled() {
+		return data.size();
+	}
+
+	int sendData(void* data_out,
+		int bytes_to_read,
+		int* bytes_read) {
+		int dataSize = min(bytes_to_read, data.size()-dataPointer);
+
+#ifdef DEBUG
+		cout << dataSize << " bytes copied\n";
+#endif
+
+		if (dataSize == 0) {
+			*bytes_read = 0;
+			return 0;
+		}
+
+		std::copy(std::next(data.begin() , dataPointer),
+			std::next(data.begin(), dataPointer+dataSize), 
+			(char*)data_out);
+
+		dataPointer += dataSize;
+		*bytes_read = dataSize;
+		
+		return 1;
+	}
+};
+
+
+
+
+map<_cef_resource_handler_t*, CefRequestMITMProcess> urlMap;
+
+int CEF_CALLBACK hook_scheme_handler_read(struct _cef_resource_handler_t* self,
+	void* data_out,
+	int bytes_to_read,
+	int* bytes_read,
+	struct _cef_callback_t* callback) {
+
+	int ret = 0;
+	if (!urlMap.contains(self)) {
+		*bytes_read = 0;
+		return 0;
+	}
+
+
+	
+
+	vector<string> result;
+	pystring::split(urlMap[self].url, result,"/");
+
+	auto fileName=result[result.size() - 1];
+
+	if(pystring::index(result[result.size()-1],"?")!=-1)
+		pystring::split(result[result.size()-1], result, "?"),fileName=result[0];
+
+	
+	if (fileName.ends_with(".js")) {
+		if (!urlMap[self].dataFilled()) {
+			cout << urlMap[self].url<< " hijacked" << endl;
+			urlMap[self].fillData(self, callback);
+			urlMap[self].fillData(urlMap[self].getDataStr()+L"\n\nconsole.log('loool');");
+		}
+		return urlMap[self].sendData(data_out, bytes_to_read, bytes_read);
+		/*auto s = urlMap[self].getDataStr();
+
+
+		s += L"\n\nconsole.log('l')";
+
+		wcout << s;
+
+		strcpy((char*)data_out,toUtf8(s).c_str());
+		*bytes_read = s.length();
+		urlMap.erase(self);
+		return 1;*/
+	}
+	else {
+		return CAST_TO(origin_scheme_handler_read, hook_scheme_handler_read)(self, data_out, bytes_to_read, bytes_read, callback);
+	}
+
+	return 0;
+}
+
+
+_cef_resource_handler_t* CEF_CALLBACK hook_cef_scheme_handler_create(
+	struct _cef_scheme_handler_factory_t* self,
+	struct _cef_browser_t* browser,
+	struct _cef_frame_t* frame,
+	const cef_string_t* scheme_name,
+	struct _cef_request_t* request) {
+	_cef_resource_handler_t* ret = CAST_TO(origin_cef_scheme_handler_create, hook_cef_scheme_handler_create)(self, browser, frame, scheme_name, request);
+	// scheme_name;
+	//alert(ret->read);
+	//origin_get_headers = ret->get_response_headers;
+	CefString url = request->get_url(request);
+	urlMap[ret] = CefRequestMITMProcess{
+		url.ToString()
+	};
+	//origin_get_headers = ret->get_response_headers;
+	//ret->get_response_headers = get_response_headers;
+	origin_scheme_handler_read = ret->read_response;
+	ret->read_response = hook_scheme_handler_read;
+
+
+	return ret;
+}
+
+
+
+void CefRequestMITMProcess::fillData(_cef_resource_handler_t* self, _cef_callback_t* callback){
+	if (data.size())return;
+	int* bytes_read = new int(0);
+	char* outdata=new char[bytesPerTime];
+	_cef_callback_t a{};
+	while(CAST_TO(origin_scheme_handler_read, hook_scheme_handler_read)
+		(self,outdata, bytesPerTime - 1, bytes_read, &a)){
+		data.insert(data.end(), outdata, outdata+(*bytes_read));
+		datasize += *bytes_read;
+		
+		*bytes_read = 0;
+	}
+}
+
+ 
+int hook_cef_register_scheme_handler_factory(
+	const cef_string_t* scheme_name,
+	const cef_string_t* domain_name,
+	cef_scheme_handler_factory_t* factory) {
+
+	origin_cef_scheme_handler_create = factory->create;
+	factory->create = hook_cef_scheme_handler_create;
+
+	//CefString a = scheme_name;
+
+	int ret = CAST_TO(origin_cef_register_scheme_handler_factory, hook_cef_register_scheme_handler_factory)(scheme_name, domain_name, factory);
+	return ret;
+}
+
 
 
 bool EasyCEFHooks::InstallHooks() {
@@ -152,6 +321,7 @@ bool EasyCEFHooks::InstallHooks() {
 	origin_cef_v8context_get_current_context = DetourFindFunction("libcef.dll", "cef_v8context_get_current_context");
 	origin_cef_browser_host_create_browser = DetourFindFunction("libcef.dll", "cef_browser_host_create_browser_sync");
 	origin_cef_initialize = DetourFindFunction("libcef.dll", "cef_initialize");
+	origin_cef_register_scheme_handler_factory = DetourFindFunction("libcef.dll", "cef_register_scheme_handler_factory");
 
 	if (origin_cef_v8context_get_current_context)
 		DetourAttach(&origin_cef_v8context_get_current_context, (PVOID)hook_cef_v8context_get_current_context);
@@ -160,6 +330,11 @@ bool EasyCEFHooks::InstallHooks() {
 
 	if (origin_cef_browser_host_create_browser)
 		DetourAttach(&origin_cef_browser_host_create_browser, hook_cef_browser_host_create_browser);
+	else
+		return false;
+
+	if (origin_cef_register_scheme_handler_factory)
+		DetourAttach(&origin_cef_register_scheme_handler_factory, hook_cef_register_scheme_handler_factory);
 	else
 		return false;
 

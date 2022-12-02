@@ -30,3 +30,5 @@ void alert(T item)
 
 
 std::string load_string_resource(LPCTSTR name);
+std::string wstring_to_utf_8(const std::wstring& str);
+std::wstring utf8_to_wstring(const std::string& utf8);

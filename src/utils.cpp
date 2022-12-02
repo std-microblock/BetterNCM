@@ -180,29 +180,87 @@ std::string load_string_resource(LPCTSTR name)
 	return ret;
 }
 
-//string read_to_string(const string& path) {
-//	std::ifstream t(path);
-//	std::stringstream buffer;
-//	buffer << t.rdbuf();
-//	return string(buffer.str());
-//}
-////
-//string ws2s(const wstring& str) {
-//	using convert_typeX = std::codecvt_utf8<wchar_t>;
-//	std::wstring_convert<convert_typeX, wchar_t> converterX;
-//
-//	return converterX.to_bytes(str);
-//}
-//
-//bool check_legal_file_path(const string& path) {
-//	return pystring::find(path, "..") == -1;
-//}
-//
-//void write_file_text(const string& path, const string& text) {
-//	ofstream file;
-//	file.open(path);
-//	file << text;
-//	file.close();
-//}
-//
-//string datapath = string(getenv("USERPROFILE")) + "\\betterncm"
+std::string wstring_to_utf_8(const std::wstring& str)
+{
+	std::string ret;
+	int len = WideCharToMultiByte(CP_UTF8, 0, str.c_str(), str.length(), NULL, 0, NULL, NULL);
+	if (len > 0)
+	{
+		ret.resize(len);
+		WideCharToMultiByte(CP_UTF8, 0, str.c_str(), str.length(), &ret[0], len, NULL, NULL);
+	}
+	return ret;
+}
+
+// https://stackoverflow.com/questions/7153935/how-to-convert-utf-8-stdstring-to-utf-16-stdwstring
+std::wstring utf8_to_wstring(const std::string& utf8)
+{
+	std::vector<unsigned long> unicode;
+	size_t i = 0;
+	while (i < utf8.size())
+	{
+		unsigned long uni;
+		size_t todo;
+		bool error = false;
+		unsigned char ch = utf8[i++];
+		if (ch <= 0x7F)
+		{
+			uni = ch;
+			todo = 0;
+		}
+		else if (ch <= 0xBF)
+		{
+			throw std::logic_error("not a UTF-8 string");
+		}
+		else if (ch <= 0xDF)
+		{
+			uni = ch & 0x1F;
+			todo = 1;
+		}
+		else if (ch <= 0xEF)
+		{
+			uni = ch & 0x0F;
+			todo = 2;
+		}
+		else if (ch <= 0xF7)
+		{
+			uni = ch & 0x07;
+			todo = 3;
+		}
+		else
+		{
+			throw std::logic_error("not a UTF-8 string");
+		}
+		for (size_t j = 0; j < todo; ++j)
+		{
+			if (i == utf8.size())
+				throw std::logic_error("not a UTF-8 string");
+			unsigned char ch = utf8[i++];
+			if (ch < 0x80 || ch > 0xBF)
+				throw std::logic_error("not a UTF-8 string");
+			uni <<= 6;
+			uni += ch & 0x3F;
+		}
+		if (uni >= 0xD800 && uni <= 0xDFFF)
+			throw std::logic_error("not a UTF-8 string");
+		if (uni > 0x10FFFF)
+			throw std::logic_error("not a UTF-8 string");
+		unicode.push_back(uni);
+	}
+	std::wstring utf16;
+	for (size_t i = 0; i < unicode.size(); ++i)
+	{
+		unsigned long uni = unicode[i];
+		if (uni <= 0xFFFF)
+		{
+			utf16 += (wchar_t)uni;
+		}
+		else
+		{
+			uni -= 0x10000;
+			utf16 += (wchar_t)((uni >> 10) + 0xD800);
+			utf16 += (wchar_t)((uni & 0x3FF) + 0xDC00);
+		}
+	}
+	return utf16;
+}
