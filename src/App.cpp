@@ -488,6 +488,7 @@ App::App() {
 						auto json = nlohmann::json::parse(read_to_string(file.path().string() + "/manifest.json"));
 						for (const auto [version, hijack] : json["hijacks"].items()) {
 							if (semver::range::satisfies(getNCMExecutableVersion(), version)) {
+								cout << file;
 								for (auto h : hijack)
 									h["base_path"] = file.path().string();
 
@@ -498,7 +499,7 @@ App::App() {
 					}
 				}
 				catch (std::exception e) {
-					alert(e.what());
+					write_file_text(datapath + "/log.log", string("\n[" + file.path().string() + "]Plugin Hijacking Error: ") + (e.what()), true);
 				}
 			}
 		return satisfied_hijacks;
