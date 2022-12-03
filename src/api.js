@@ -117,5 +117,14 @@ const betterncm = {
         delay(ms) {
             return new Promise((rs) => setTimeout(rs, ms));
         }
+    },
+    tests: {
+        async fail(reason) {
+            console.warn("Test Failed", reason);
+            await betterncm.fs.writeFileText("/__TEST_FAILED__.txt", reason);
+        }, async success(message) {
+            console.log("Test Succeeded", message);
+            await betterncm.fs.writeFileText("/__TEST_SUCCEEDED__.txt", message);
+        }
     }
 };

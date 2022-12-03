@@ -488,7 +488,6 @@ App::App() {
 						auto json = nlohmann::json::parse(read_to_string(file.path().string() + "/manifest.json"));
 						for (const auto [version, hijack] : json["hijacks"].items()) {
 							if (semver::range::satisfies(getNCMExecutableVersion(), version)) {
-								cout << file;
 								for (auto h : hijack)
 									h["base_path"] = file.path().string();
 
