@@ -294,6 +294,12 @@ std::thread* App::create_server(string apiKey) {
 	res.status = 200;
 		});
 
+	svr.Get("/api/app/get_succeeded_hijacks", [&](const httplib::Request& req, httplib::Response& res) {
+		checkApiKey;
+	std::shared_lock<std::shared_timed_mutex> guard(succeeded_hijacks_lock);
+	res.set_content(((nlohmann::json)succeeded_hijacks).dump(), "application/json");
+		});
+
 	svr.Get("/api/app/show_console", [&](const httplib::Request& req, httplib::Response& res) {
 		checkApiKey;
 	ShowWindow(GetConsoleWindow(), SW_SHOW);
@@ -466,9 +472,14 @@ App::App() {
 			auto loadStartupScripts = [&](string path) {
 				if (fs::exists(path))
 					for (const auto file : fs::directory_iterator(path)) {
-						if (fs::exists(file.path().string() + "/startup_script.js")) {
-							EasyCEFHooks::executeJavaScript(frame, read_to_string(file.path().string() + "/startup_script.js"),
-								std::string("file://") + file.path().string() + "/startup_script.js");
+						try {
+							if (fs::exists(file.path().string() + "/startup_script.js")) {
+								EasyCEFHooks::executeJavaScript(frame, read_to_string(file.path().string() + "/startup_script.js"),
+									std::string("file://") + file.path().string() + "/startup_script.js");
+							}
+						}
+						catch (std::exception e) {
+							cout << "Failed to load startup script " << e.what();
 						}
 					}
 			};
@@ -482,14 +493,16 @@ App::App() {
 	auto loadHijacking = [&](string path) {
 		vector<nlohmann::json> satisfied_hijacks;
 		if (fs::exists(path))
-			for (const auto file : fs::directory_iterator(path)) {
+			for (const auto& file : fs::directory_iterator(path)) {
 				try {
 					if (fs::exists(file.path().string() + "/manifest.json")) {
 						auto json = nlohmann::json::parse(read_to_string(file.path().string() + "/manifest.json"));
-						for (const auto [version, hijack] : json["hijacks"].items()) {
+						for (auto& [version, hijack] : json["hijacks"].items()) {
 							if (semver::range::satisfies(getNCMExecutableVersion(), version)) {
-								for (auto h : hijack)
+								for (auto& h : hijack) {
 									h["base_path"] = file.path().string();
+									h["plugin_name"] = json["name"];
+								}
 
 								satisfied_hijacks.push_back(hijack);
 								break;
@@ -497,7 +510,7 @@ App::App() {
 						}
 					}
 				}
-				catch (std::exception e) {
+				catch (std::invalid_argument e) {
 					write_file_text(datapath + "/log.log", string("\n[" + file.path().string() + "]Plugin Hijacking Error: ") + (e.what()), true);
 				}
 			}
@@ -509,20 +522,27 @@ App::App() {
 	EasyCEFHooks::onHijackRequest = [=](string url)->std::function<wstring(wstring)> {
 		vector<nlohmann::json> this_hijacks;
 
-		for (const auto hijack : satisfied_hijacks)
-			for (const auto [hij_url, hij] : hijack.items()) {
-				if (pystring::startswith(url, hij_url))
-					this_hijacks.push_back(hij);
-			}
+		auto filter_hijacks = [&](vector<nlohmann::json> full) {
+			for (const auto hijack : full)
+				for (const auto [hij_url, hij] : hijack.items()) {
+					if (pystring::startswith(url, hij_url)) {
+						vector<nlohmann::json> hijs = { };
 
+						if (hij.is_array())
+							hijs = hij.get<vector<nlohmann::json>>();
+						else if (hij.is_object())
+							hijs = vector<nlohmann::json>{ hij };
+
+
+						this_hijacks.insert(this_hijacks.end(), hijs.begin(), hijs.end());
+					}
+				}
+		};
+
+		filter_hijacks(satisfied_hijacks);
 
 		auto satisfied_hijacks_dev = loadHijacking(datapath + "/plugins_dev");
-		for (const auto hijack : satisfied_hijacks_dev) {
-			for (const auto [hij_url, hij] : hijack.items()) {
-				if (pystring::startswith(url, hij_url))
-					this_hijacks.push_back(hij);
-			}
-		}
+		filter_hijacks(satisfied_hijacks_dev);
 
 
 
@@ -538,6 +558,13 @@ App::App() {
 					wcout << utf8_to_wstring(hijack["from"].get<string>()) << utf8_to_wstring(hijack["to"].get<string>());
 					code = wreplaceAll(code, utf8_to_wstring(hijack["from"].get<string>()), utf8_to_wstring(hijack["to"].get<string>()));
 				}
+
+				string id = "<missing_id>";
+				if (hijack["id"].is_string())
+					id = hijack["id"].get<string>();
+
+				std::lock_guard<std::shared_timed_mutex> guard(succeeded_hijacks_lock);
+				succeeded_hijacks.push_back(hijack["plugin_name"].get<string>() + "::" + id);
 			}
 			return code;
 		};
@@ -552,8 +579,6 @@ App::App() {
 	EasyCEFHooks::InstallHooks();
 }
 App::~App() {
-	if (httpServer)
-		httpServer->stop(); //看实现基本是线程安全的
 	HANDLE hThread = server_thread->native_handle();
 	if (WaitForSingleObject(hThread, 4000) == WAIT_TIMEOUT)
 		::TerminateThread(hThread, 0);

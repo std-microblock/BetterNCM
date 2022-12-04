@@ -51,7 +51,7 @@ const betterncm = {
             return await (await fetch(BETTERNCM_API_PATH + "/app/reload_plugin", { headers: { BETTERNCM_API_KEY } })).text();
         },
         async getDataPath() {
-            return await (await fetch(BETTERNCM_API_PATH + "/app/datapath", { headers: { BETTERNCM_API_KEY } })).text();
+            return (await (await fetch(BETTERNCM_API_PATH + "/app/datapath", { headers: { BETTERNCM_API_KEY } })).text()).replace(/\//g, "\\");
         },
         async readConfig(key, def) {
             return await (await fetch(BETTERNCM_API_PATH + "/app/read_config?key=" + key + "&default=" + def, { headers: { BETTERNCM_API_KEY } })).text();
@@ -74,6 +74,9 @@ const betterncm = {
         },
         async isLightTheme() {
             return (await (await fetch(BETTERNCM_API_PATH + "/app/is_light_theme", { headers: { BETTERNCM_API_KEY } })).text()) === "true";
+        },
+        async getSucceededHijacks() {
+            return (await (await fetch(BETTERNCM_API_PATH + "/app/get_succeeded_hijacks", { headers: { BETTERNCM_API_KEY } })).json());
         }
 
     },
