@@ -555,7 +555,6 @@ App::App() {
 				}
 
 				if (hijack["type"].get<string>() == "replace") {
-					wcout << utf8_to_wstring(hijack["from"].get<string>()) << utf8_to_wstring(hijack["to"].get<string>());
 					code = wreplaceAll(code, utf8_to_wstring(hijack["from"].get<string>()), utf8_to_wstring(hijack["to"].get<string>()));
 				}
 
