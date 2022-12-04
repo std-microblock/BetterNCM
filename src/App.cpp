@@ -499,9 +499,16 @@ App::App() {
 						auto json = nlohmann::json::parse(read_to_string(file.path().string() + "/manifest.json"));
 						for (auto& [version, hijack] : json["hijacks"].items()) {
 							if (semver::range::satisfies(getNCMExecutableVersion(), version)) {
-								for (auto& h : hijack) {
-									h["base_path"] = file.path().string();
-									h["plugin_name"] = json["name"];
+								for (auto& hij : hijack) {
+									if (hij.is_array())
+										for (auto& hij_unit : hij) {
+											hij_unit["base_path"] = file.path().string();
+											hij_unit["plugin_name"] = json["name"];
+										}
+									else {
+										hij["base_path"] = file.path().string();
+										hij["plugin_name"] = json["name"];
+									}
 								}
 
 								satisfied_hijacks.push_back(hijack);
@@ -523,8 +530,8 @@ App::App() {
 		vector<nlohmann::json> this_hijacks;
 
 		auto filter_hijacks = [&](vector<nlohmann::json> full) {
-			for (const auto hijack : full)
-				for (const auto [hij_url, hij] : hijack.items()) {
+			for (const auto& hijack : full)
+				for (const auto& [hij_url, hij] : hijack.items()) {
 					if (pystring::startswith(url, hij_url)) {
 						vector<nlohmann::json> hijs = { };
 
@@ -532,7 +539,6 @@ App::App() {
 							hijs = hij.get<vector<nlohmann::json>>();
 						else if (hij.is_object())
 							hijs = vector<nlohmann::json>{ hij };
-
 
 						this_hijacks.insert(this_hijacks.end(), hijs.begin(), hijs.end());
 					}
