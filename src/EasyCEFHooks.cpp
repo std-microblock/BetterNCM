@@ -71,14 +71,25 @@ void CEF_CALLBACK hook_cef_on_load_start(struct _cef_load_handler_t* self,
 	auto hwnd = browser->get_host(browser)->get_window_handle(cef_browser_host);
 	SetLayeredWindowAttributes(hwnd, NULL, NULL, NULL);
 
+
 	CAST_TO(origin_cef_on_load_start, hook_cef_on_load_start)(self, browser, frame, transition_type);
 	EasyCEFHooks::onLoadStart(browser, frame, transition_type);
+}
+
+void CEF_CALLBACK hook_cef_on_load_error(struct _cef_load_handler_t* self,
+	struct _cef_browser_t* browser,
+	struct _cef_frame_t* frame,
+	cef_errorcode_t errorCode,
+	const cef_string_t* errorText,
+	const cef_string_t* failedUrl) {
+	EasyCEFHooks::executeJavaScript(frame, R"(if (location.href === "chrome-error://chromewebdata/") location.href = "orpheus://orpheus/pub/app.html")", "libeasycef/fix_white_screen.js");
 }
 
 struct _cef_load_handler_t* CEF_CALLBACK hook_cef_load_handler(struct _cef_client_t* self) {
 	auto load_handler = CAST_TO(origin_cef_load_handler, hook_cef_load_handler)(self);
 	if (load_handler) {
 		cef_client = self;
+		load_handler->on_load_error = hook_cef_on_load_error;
 		origin_cef_on_load_start = load_handler->on_load_start;
 		load_handler->on_load_start = hook_cef_on_load_start;
 	}
