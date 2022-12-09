@@ -9,10 +9,11 @@ async function loadPlugins() {
 
     async function loadPlugin(pluginPath, devMode = false) {
         async function loadInject(filePath, devMode, manifest) {
-            let code = await betterncm.fs.readFileText(filePath);
+            const getFileCode = async () => (await betterncm.fs.readFileText(filePath))
+            let code = await getFileCode();
             if (devMode) {
                 setInterval(async () => {
-                    if (code !== (await betterncm.fs.readFileText(filePath))) document.location.reload();
+                    if (code !== (await getFileCode())) betterncm.reload();
                 }, 300);
             }
 
@@ -34,7 +35,7 @@ async function loadPlugins() {
                     pluginPath
                 };
                 new AsyncFunction("plugin", code).call(loadedPlugins[manifest.name], plugin);
-                await plugin._load?.call(loadedPlugins[manifest.name], plugin);
+                plugin._load?.call(loadedPlugins[manifest.name], plugin);
                 loadedPlugins[manifest.name].injects.push(plugin);
             }
         }
@@ -76,8 +77,51 @@ async function loadPlugins() {
     for (let name in loadedPlugins) loadedPlugins[name].injects.forEach(v => v._allLoaded?.call(loadedPlugins[name], loadedPlugins));
 }
 
-window.addEventListener("load", async () => {
+
+
+window.addEventListener("DOMContentLoaded", async () => {
+    let loadingMask = dom('div', {
+        style: {
+            position: 'absolute',
+            left: '0px',
+            top: '0px',
+            right: '0px',
+            bottom: '0px',
+            background: "linear-gradient(54deg, rgb(49 16 37), rgb(25 37 64))",
+            zIndex: "1000",
+            display: "flex",
+            justifyContent: "center",
+            alignItems: "center",
+            pointerEvents: "none"
+        }
+    },
+        dom("div", {
+            innerHTML: `<svg fill=#fff><use xlink:href="orpheus://orpheus/style/res/svg/topbar.sp.svg#logo_white"></use></svg>`,
+            style: {
+                opacity: 0.8
+            }
+        })
+    );
+
+    loadingMask.style.setProperty("font-family", "Helvetica", "important");
+
+    localStorage["cc.microblock.betterncm.useSplashScreen"] ??= "true";
+    if (localStorage["cc.microblock.betterncm.useSplashScreen"] === "true")
+        document.body.appendChild(loadingMask);
+
     await loadPlugins();
+
+    loadingMask.animate([{ opacity: 1 }, { opacity: 0, display: "none" }], { duration: 300, fill: "forwards" }).commitStyles()
+
+    betterncm.reload = () => {
+        betterncm.reload = () => { };
+        const anim = loadingMask.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 300, fill: "forwards" });
+        anim.commitStyles();
+        anim.addEventListener("finish", _ => {
+            document.location.reload();
+        });
+    }
+
     if (!("PluginMarket" in loadedPlugins)) {
         let attempts = parseInt(localStorage["cc.microblock.loader.reloadPluginAttempts"] || "0");
         if (attempts < 3) {
