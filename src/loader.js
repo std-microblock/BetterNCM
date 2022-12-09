@@ -1,3 +1,5 @@
+if (location.href === "chrome-error://chromewebdata/") location.href = "orpheus://orpheus/pub/app.html"
+
 async function loadPlugins() {
     const loadedPlugins = {};
 
