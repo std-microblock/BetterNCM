@@ -79,13 +79,9 @@ async function loadPlugins() {
 }
 
 
-
-
-
-
 window.addEventListener("DOMContentLoaded", async () => {
     betterncm.reload = () => {
-        const anim = loadingMask.animate([{ opacity: 1 }], { duration: 300, fill: 'forwards', easing: "cubic-bezier(0.42, 0, 0.58, 1)" });
+        const anim = loadingMask.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 300, fill: 'forwards', easing: "cubic-bezier(0.42, 0, 0.58, 1)" });
         anim.commitStyles();
 
         anim.addEventListener("finish", _ => {
@@ -93,7 +89,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    await Promise.all([loadPlugins(), betterncm.utils.waitForElement("nav")]);
+    await Promise.all([loadPlugins(), betterncm.utils.waitForElement("nav", 400)]);
 
     loadingMask.animate([{ opacity: 1 }, { opacity: 0, display: "none" }], { duration: 300, fill: "forwards", easing: "cubic-bezier(0.42, 0, 0.58, 1)" }).commitStyles()
 
