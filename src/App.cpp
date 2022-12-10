@@ -442,7 +442,6 @@ App::App() {
 			EasyCEFHooks::executeJavaScript(frame, load_string_resource(L"api.js"), "betterncm://betterncm/api.js");
 			EasyCEFHooks::executeJavaScript(frame, load_string_resource(L"loader.js"), "betterncm://betterncm/loader.js");
 			EasyCEFHooks::executeJavaScript(frame, load_string_resource(L"plugin_manager.js"), "betterncm://betterncm/plugin_manager.js");
-			EasyCEFHooks::executeJavaScript(frame, list_fix_script);
 
 			auto loadStartupScripts = [&](string path) {
 				if (fs::exists(path))
