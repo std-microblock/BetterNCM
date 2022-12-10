@@ -37,3 +37,7 @@ Release/
 *.user
 *.aps
 
+# JS Framework's node_modules
+.vscode/
+js-framework/node_modules/
+js-framework/package-lock.json
