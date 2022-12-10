@@ -13,31 +13,6 @@ extern string datapath;
 
 
 
-
-const auto list_fix_script = R"(
-
-//betterncm.waitForElement("head").then(head=>head.appendChild(dom("style",{innerHTML:`
-//.m-plylist-pl2 ul .lst {
-//    padding: 0 !important;
-//    counter-reset: tlistorder 0 !important;
-//}
-//`})));
-//
-//
-//betterncm.waitForElement(".lst").then(async ele=>{
-//while(1){
-//for(let child of document.querySelector(".lst").children){
-//    await betterncm.delay(400)
-//    child.style.display="block"
-//}
-//}
-//});
-//
-//console.log("Loaded")
-
-)";
-
-
 string App::readConfig(const string& key, const string& def) {
 	auto configPath = datapath + "/config.json";
 	if (!fs::exists(configPath))write_file_text(configPath, "{}");
