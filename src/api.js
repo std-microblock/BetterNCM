@@ -1,6 +1,43 @@
 ﻿const BETTERNCM_API_PATH = "http://localhost:3248/api";
 const BETTERNCM_FILES_PATH = "http://localhost:3248/local";
 
+const ipcListeners = {
+    call: [],
+    callback: []
+};
+
+const initIPCHooks = () => {
+    let channelCall = channel.call;
+    channel.call = (...args) => {
+        console.debug(args);
+
+        if (ipcListeners.call[args[0]])
+            for (const listener of Object.values(ipcListeners.call[args[0]])) {
+                let cancelled = false;
+                const event = {
+                    cancel() {
+                        cancelled = true;
+                    },
+                    call: {
+                        get name() { return args[0] },
+                        set name(v) { args[0] = v; },
+                        get args() { return args[2] },
+                        set args(v) { args[2] = v },
+                        get callback() { return args[1] }
+                    }
+                };
+
+                listener.call(event, event);
+
+                if (cancelled) return;
+            }
+
+        channelCall(...args);
+    }
+};
+
+initIPCHooks();
+
 const betterncm = {
     fs: {
         async readDir(path) {
@@ -100,6 +137,23 @@ const betterncm = {
             if (document.querySelector(".m-player-fm")) {
                 return { type: "fm", id: document.querySelector("button[data-action=hate]").dataset.resId, title: document.querySelector(".title").innerText };
             }
+        },
+        ipc: {
+            on(type, name, callback) {
+                const id = Math.floor(Math.random() * 100000000);
+                ipcListeners[type][name] ??= {};
+                ipcListeners[type][name][id] = callback;
+                return id
+            },
+            once(type, name, callback) {
+                const id = Math.floor(Math.random() * 100000000);
+                ipcListeners[type][name] ??= {};
+                ipcListeners[type][name][id] = (...args) => {
+                    delete ipcListeners[type][name][id];
+                    return callback(...args);
+                };
+                return id
+            }
         }
     },
     utils: {
@@ -131,7 +185,6 @@ const betterncm = {
         }
     }
 };
-
 
 // dom create tool
 function dom(tag, settings, ...children) {

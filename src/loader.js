@@ -78,6 +78,10 @@ async function loadPlugins() {
     for (let name in loadedPlugins) loadedPlugins[name].injects.forEach(v => v._allLoaded?.call(loadedPlugins[name], loadedPlugins));
 }
 
+if (window.screenX !== 0) {
+    console.log(111)
+    betterncm.ncm.ipc.once("call", "winhelper.setWindowPosition", (e) => { e.cancel() })
+}
 
 window.addEventListener("DOMContentLoaded", async () => {
     betterncm.reload = () => {
@@ -92,9 +96,6 @@ window.addEventListener("DOMContentLoaded", async () => {
     await Promise.all([loadPlugins(), betterncm.utils.waitForElement("nav", 400)]);
 
     loadingMask.animate([{ opacity: 1 }, { opacity: 0, display: "none" }], { duration: 300, fill: "forwards", easing: "cubic-bezier(0.42, 0, 0.58, 1)" }).commitStyles()
-
-
-
 
     if (!("PluginMarket" in loadedPlugins)) {
         let attempts = parseInt(localStorage["cc.microblock.loader.reloadPluginAttempts"] || "0");
