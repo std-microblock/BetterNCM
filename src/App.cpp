@@ -526,11 +526,17 @@ App::App() {
 
 		std::function<wstring(wstring)> processor = nullptr;
 
-		if (url == "orpheus://orpheus/pub/app.html")this_hijacks.push_back(nlohmann::json({
+		if (pystring::startswith(url, "orpheus://orpheus/pub/app.html"))
+			this_hijacks.push_back(nlohmann::json({
 			{"type","replace"},
-			{"from","</style>"},
-			{"to","<style>html{background:yellow;}</style>"}
-			}));
+			{"from",R"(<head>)"},
+			{"to",R"(
+<head>
+<div id=loadingMask style="position: absolute; inset: 0px; background: linear-gradient(54deg, rgb(49, 16, 37), rgb(25, 37, 64)); z-index: 1000; display: flex; justify-content: center; align-items: center; pointer-events: none; opacity: 1;">
+<div><svg fill="#ffffff99"><use xlink:href="orpheus://orpheus/style/res/svg/topbar.sp.svg#logo_white"></use></svg></div></div>)"},
+			{"plugin_name","betterncm"},
+			{"id","splash_screen"}
+				}));
 
 		if (this_hijacks.size())
 			processor = [=](wstring code) {
@@ -554,7 +560,7 @@ App::App() {
 					}
 
 					string id = "<missing_id>";
-					if (hijack["id"].is_string())
+					if (hijack.contains("id") && hijack["id"].is_string())
 						id = hijack["id"].get<string>();
 
 					std::lock_guard<std::shared_timed_mutex> guard(succeeded_hijacks_lock);

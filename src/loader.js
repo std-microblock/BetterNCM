@@ -78,82 +78,14 @@ async function loadPlugins() {
     for (let name in loadedPlugins) loadedPlugins[name].injects.forEach(v => v._allLoaded?.call(loadedPlugins[name], loadedPlugins));
 }
 
-let loadingMask = dom('div', {
-    style: {
-        position: 'absolute',
-        left: '0px',
-        top: '0px',
-        right: '0px',
-        bottom: '0px',
-        background: "linear-gradient(54deg, rgb(49 16 37), rgb(25 37 64))",
-        zIndex: "1000",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        pointerEvents: "none"
-    }
-},
-    dom("div", {
-        innerHTML: `<svg fill=#fff><use xlink:href="orpheus://orpheus/style/res/svg/topbar.sp.svg#logo_white"></use></svg>`,
-        style: {
-            opacity: 0.8
-        }
-    })
-);
 
-if (document.location.href === "orpheus://orpheus/pub/app.html#/m/disc/rec/") {
-    if (!document.body)
-        document.body = document.createElement("body")
-    document.body.appendChild(loadingMask);
-}
+
 
 
 
 window.addEventListener("DOMContentLoaded", async () => {
-    let loadingMask = dom('div', {
-        style: {
-            position: 'absolute',
-            left: '0px',
-            top: '0px',
-            right: '0px',
-            bottom: '0px',
-            background: "linear-gradient(54deg, rgb(49 16 37), rgb(25 37 64))",
-            zIndex: "1000",
-            display: "flex",
-            justifyContent: "center",
-            alignItems: "center",
-            pointerEvents: "none"
-        }
-    },
-        dom("div", {
-            innerHTML: `<svg fill=#fff><use xlink:href="orpheus://orpheus/style/res/svg/topbar.sp.svg#logo_white"></use></svg>`,
-            style: {
-                opacity: 0.8
-            }
-        })
-    );
-
-    loadingMask.style.setProperty("font-family", "Helvetica", "important");
-
-    localStorage["cc.microblock.betterncm.useSplashScreen"] ??= "true";
-    if (localStorage["cc.microblock.betterncm.useSplashScreen"] === "true")
-        document.body.appendChild(loadingMask);
-
     betterncm.reload = () => {
-        const maskOut = dom('div', {
-            style: {
-                position: 'absolute',
-                left: '0px',
-                top: '100%',
-                right: '0px',
-                bottom: '0px',
-                background: "linear-gradient(54deg, rgb(49 16 37), rgb(25 37 64))",
-                zIndex: "1000",
-                opacity: 0
-            }
-        });
-        document.body.appendChild(maskOut);
-        const anim = maskOut.animate([{ top: '0%', opacity: 1 }], { duration: 300, fill: 'forwards', easing: "cubic-bezier(0.42, 0, 0.58, 1)" });
+        const anim = loadingMask.animate([{ opacity: 1 }], { duration: 300, fill: 'forwards', easing: "cubic-bezier(0.42, 0, 0.58, 1)" });
         anim.commitStyles();
 
         anim.addEventListener("finish", _ => {
@@ -161,7 +93,7 @@ window.addEventListener("DOMContentLoaded", async () => {
         });
     }
 
-    await Promise.all([loadPlugins(), new Promise((rs) => window.addEventListener("load", rs))]);
+    await Promise.all([loadPlugins(), betterncm.utils.waitForElement("nav")]);
 
     loadingMask.animate([{ opacity: 1 }, { opacity: 0, display: "none" }], { duration: 300, fill: "forwards", easing: "cubic-bezier(0.42, 0, 0.58, 1)" }).commitStyles()
 
