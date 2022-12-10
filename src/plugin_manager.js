@@ -88,13 +88,13 @@ betterncm.utils.waitForElement(".g-mn-set").then(async (settingsDom) => {
 
         const tools = {
             makeBtn(text, onclick, smaller = false, args = {}) {
-                return dom("a", { class: ["u-ibtn5", smaller && "u-ibtnsz8"], innerText: text, onclick, ...args });
+                return dom("a", { class: ["u-ibtn5", smaller && "u-ibtnsz8"], style: { margin: ".2em .5em" }, innerText: text, onclick, ...args });
             },
             makeCheckbox(args = {}) {
                 return dom("input", { type: "checkbox", ...args });
             },
             makeInput(value, args = {}) {
-                return dom("input", { value, class: ["u-txt", "sc-flag"], ...args });
+                return dom("input", { value, style: { margin: ".2em .5em", borderRadius: ".5em" }, class: ["u-txt", "sc-flag"], ...args });
             }
         };
 
