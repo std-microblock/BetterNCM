@@ -21,8 +21,6 @@
 #define ALCFAST EXTERNC EXPORT NAKED void __fastcall
 #define ALCDECL EXTERNC NAKED void __cdecl
 
-using namespace std;
-
 string script;
 
 

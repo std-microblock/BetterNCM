@@ -524,31 +524,50 @@ App::App() {
 		auto satisfied_hijacks_dev = loadHijacking(datapath + "/plugins_dev");
 		filter_hijacks(satisfied_hijacks_dev);
 
+		std::function<wstring(wstring)> processor = nullptr;
 
+		if (url == "orpheus://orpheus/pub/app.html")this_hijacks.push_back(nlohmann::json({
+			{"type","replace"},
+			{"from","</style>"},
+			{"to","<style>html{background:yellow;}</style>"}
+			}));
 
 		if (this_hijacks.size())
-			return [=](wstring code) {
+			processor = [=](wstring code) {
 			for (const auto hijack : this_hijacks) {
-				if (hijack["type"].get<string>() == "regex") {
-					const std::wregex hijack_regex{ utf8_to_wstring(hijack["from"].get<string>()) };
-					code = std::regex_replace(code, hijack_regex, utf8_to_wstring(hijack["to"].get<string>()));
+				try {
+					if (hijack["type"].get<string>() == "regex") {
+						const std::wregex hijack_regex{ utf8_to_wstring(hijack["from"].get<string>()) };
+						code = std::regex_replace(code, hijack_regex, utf8_to_wstring(hijack["to"].get<string>()));
+					}
+
+					if (hijack["type"].get<string>() == "replace") {
+						code = wreplaceAll(code, utf8_to_wstring(hijack["from"].get<string>()), utf8_to_wstring(hijack["to"].get<string>()));
+					}
+
+					if (hijack["type"].get<string>() == "append") {
+						code += utf8_to_wstring(hijack["code"].get<string>());
+					}
+
+					if (hijack["type"].get<string>() == "prepend") {
+						code = utf8_to_wstring(hijack["code"].get<string>()) + code;
+					}
+
+					string id = "<missing_id>";
+					if (hijack["id"].is_string())
+						id = hijack["id"].get<string>();
+
+					std::lock_guard<std::shared_timed_mutex> guard(succeeded_hijacks_lock);
+					succeeded_hijacks.push_back(hijack["plugin_name"].get<string>() + "::" + id);
 				}
-
-				if (hijack["type"].get<string>() == "replace") {
-					code = wreplaceAll(code, utf8_to_wstring(hijack["from"].get<string>()), utf8_to_wstring(hijack["to"].get<string>()));
+				catch (std::exception e) {
+					cout << "Failed to hijack: " << e.what() << endl;
 				}
-
-				string id = "<missing_id>";
-				if (hijack["id"].is_string())
-					id = hijack["id"].get<string>();
-
-				std::lock_guard<std::shared_timed_mutex> guard(succeeded_hijacks_lock);
-				succeeded_hijacks.push_back(hijack["plugin_name"].get<string>() + "::" + id);
 			}
 			return code;
 		};
 
-		return nullptr;
+		return processor;
 	};
 
 	EasyCEFHooks::onAddCommandLine = [&](string arg) {

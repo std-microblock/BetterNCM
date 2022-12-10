@@ -179,7 +179,7 @@ public:
 		try {
 			return utf8_to_wstring(string(data.begin(), data.end()));
 		}
-		catch (logic_error e) {
+		catch (exception e) {
 			alert(e.what());
 			return L"";
 		}

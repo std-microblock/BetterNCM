@@ -4,10 +4,11 @@
 #include "shellapi.h"
 #include <mutex>
 #include <shared_mutex>
+
 class App {
 	httplib::Server* httpServer = nullptr;
 	std::thread* server_thread;
-	thread* create_server(string apiKey);
+	std::thread* create_server(string apiKey);
 	void extractPlugins();
 	string readConfig(const string& key, const string& def);
 	void writeConfig(const string& key, const string& val);

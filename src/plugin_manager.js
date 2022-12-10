@@ -1,31 +1,3 @@
-// dom create tool
-function dom(tag, settings, ...children) {
-    let tmp = document.createElement(tag);
-    if (settings.class) {
-        for (let cl of settings.class) {
-            tmp.classList.add(cl);
-        }
-        delete settings.class;
-    }
-
-    if (settings.style) {
-        for (let cl in settings.style) {
-            tmp.style[cl] = settings.style[cl];
-        }
-        delete settings.style;
-    }
-
-    for (let v in settings) {
-        tmp[v] = settings[v];
-    }
-
-    for (let child of children) {
-        if (child)
-            tmp.appendChild(child);
-    }
-    return tmp;
-}
-
 
 
 betterncm.utils.waitForElement(".g-mn-set").then(async (settingsDom) => {

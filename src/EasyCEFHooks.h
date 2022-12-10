@@ -11,7 +11,7 @@
 #include "utils.h"
 #include "shellapi.h"
 #include <string>
-using namespace std;
+
 
 namespace EasyCEFHooks
 {
