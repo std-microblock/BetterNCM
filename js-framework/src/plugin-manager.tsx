@@ -4,7 +4,9 @@ import { loadedPlugins, NCMPlugin } from "./loader";
 export async function initPluginManager() {
 	// 准备设置页面和访问按钮
 	const settingsView = document.createElement("section");
-	const mainPageView = (await BetterNCM.utils.waitForElement("section.g-mn"))!!;
+	const mainPageView: HTMLElement = (await BetterNCM.utils.waitForElement(
+		"section.g-mn",
+	))!!;
 	const settingsButton = (await BetterNCM.utils.waitForElement(
 		'a[href="#/m/setting/"]',
 	))!! as HTMLAnchorElement;
@@ -27,29 +29,25 @@ export async function initPluginManager() {
 	ReactDOM.render(<PluginManager />, settingsView);
 	settingsView.classList.add("g-mn");
 	settingsView.style.display = "none";
-	const updateBackgroundColor = () => {
-		const backgroundColor = window
-			.getComputedStyle(document.body, null)
-			.getPropertyValue("background-color");
-		settingsView.style.backgroundColor = backgroundColor;
-	};
-	window.addEventListener("load", updateBackgroundColor);
 
 	settingsButton.addEventListener("click", () => {
 		settingsView.style.display = "none";
+		mainPageView.style.display = "";
 	});
 	betterNCMSettingsButton.addEventListener("click", () => {
 		if (settingsView.style.display === "") {
 			settingsView.style.display = "none";
+			mainPageView.style.display = "";
 		} else {
-			updateBackgroundColor();
 			settingsView.style.display = "";
+			mainPageView.style.display = "none";
 		}
 	});
 
 	// 如果外部页面变更（点击了其它按钮跳转）则关闭设置页面
 	window.addEventListener("hashchange", () => {
 		settingsView.style.display = "none";
+		mainPageView.style.display = "";
 	});
 	// new MutationObserver((rs) => {
 	// 	console.log(rs);
