@@ -140,6 +140,9 @@ copy "$(TargetDir)BetterNCMII.dll" "C:\Program Files (x86)\Netease\CloudMusic\ms
       <Command>cd js-framework
 npm run build</Command>
     </PreBuildEvent>
+    <CustomBuildStep>
+      <Inputs>./src/framework.js;./src/framework.css;%(Inputs)</Inputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
