@@ -62,13 +62,15 @@
     <None Include="src\framework.js">
       <Filter>js</Filter>
     </None>
-    <None Include="src\framework.css">
-      <Filter>js</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="src\resource.rc">
       <Filter>源文件</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="src\framework.css">
+      <Filter>js</Filter>
+    </Text>
   </ItemGroup>
 </Project>

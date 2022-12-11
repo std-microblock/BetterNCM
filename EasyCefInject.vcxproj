@@ -141,7 +141,7 @@ copy "$(TargetDir)BetterNCMII.dll" "C:\Program Files (x86)\Netease\CloudMusic\ms
 npm run build</Command>
     </PreBuildEvent>
     <CustomBuildStep>
-      <Inputs>./src/framework.js;./src/framework.css;%(Inputs)</Inputs>
+      <Inputs>%(Inputs)</Inputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -196,8 +196,12 @@ npm run build</Command>
   <ItemGroup>
     <None Include="resource\PluginMarket.plugin" />
     <None Include="resource\rcdata2.bin" />
-    <None Include="src\framework.css" />
-    <None Include="src\framework.js" />
+    <Text Include="src\framework.css">
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</DeploymentContent>
+    </Text>
+    <Text Include="src\framework.js">
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</DeploymentContent>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="src\resource.rc" />

@@ -513,23 +513,24 @@ namespace utils {
 	export function dom(tag: string, settings: any, ...children: HTMLElement[]) {
 		let tmp = document.createElement(tag);
 		if (settings.class) {
-			for (let cl of settings.class) {
+			for (const cl of settings.class) {
 				tmp.classList.add(cl);
 			}
 			settings.class = undefined;
 		}
 
 		if (settings.style) {
-			for (let cl in settings.style) {
+			for (const cl in settings.style) {
 				tmp.style[cl] = settings.style[cl];
 			}
+			settings.style = undefined;
 		}
 
-		for (let v in settings) {
-			if (settings[v] !== undefined) tmp[v] = settings[v];
+		for (const v in settings) {
+			if (settings[v]) tmp[v] = settings[v];
 		}
 
-		for (let child of children) {
+		for (const child of children) {
 			if (child) tmp.appendChild(child);
 		}
 		return tmp;

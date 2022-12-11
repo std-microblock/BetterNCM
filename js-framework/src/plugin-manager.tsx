@@ -25,8 +25,23 @@ export async function initPluginManager() {
 		settingsButton.nextElementSibling,
 	);
 	ReactDOM.render(<PluginManager />, settingsView);
-	settingsView.classList.add("g-mn");
+	settingsView.setAttribute("style",`
+    -webkit-transform: translateY(-5px);
+    margin: 10px;
+    border-radius: 10px;
+    background: transparent !important;
+    border-color: rgba(255, 255, 255, 0.12);
+    z-index: 70;
+    left: 200px;
+    overflow: hidden;
+    overflow-y: overlay;
+    top: 60px;
+    bottom: 73px;
+    position: absolute;
+    right: 0;`);
+
 	settingsView.style.display = "none";
+
 
 	settingsButton.addEventListener("click", () => {
 		settingsView.style.display = "none";
@@ -216,7 +231,8 @@ const PluginManager: React.FC = () => {
 	return (
 		<div className="bncm-mgr">
 			<div>
-				<section className="n-setcnt j-flag bncm-mgr-header" ref={headerRef}>
+
+				<section className="bncm-mgr-header" ref={headerRef}>
 					<img
 						src="https://s1.ax1x.com/2022/08/11/vGlJN8.png"
 						alt=""
@@ -226,7 +242,8 @@ const PluginManager: React.FC = () => {
 					/>
 					<div>
 						<h1>
-							BetterNCM <small>{currentVersion}</small>
+							BetterNCM <span style={{fontSize: 'smaller', opacity: '0.8'}}>0.2.5</span>
+
 						</h1>
 						<div className="bncm-mgr-btns">
 							<Button
@@ -303,7 +320,6 @@ const PluginManager: React.FC = () => {
 					</div>
 				</section>
 				<section
-					className="n-setcnt j-flag"
 					style={{
 						display: "flex",
 						flexDirection: "row",

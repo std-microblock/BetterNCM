@@ -30,8 +30,8 @@ export interface PluginManifest {
 	hijacks: {
 		[versionRange: string]: {
 			[matchUrlPath: string]:
-			| HijackReplaceOrRegexOperation
-			| HijackAppendOrPrependOperation;
+				| HijackReplaceOrRegexOperation
+				| HijackAppendOrPrependOperation;
 		};
 	};
 }
@@ -103,20 +103,21 @@ export class NCMInjectPlugin extends EventTarget {
 
 	onLoad(fn: (selfPlugin: NCMPlugin, evt: CustomEvent) => void) {
 		this.addEventListener("load", (evt: CustomEvent) => {
-			fn(evt.detail, evt);
+			fn.call(this, evt.detail, evt);
 		});
 	}
 	// rome-ignore lint/suspicious/noExplicitAny: TODO: 工具类参数
 	onConfig(fn: (toolsBox: any) => HTMLElement) {
 		this.addEventListener("config", (evt: CustomEvent) => {
-			this.configViewElement = fn(evt.detail);
+			this.configViewElement = fn.call(this, evt.detail);
+			console.log(this.configViewElement);
 		});
 	}
 	onAllPluginsLoaded(
 		fn: (loadedPlugins: typeof window.loadedPlugins, evt: CustomEvent) => void,
 	) {
-		this.addEventListener("allpluginsloaded", function (evt: CustomEvent){
-			fn.call(this,evt.detail, evt);
+		this.addEventListener("allpluginsloaded", function (evt: CustomEvent) {
+			fn.call(this, evt.detail, evt);
 		});
 	}
 	getConfig<T>(key: string, defaultValue: T): T;
@@ -146,7 +147,7 @@ export let loadedPlugins: typeof window.loadedPlugins = {};
 
 async function loadPlugins() {
 	// rome-ignore lint/suspicious/noExplicitAny: AsyncFunction 并不暴露成类，需要手动获取
-	const AsyncFunction = async function () { }.constructor as any;
+	const AsyncFunction = async function () {}.constructor as any;
 	const pageMap = {
 		"/pub/app.html": "Main",
 	};
@@ -208,7 +209,7 @@ async function loadPlugins() {
 	for (const path of pluginPaths) {
 		loadingPromises.push(
 			loadPlugin(path)
-				.then(() => { })
+				.then(() => {})
 				.catch((e) => {
 					throw Error(`Failed to load plugin ${path}: ${e.toString()}`);
 				}),
@@ -220,7 +221,7 @@ async function loadPlugins() {
 		for (const path of devPluginPaths) {
 			loadingPromises.push(
 				loadPlugin(path, true)
-					.then(() => { })
+					.then(() => {})
 					.catch((e) => {
 						console.error(`Failed to load dev plugin ${path}: ${e.toString()}`);
 						loadFailedErrors.push([path, e]);
