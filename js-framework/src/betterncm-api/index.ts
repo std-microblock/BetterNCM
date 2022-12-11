@@ -523,6 +523,7 @@ namespace utils {
 			for (let cl in settings.style) {
 				tmp.style[cl] = settings.style[cl];
 			}
+			settings.style = undefined;
 		}
 
 		for (let v in settings) {
