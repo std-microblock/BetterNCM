@@ -11,7 +11,7 @@ const auto version = "0.2.5";
 
 extern string datapath;
 
-string App::readConfig(const string &key, const string &def)
+string App::readConfig(const string& key, const string& def)
 {
 	auto configPath = datapath + "/config.json";
 	if (!fs::exists(configPath))
@@ -23,7 +23,7 @@ string App::readConfig(const string &key, const string &def)
 	return json[key];
 }
 
-void App::writeConfig(const string &key, const string &val)
+void App::writeConfig(const string& key, const string& val)
 {
 	auto configPath = datapath + "/config.json";
 	if (!fs::exists(configPath))
@@ -35,9 +35,9 @@ void App::writeConfig(const string &key, const string &val)
 
 void exec(string cmd, bool ele, bool showWindow = false)
 {
-	STARTUPINFOW si = {0};
+	STARTUPINFOW si = { 0 };
 	si.cb = sizeof(si);
-	PROCESS_INFORMATION pi = {0};
+	PROCESS_INFORMATION pi = { 0 };
 
 	vector<string> result;
 	pystring::split(cmd, result, " ");
@@ -77,11 +77,11 @@ void exec(string cmd, bool ele, bool showWindow = false)
 		return;                                                                                      \
 	}
 
-std::thread *App::create_server(string apiKey)
+std::thread* App::create_server(string apiKey)
 {
 	return new std::thread([=]
-						   {
-		httplib::Server svr;
+		{
+			httplib::Server svr;
 	this->httpServer = &svr;
 
 	svr.Get("/api/fs/read_dir", [&](const httplib::Request& req, httplib::Response& res) {
@@ -127,19 +127,17 @@ std::thread *App::create_server(string apiKey)
 
 	auto path = req.get_param_value("path");
 
-	auto dist = req.get_param_value("dist");
-
-
+	auto dest = req.get_param_value("dest");
 
 	if (path[1] != ':') {
 		path = datapath + "/" + path;
 	}
 
-	if (dist[1] != ':') {
-		dist = datapath + "/" + dist;
+	if (dest[1] != ':') {
+		dest = datapath + "/" + dest;
 	}
 
-	zip_extract(path.c_str(), dist.c_str(), NULL, NULL);
+	zip_extract(path.c_str(), dest.c_str(), NULL, NULL);
 
 	res.set_content("ok", "text/plain");
 		});
@@ -401,11 +399,11 @@ std::thread *App::create_server(string apiKey)
 // https://stackoverflow.com/questions/440133/how-do-i-create-a-random-alpha-numeric-string-in-c
 std::string random_string(std::string::size_type length)
 {
-	static auto &chrs = "0123456789"
-						"abcdefghijklmnopqrstuvwxyz"
-						"ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+	static auto& chrs = "0123456789"
+		"abcdefghijklmnopqrstuvwxyz"
+		"ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-	thread_local static std::mt19937 rg{std::random_device{}()};
+	thread_local static std::mt19937 rg{ std::random_device{}() };
 	thread_local static std::uniform_int_distribution<std::string::size_type> pick(0, sizeof(chrs) - 2);
 
 	std::string s;
@@ -436,25 +434,25 @@ App::App()
 #else
 			event->windows_key_code == 123
 #endif
-		)
+			)
 		{
 			auto cef_browser_host = browser->get_host(browser);
-			if (browser->get_host(browser)->has_dev_tools(cef_browser_host))
-			{
-				browser->get_host(browser)->close_dev_tools(cef_browser_host);
-			}
-			else
-			{
-				CefWindowInfo windowInfo{};
-				CefBrowserSettings settings{};
-				CefPoint point{};
-				windowInfo.SetAsPopup(NULL, "EasyCEFInject DevTools");
-				cef_browser_host->show_dev_tools(cef_browser_host, &windowInfo, client, &settings, &point);
-			}
+				if (browser->get_host(browser)->has_dev_tools(cef_browser_host))
+				{
+					browser->get_host(browser)->close_dev_tools(cef_browser_host);
+				}
+				else
+				{
+					CefWindowInfo windowInfo{};
+					CefBrowserSettings settings{};
+					CefPoint point{};
+					windowInfo.SetAsPopup(NULL, "EasyCEFInject DevTools");
+					cef_browser_host->show_dev_tools(cef_browser_host, &windowInfo, client, &settings, &point);
+				}
 		}
 	};
 
-	EasyCEFHooks::onLoadStart = [=](_cef_browser_t *browser, _cef_frame_t *frame, auto transition_type)
+	EasyCEFHooks::onLoadStart = [=](_cef_browser_t* browser, _cef_frame_t* frame, auto transition_type)
 	{
 		if (frame->is_main(frame) && frame->is_valid(frame))
 		{
@@ -472,7 +470,7 @@ App::App()
 							if (fs::exists(file.path().string() + "/startup_script.js"))
 							{
 								EasyCEFHooks::executeJavaScript(frame, read_to_string(file.path().string() + "/startup_script.js"),
-																std::string("file://") + file.path().string() + "/startup_script.js");
+									std::string("file://") + file.path().string() + "/startup_script.js");
 							}
 						}
 						catch (std::exception e)
@@ -491,21 +489,21 @@ App::App()
 	{
 		vector<nlohmann::json> satisfied_hijacks;
 		if (fs::exists(path))
-			for (const auto &file : fs::directory_iterator(path))
+			for (const auto& file : fs::directory_iterator(path))
 			{
 				try
 				{
 					if (fs::exists(file.path().string() + "/manifest.json"))
 					{
 						auto json = nlohmann::json::parse(read_to_string(file.path().string() + "/manifest.json"));
-						for (auto &[version, hijack] : json["hijacks"].items())
+						for (auto& [version, hijack] : json["hijacks"].items())
 						{
 							if (semver::range::satisfies(getNCMExecutableVersion(), version))
 							{
-								for (auto &hij : hijack)
+								for (auto& hij : hijack)
 								{
 									if (hij.is_array())
-										for (auto &hij_unit : hij)
+										for (auto& hij_unit : hij)
 										{
 											hij_unit["base_path"] = file.path().string();
 											hij_unit["plugin_name"] = json["name"];
@@ -539,8 +537,8 @@ App::App()
 
 		auto filter_hijacks = [&](vector<nlohmann::json> full)
 		{
-			for (const auto &hijack : full)
-				for (const auto &[hij_url, hij] : hijack.items())
+			for (const auto& hijack : full)
+				for (const auto& [hij_url, hij] : hijack.items())
 				{
 					if (pystring::startswith(url, hij_url))
 					{
@@ -549,7 +547,7 @@ App::App()
 						if (hij.is_array())
 							hijs = hij.get<vector<nlohmann::json>>();
 						else if (hij.is_object())
-							hijs = vector<nlohmann::json>{hij};
+							hijs = vector<nlohmann::json>{ hij };
 
 						this_hijacks.insert(this_hijacks.end(), hijs.begin(), hijs.end());
 					}
@@ -564,57 +562,57 @@ App::App()
 		std::function<wstring(wstring)> processor = nullptr;
 
 		if (pystring::startswith(url, "orpheus://orpheus/pub/app.html"))
-			this_hijacks.push_back(nlohmann::json({{"type", "replace"},
+			this_hijacks.push_back(nlohmann::json({ {"type", "replace"},
 												   {"from", R"(<body )"},
 												   {"to", R"(
 
 <div id=loadingMask style="position: absolute; inset: 0px; background: linear-gradient(54deg, rgb(49, 16, 37), rgb(25, 37, 64)); z-index: 1000; display: flex; justify-content: center; align-items: center; pointer-events: none; opacity: 1;">
 <div><svg fill="#ffffffcc"><use xlink:href="orpheus://orpheus/style/res/svg/topbar.sp.svg#logo_white"></use></svg></div></div><body )"},
 												   {"plugin_name", "betterncm"},
-												   {"id", "splash_screen"}}));
+												   {"id", "splash_screen"} }));
 
 		if (this_hijacks.size())
 			processor = [=](wstring code)
+		{
+			for (const auto hijack : this_hijacks)
 			{
-				for (const auto hijack : this_hijacks)
+				try
 				{
-					try
+					if (hijack["type"].get<string>() == "regex")
 					{
-						if (hijack["type"].get<string>() == "regex")
-						{
-							const std::wregex hijack_regex{utf8_to_wstring(hijack["from"].get<string>())};
-							code = std::regex_replace(code, hijack_regex, utf8_to_wstring(hijack["to"].get<string>()));
-						}
-
-						if (hijack["type"].get<string>() == "replace")
-						{
-							code = wreplaceAll(code, utf8_to_wstring(hijack["from"].get<string>()), utf8_to_wstring(hijack["to"].get<string>()));
-						}
-
-						if (hijack["type"].get<string>() == "append")
-						{
-							code += utf8_to_wstring(hijack["code"].get<string>());
-						}
-
-						if (hijack["type"].get<string>() == "prepend")
-						{
-							code = utf8_to_wstring(hijack["code"].get<string>()) + code;
-						}
-
-						string id = "<missing_id>";
-						if (hijack.contains("id") && hijack["id"].is_string())
-							id = hijack["id"].get<string>();
-
-						std::lock_guard<std::shared_timed_mutex> guard(succeeded_hijacks_lock);
-						succeeded_hijacks.push_back(hijack["plugin_name"].get<string>() + "::" + id);
+						const std::wregex hijack_regex{ utf8_to_wstring(hijack["from"].get<string>()) };
+						code = std::regex_replace(code, hijack_regex, utf8_to_wstring(hijack["to"].get<string>()));
 					}
-					catch (std::exception e)
+
+					if (hijack["type"].get<string>() == "replace")
 					{
-						cout << "Failed to hijack: " << e.what() << endl;
+						code = wreplaceAll(code, utf8_to_wstring(hijack["from"].get<string>()), utf8_to_wstring(hijack["to"].get<string>()));
 					}
+
+					if (hijack["type"].get<string>() == "append")
+					{
+						code += utf8_to_wstring(hijack["code"].get<string>());
+					}
+
+					if (hijack["type"].get<string>() == "prepend")
+					{
+						code = utf8_to_wstring(hijack["code"].get<string>()) + code;
+					}
+
+					string id = "<missing_id>";
+					if (hijack.contains("id") && hijack["id"].is_string())
+						id = hijack["id"].get<string>();
+
+					std::lock_guard<std::shared_timed_mutex> guard(succeeded_hijacks_lock);
+					succeeded_hijacks.push_back(hijack["plugin_name"].get<string>() + "::" + id);
 				}
-				return code;
-			};
+				catch (std::exception e)
+				{
+					cout << "Failed to hijack: " << e.what() << endl;
+				}
+			}
+			return code;
+		};
 
 		return processor;
 	};
