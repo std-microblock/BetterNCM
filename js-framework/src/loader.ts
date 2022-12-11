@@ -30,8 +30,8 @@ export interface PluginManifest {
 	hijacks: {
 		[versionRange: string]: {
 			[matchUrlPath: string]:
-				| HijackReplaceOrRegexOperation
-				| HijackAppendOrPrependOperation;
+			| HijackReplaceOrRegexOperation
+			| HijackAppendOrPrependOperation;
 		};
 	};
 }
@@ -136,7 +136,8 @@ export class NCMInjectPlugin extends EventTarget {
 			JSON.stringify(config);
 	}
 	_getConfigElement() {
-		this.dispatchEvent(new CustomEvent("config", { detail: configToolBox }));
+		if (!this.configViewElement)
+			this.dispatchEvent(new CustomEvent("config", { detail: configToolBox }));
 		return this.configViewElement;
 	}
 }
@@ -145,7 +146,7 @@ export let loadedPlugins: typeof window.loadedPlugins = {};
 
 async function loadPlugins() {
 	// rome-ignore lint/suspicious/noExplicitAny: AsyncFunction 并不暴露成类，需要手动获取
-	const AsyncFunction = async function () {}.constructor as any;
+	const AsyncFunction = async function () { }.constructor as any;
 	const pageMap = {
 		"/pub/app.html": "Main",
 	};
@@ -207,7 +208,7 @@ async function loadPlugins() {
 	for (const path of pluginPaths) {
 		loadingPromises.push(
 			loadPlugin(path)
-				.then(() => {})
+				.then(() => { })
 				.catch((e) => {
 					throw Error(`Failed to load plugin ${path}: ${e.toString()}`);
 				}),
@@ -219,7 +220,7 @@ async function loadPlugins() {
 		for (const path of devPluginPaths) {
 			loadingPromises.push(
 				loadPlugin(path, true)
-					.then(() => {})
+					.then(() => { })
 					.catch((e) => {
 						console.error(`Failed to load dev plugin ${path}: ${e.toString()}`);
 						loadFailedErrors.push([path, e]);
