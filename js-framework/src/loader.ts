@@ -115,8 +115,8 @@ export class NCMInjectPlugin extends EventTarget {
 	onAllPluginsLoaded(
 		fn: (loadedPlugins: typeof window.loadedPlugins, evt: CustomEvent) => void,
 	) {
-		this.addEventListener("allpluginsloaded", (evt: CustomEvent) => {
-			fn(evt.detail, evt);
+		this.addEventListener("allpluginsloaded", function (evt: CustomEvent){
+			fn.call(this,evt.detail, evt);
 		});
 	}
 	getConfig<T>(key: string, defaultValue: T): T;

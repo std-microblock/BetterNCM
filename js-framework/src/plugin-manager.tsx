@@ -14,10 +14,8 @@ export async function initPluginManager() {
 		true,
 	) as HTMLAnchorElement;
 	betterNCMSettingsButton.href = "javascript:void(0)";
-	betterNCMSettingsButton.title = "BetterNCM 插件管理器";
-	betterNCMSettingsButton.innerHTML = `<svg><use xlink:href="orpheus://orpheus/style/res/svg/topbar.sp.svg#logo_white"></use></svg>`;
-	// console.log(document.body.innerHTML)
-	// mainPageView?.appendChild(settingsView)
+	betterNCMSettingsButton.title = "BetterNCM";
+	betterNCMSettingsButton.innerHTML = `<svg style='transform: scale(0.8);'><use xlink:href="orpheus://orpheus/style/res/svg/topbar.sp.svg#logo_white"></use></svg>`;
 	mainPageView.parentElement!!.insertBefore(
 		settingsView,
 		mainPageView.nextElementSibling,
@@ -227,7 +225,9 @@ const PluginManager: React.FC = () => {
 						}}
 					/>
 					<div>
-						<h1>BetterNCM 插件管理器 {currentVersion}</h1>
+						<h1>
+							BetterNCM <small>{currentVersion}</small>
+						</h1>
 						<div className="bncm-mgr-btns">
 							<Button
 								onClick={async () => {
