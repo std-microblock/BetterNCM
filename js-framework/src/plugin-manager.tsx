@@ -4,7 +4,9 @@ import { loadedPlugins, NCMPlugin } from "./loader";
 export async function initPluginManager() {
 	// 准备设置页面和访问按钮
 	const settingsView = document.createElement("section");
-	const mainPageView = (await BetterNCM.utils.waitForElement("section.g-mn"))!!;
+	const mainPageView: HTMLElement = (await BetterNCM.utils.waitForElement(
+		"section.g-mn",
+	))!!;
 	const settingsButton = (await BetterNCM.utils.waitForElement(
 		'a[href="#/m/setting/"]',
 	))!! as HTMLAnchorElement;
