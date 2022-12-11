@@ -523,11 +523,10 @@ namespace utils {
 			for (let cl in settings.style) {
 				tmp.style[cl] = settings.style[cl];
 			}
-			settings.style = undefined;
 		}
 
 		for (let v in settings) {
-			tmp[v] = settings[v];
+			if (v !== undefined) tmp[v] = settings[v];
 		}
 
 		for (let child of children) {
