@@ -130,14 +130,14 @@ export class NCMInjectPlugin extends EventTarget {
 	}
 	getConfig<T>(key: string, defaultValue: T): T;
 	getConfig<T>(key: string, defaultValue?: T): T | undefined {
-		let config = JSON.parse(
+		const config = JSON.parse(
 			localStorage[`config.betterncm.${this.manifest.name}`] || "{}",
 		);
 		if (config[key] !== undefined) return config[key];
 		return defaultValue;
 	}
 	setConfig<T>(key: string, value: T) {
-		let config = JSON.parse(
+		const config = JSON.parse(
 			localStorage[`config.betterncm.${this.manifest.name}`] || "{}",
 		);
 		config[key] = value;
@@ -162,7 +162,7 @@ async function loadPlugins() {
 	const pageName = pageMap[location.pathname];
 
 	async function loadPlugin(pluginPath: string, devMode = false) {
-		let manifest = JSON.parse(
+		const manifest = JSON.parse(
 			await BetterNCM.fs.readFileText(`${pluginPath}/manifest.json`),
 		);
 		const mainPlugin = new NCMPlugin(manifest, pluginPath);
@@ -170,7 +170,7 @@ async function loadPlugins() {
 
 		async function loadInject(filePath: string) {
 			const getFileCode = BetterNCM.fs.readFileText.bind(null, filePath);
-			let code = await getFileCode();
+			const code = await getFileCode();
 			if (devMode) {
 				setInterval(async () => {
 					if (code !== (await getFileCode())) BetterNCM.reload();
@@ -178,7 +178,7 @@ async function loadPlugins() {
 			}
 
 			if (filePath.endsWith(".js")) {
-				let plugin = new NCMInjectPlugin(mainPlugin);
+				const plugin = new NCMInjectPlugin(mainPlugin);
 				new AsyncFunction("plugin", code).call(
 					loadedPlugins[manifest.name],
 					plugin,
@@ -208,12 +208,12 @@ async function loadPlugins() {
 		mainPlugin.finished = true;
 	}
 
-	let loadingPromises: Promise<void>[] = [];
-	let loadFailedErrors: [string, Error][] = [];
+	const loadingPromises: Promise<void>[] = [];
+	const loadFailedErrors: [string, Error][] = [];
 	window.loadedPlugins = loadedPlugins;
 	window.loadFailedErrors = loadFailedErrors;
 
-	let pluginPaths = await BetterNCM.fs.readDir("./plugins_runtime");
+	const pluginPaths = await BetterNCM.fs.readDir("./plugins_runtime");
 	for (const path of pluginPaths) {
 		loadingPromises.push(
 			loadPlugin(path)
@@ -225,7 +225,7 @@ async function loadPlugins() {
 	}
 
 	if (await BetterNCM.fs.exists("./plugins_dev")) {
-		let devPluginPaths = await BetterNCM.fs.readDir("./plugins_dev");
+		const devPluginPaths = await BetterNCM.fs.readDir("./plugins_dev");
 		for (const path of devPluginPaths) {
 			loadingPromises.push(
 				loadPlugin(path, true)
@@ -273,7 +273,7 @@ window.addEventListener("DOMContentLoaded", async () => {
 			})
 			.commitStyles();
 	} else {
-		let attempts = parseInt(
+		const attempts = parseInt(
 			localStorage["cc.microblock.loader.reloadPluginAttempts"] || "0",
 		);
 		if (attempts < 3) {

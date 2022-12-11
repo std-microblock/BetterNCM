@@ -5,6 +5,22 @@
     box-sizing: border-box;
 }
 
+section.better-ncm-manager {
+    display: none !important;
+    background: transparent !important;
+    z-index: 70;
+    left: 200px;
+    top: 60px;
+    bottom: 73px;
+    right: 0;
+    overflow: hidden overlay;
+    position: absolute;
+}
+
+section.better-ncm-manager.ncmm-show {
+    display: block !important;
+}
+
 .bncm-mgr {
     overflow: hidden;
     position: relative;

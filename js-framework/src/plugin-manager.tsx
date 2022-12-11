@@ -1,6 +1,8 @@
 import BetterNCM from "./betterncm-api";
 import { loadedPlugins, NCMPlugin } from "./loader";
 
+const configKey = "config.betterncm.manager.open";
+
 export async function initPluginManager() {
 	// 准备设置页面和访问按钮
 	const settingsView = document.createElement("section");
@@ -9,6 +11,9 @@ export async function initPluginManager() {
 	))!!;
 	const settingsButton = (await BetterNCM.utils.waitForElement(
 		'a[href="#/m/setting/"]',
+	))!! as HTMLAnchorElement;
+	const lyricButton = (await BetterNCM.utils.waitForElement(
+		"div.cover.u-cover.u-cover-sm > a > span",
 	))!! as HTMLAnchorElement;
 	const betterNCMSettingsButton = settingsButton.cloneNode(
 		true,
@@ -25,51 +30,49 @@ export async function initPluginManager() {
 		settingsButton.nextElementSibling,
 	);
 	ReactDOM.render(<PluginManager />, settingsView);
-	settingsView.setAttribute(
-		"style",
-		`
-    -webkit-transform: translateY(-5px);
-    margin: 10px;
-    border-radius: 10px;
-    background: transparent !important;
-    border-color: rgba(255, 255, 255, 0.12);
-    z-index: 70;
-    left: 200px;
-    overflow: hidden;
-    overflow-y: overlay;
-    top: 60px;
-    bottom: 73px;
-    position: absolute;
-    right: 0;`,
-	);
 
-	settingsView.style.display = "none";
+	settingsView.classList.add("better-ncm-manager");
 
-	settingsButton.addEventListener("click", () => {
-		settingsView.style.display = "none";
-		mainPageView.style.display = "";
-	});
+	function showSettings() {
+		// 有插件似乎会替换主页元素，导致我们的设置页面无法显示，需要进行检查
+		if (settingsView.parentElement !== mainPageView.parentElement) {
+			mainPageView.parentElement!!.insertBefore(
+				settingsView,
+				mainPageView.nextElementSibling,
+			);
+		}
+		settingsView.classList.add("ncmm-show");
+		// 有些主题插件会给我们主页上 !important 优先级修饰符
+		// 所以得这样硬碰硬
+		mainPageView.setAttribute("style", "display: none !important;");
+	}
+
+	function hideSettings() {
+		settingsView.classList.remove("ncmm-show");
+		mainPageView.removeAttribute("style");
+	}
+
+	lyricButton.addEventListener("click", hideSettings);
+	settingsButton.addEventListener("click", hideSettings);
 	betterNCMSettingsButton.addEventListener("click", () => {
-		if (settingsView.style.display === "") {
-			settingsView.style.display = "none";
-			mainPageView.style.display = "";
+		if (settingsView.classList.contains("ncmm-show")) {
+			hideSettings();
 		} else {
-			settingsView.style.display = "";
-			mainPageView.style.display = "none";
+			showSettings();
 		}
 	});
 
 	// 如果外部页面变更（点击了其它按钮跳转）则关闭设置页面
-	window.addEventListener("hashchange", () => {
-		settingsView.style.display = "none";
-		mainPageView.style.display = "";
+	window.addEventListener("hashchange", hideSettings);
+	new MutationObserver((rs) => {
+		for (const r of rs) {
+			if (r.attributeName === "style") {
+				settingsView.style.left = mainPageView.style.left;
+			}
+		}
+	}).observe(mainPageView, {
+		attributes: true,
 	});
-	// new MutationObserver((rs) => {
-	// 	console.log(rs);
-	// 	settingsView.style.display = "none";
-	// }).observe(mainPageView, {
-	// 	attributes: true,
-	// });
 
 	// g-mn-set
 }
@@ -166,21 +169,36 @@ const PluginManager: React.FC = () => {
 	}, [selectedPlugin]);
 
 	React.useEffect(() => {
+		function sortFunc(key1: string, key2: string) {
+			const getSortValue = (key: string) => {
+				const loadPlugin = loadedPlugins[key];
+				const value = loadPlugin.haveConfigElement() ? 1 : 0;
+
+				// 将插件商店排到最前面
+				if (loadPlugin.manifest.name.startsWith("PluginMarket"))
+					return Number.MAX_SAFE_INTEGER;
+
+				return value;
+			};
+			return getSortValue(key2) - getSortValue(key1);
+		}
+		setLoadedPlugins(Object.keys(loadedPlugins).sort(sortFunc));
+		onPluginLoaded = (loadedPlugins) => {
+			console.log("插件加载完成！");
+			setLoadedPlugins(Object.keys(loadedPlugins).sort(sortFunc));
+		};
 		(async () => {
 			if (!latestVersion) {
-				onPluginLoaded = (loadedPlugins) => {
-					setLoadedPlugins(Object.keys(loadedPlugins));
-				};
 				const betterNCMVersion = await BetterNCM.app.getBetterNCMVersion();
 				setCurrentVersion(betterNCMVersion);
 				const currentNCMVersion = BetterNCM.ncm.getNCMVersion();
 
-				let online: OnlineVersionInfo = await (
+				const online: OnlineVersionInfo = await (
 					await fetch(
 						"https://gitee.com/microblock/better-ncm-v2-data/raw/master/betterncm/betterncm.json",
 					)
 				).json();
-				let onlineSuitableVersions = online.versions.filter((v) =>
+				const onlineSuitableVersions = online.versions.filter((v) =>
 					v.supports.includes(currentNCMVersion),
 				);
 				if (onlineSuitableVersions.length === 0) {
@@ -336,42 +354,27 @@ const PluginManager: React.FC = () => {
 					>
 						<div>
 							<div>
-								{loadedPluginsList
-									.sort((key1, key2) => {
-										const getSortValue = (key) => {
-											const loadPlugin = loadedPlugins[key];
-											let value = 0;
-											value += loadPlugin.haveConfigElement() ? 1 : 0;
-
-											// Put pluginmarket on top
-											if (loadPlugin.manifest.name.startsWith("PluginMarket"))
-												value += 100000;
-
-											return value;
-										};
-										return getSortValue(key2)-getSortValue(key1);
-									})
-									.map((key) => {
-										const loadPlugin = loadedPlugins[key];
-										const haveConfig = loadPlugin.haveConfigElement();
-										return (
-											// rome-ignore lint/a11y/useKeyWithClickEvents: <explanation>
-											<div
-												className={
-													haveConfig
-														? selectedPlugin?.manifest.name === key
-															? "plugin-btn selected"
-															: "plugin-btn"
-														: "plugin-btn-disabled"
-												}
-												onClick={() => {
-													if (haveConfig) setSelectedPlugin(loadPlugin);
-												}}
-											>
-												{loadPlugin.manifest.name}
-											</div>
-										);
-									})}
+								{loadedPluginsList.map((key) => {
+									const loadPlugin = loadedPlugins[key];
+									const haveConfig = loadPlugin.haveConfigElement();
+									return (
+										// rome-ignore lint/a11y/useKeyWithClickEvents: <explanation>
+										<div
+											className={
+												haveConfig
+													? selectedPlugin?.manifest.name === key
+														? "plugin-btn selected"
+														: "plugin-btn"
+													: "plugin-btn-disabled"
+											}
+											onClick={() => {
+												if (haveConfig) setSelectedPlugin(loadPlugin);
+											}}
+										>
+											{loadPlugin.manifest.name}
+										</div>
+									);
+								})}
 							</div>
 						</div>
 					</div>
@@ -381,8 +384,7 @@ const PluginManager: React.FC = () => {
 								style={{
 									overflowY: "scroll",
 									overflowX: "hidden",
-									padding: "8px",
-									margin: "8px",
+									padding: "16px",
 								}}
 								ref={pluginConfigRef}
 							/>

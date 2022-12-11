@@ -495,8 +495,8 @@ namespace utils {
 		interval = 100,
 	): Promise<T> {
 		return new Promise((rs) => {
-			let handle = setInterval(() => {
-				let result = func();
+			const handle = setInterval(() => {
+				const result = func();
 				if (result) {
 					clearInterval(handle);
 					rs(result);
@@ -511,7 +511,7 @@ namespace utils {
 
 	// rome-ignore lint/suspicious/noExplicitAny: 属性随意
 	export function dom(tag: string, settings: any, ...children: HTMLElement[]) {
-		let tmp = document.createElement(tag);
+		const tmp = document.createElement(tag);
 		if (settings.class) {
 			for (const cl of settings.class) {
 				tmp.classList.add(cl);
