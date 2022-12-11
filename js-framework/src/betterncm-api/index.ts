@@ -526,7 +526,7 @@ namespace utils {
 		}
 
 		for (let v in settings) {
-			if (v !== undefined) tmp[v] = settings[v];
+			if (settings[v] !== undefined) tmp[v] = settings[v];
 		}
 
 		for (let child of children) {
