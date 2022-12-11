@@ -1,2 +1,3 @@
-import './betterncm-api'
-import './loader'
+import "./betterncm-api";
+import "./loader";
+import "./style.css";

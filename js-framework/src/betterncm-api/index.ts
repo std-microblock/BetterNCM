@@ -5,7 +5,7 @@
  * 插件作者可以通过此处的接口来和界面或程序外部交互
  */
 
-import './react'
+import "./react";
 import { ncmFetch } from "./base";
 
 const e = encodeURIComponent;
@@ -30,7 +30,7 @@ export namespace fs {
 	 * @returns 对应文件的文本形式
 	 */
 	export async function readFileText(filePath: string): Promise<string> {
-		const r = await ncmFetch(`/fs/read_dir?path=${e(filePath)}`);
+		const r = await ncmFetch(`/fs/read_file_text?path=${e(filePath)}`);
 		return await r.text();
 	}
 
@@ -76,7 +76,7 @@ export namespace fs {
 		fd.append("file", content);
 		const r = await ncmFetch(`/fs/write_file?path=${e(filePath)}`, {
 			method: "POST",
-			body: content,
+			body: fd,
 		});
 		return r.status === 200;
 	}
@@ -227,50 +227,201 @@ export namespace ncm {
 		}
 	}
 
+	let cachedOpenURLFunc: Function | null = null;
+	export function openUrl(url: string) {
+		if (cachedOpenURLFunc === null) {
+			const findResult = findApiFunction("R$openUrl");
+			if (findResult) {
+				const [openUrl, openUrlRoot] = findResult;
+				cachedOpenURLFunc = openUrl.bind(openUrlRoot);
+			}
+		}
+		if (cachedOpenURLFunc === null) {
+			return null;
+		} else {
+			return cachedOpenURLFunc(url);
+		}
+	}
+
+	export function getNCMPackageVersion(): string {
+		return window?.APP_CONF?.packageVersion || "0000000";
+	}
+
+	export function getNCMFullVersion(): string {
+		return window?.APP_CONF?.appver || "0.0.0.0";
+	}
+
+	export function getNCMVersion(): string {
+		const v = getNCMFullVersion();
+		return v.substring(0, v.lastIndexOf("."));
+	}
+
+	export function getNCMBuild(): number {
+		const v = getNCMFullVersion();
+		return parseInt(v.substring(v.lastIndexOf(".") + 1));
+	}
+
 	export function searchApiFunction(
-		name: string,
+		nameOrFinder: string | ((func: Function) => boolean),
 		// rome-ignore lint/suspicious/noExplicitAny: 根对象可以是任意的
 		root: any = window,
 		currentPath = ["window"],
 		// rome-ignore lint/suspicious/noExplicitAny: 已检索对象可以是任意的
 		prevObjects: any[] = [],
-		result: [Function, string[]][] = [],
-	): [Function, string[]][] {
+		// rome-ignore lint/suspicious/noExplicitAny: 返回该函数的携带对象，方便做 bind 绑定
+		result: [Function, any, string[]][] = [],
+		// rome-ignore lint/suspicious/noExplicitAny: 返回该函数的携带对象，方便做 bind 绑定
+	): [Function, any, string[]][] {
 		if (root === undefined || root === null) {
 			return [];
 		}
 		prevObjects.push(root);
-		if (typeof root[name] === "function") {
-			result.push([root[name], [...currentPath]]);
+		if (typeof nameOrFinder === "string") {
+			if (typeof root[nameOrFinder] === "function") {
+				result.push([root[nameOrFinder], root, [...currentPath]]);
+			}
+		} else {
+			for (const key of Object.keys(root)) {
+				if (
+					Object.hasOwnProperty.call(root, key) &&
+					typeof root[key] === "function" &&
+					nameOrFinder(root[key])
+				) {
+					result.push([root[key], root, [...currentPath]]);
+				}
+			}
 		}
-		if (currentPath.length < 10)
+		if (currentPath.length < 10) {
 			for (const key of Object.keys(root)) {
 				if (
 					Object.hasOwnProperty.call(root, key) &&
 					typeof root[key] === "object" &&
-					!prevObjects.includes(root[key])
+					!prevObjects.includes(root[key]) &&
+					!(
+						currentPath.length === 1 &&
+						prevObjects[prevObjects.length - 1] === window &&
+						key === "betterncm"
+					) // 咱们自己的函数就不需要检测了
 				) {
 					currentPath.push(key);
-					searchApiFunction(name, root[key], currentPath, prevObjects, result);
+					searchApiFunction(
+						nameOrFinder,
+						root[key],
+						currentPath,
+						prevObjects,
+						result,
+					);
 					currentPath.pop();
 				}
 			}
+		}
+		prevObjects.pop();
+		return result;
+	}
+
+	export function searchForData(
+		// rome-ignore lint/suspicious/noExplicitAny: 会检测任意值
+		finder: (func: any) => boolean,
+		// rome-ignore lint/suspicious/noExplicitAny: 根对象可以是任意的
+		root: any = window,
+		currentPath = ["window"],
+		// rome-ignore lint/suspicious/noExplicitAny: 已检索对象可以是任意的
+		prevObjects: any[] = [],
+		// rome-ignore lint/suspicious/noExplicitAny: 返回该函数的携带对象，方便做 bind 绑定
+		result: [any, any, string[]][] = [],
+		// rome-ignore lint/suspicious/noExplicitAny: 返回该函数的携带对象，方便做 bind 绑定
+	): [any, any, string[]][] {
+		if (root === undefined || root === null) {
+			return [];
+		}
+		prevObjects.push(root);
+		if (currentPath.length < 10) {
+			for (const key of Object.keys(root)) {
+				if (
+					Object.hasOwnProperty.call(root, key) &&
+					!prevObjects.includes(root[key]) &&
+					!(
+						currentPath.length === 1 &&
+						prevObjects[prevObjects.length - 1] === window &&
+						key === "betterncm"
+					) // 咱们自己的函数就不需要检测了
+				) {
+					if (typeof root[key] === "object") {
+						currentPath.push(key);
+						searchApiFunction(
+							finder,
+							root[key],
+							currentPath,
+							prevObjects,
+							result,
+						);
+						currentPath.pop();
+					} else if (finder(root[key])) {
+						result.push([root[key], root, [...currentPath]]);
+					}
+				}
+			}
+		}
 		prevObjects.pop();
 		return result;
 	}
 
 	export function findApiFunction(
-		name: string,
+		nameOrFinder: string | ((func: Function) => boolean),
 		// rome-ignore lint/suspicious/noExplicitAny: 根对象可以是任意的
 		root: any = window,
 		currentPath = ["window"],
-	): [Function, string[]] | null {
-		const searchResult = searchApiFunction(name, root, currentPath);
-		if (searchResult.length > 0) {
-			return searchResult[0];
-		} else {
+		// rome-ignore lint/suspicious/noExplicitAny: 已检索对象可以是任意的
+		prevObjects: any[] = [],
+		// rome-ignore lint/suspicious/noExplicitAny: 返回该函数的携带对象，方便做 bind 绑定
+	): [Function, any, string[]] | null {
+		if (root === undefined || root === null) {
 			return null;
 		}
+		prevObjects.push(root);
+		if (typeof nameOrFinder === "string") {
+			if (typeof root[nameOrFinder] === "function") {
+				return [root[nameOrFinder], root, [...currentPath]];
+			}
+		} else {
+			for (const key of Object.keys(root)) {
+				if (
+					Object.hasOwnProperty.call(root, key) &&
+					typeof root[key] === "function" &&
+					nameOrFinder(root[key])
+				) {
+					return [root[key], root, [...currentPath]];
+				}
+			}
+		}
+		if (currentPath.length < 10) {
+			for (const key of Object.keys(root)) {
+				if (
+					Object.hasOwnProperty.call(root, key) &&
+					typeof root[key] === "object" &&
+					!prevObjects.includes(root[key]) &&
+					!(
+						currentPath.length === 1 &&
+						prevObjects[prevObjects.length - 1] === window &&
+						key === "betterncm"
+					) // 咱们自己的函数就不需要检测了
+				) {
+					currentPath.push(key);
+					const result = findApiFunction(
+						nameOrFinder,
+						root[key],
+						currentPath,
+						prevObjects,
+					);
+					currentPath.pop();
+					if (result) {
+						return result;
+					}
+				}
+			}
+		}
+		prevObjects.pop();
+		return null;
 	}
 
 	// rome-ignore lint/suspicious/noExplicitAny: 这个是网易云自己暴露的对象，里头有很多可以利用的函数
@@ -286,8 +437,11 @@ export namespace ncm {
 	 */
 	export function getPlayingSong() {
 		if (cachedGetPlayingFunc === null) {
-			cachedGetPlayingFunc = findApiFunction("getPlaying")?.[0] || null;
-			return null;
+			const findResult = findApiFunction("getPlaying");
+			if (findResult) {
+				const [getPlaying, getPlayingRoot] = findResult;
+				cachedGetPlayingFunc = getPlaying.bind(getPlayingRoot);
+			}
 		}
 		if (cachedGetPlayingFunc === null) {
 			return null;
@@ -354,6 +508,33 @@ namespace utils {
 	export function delay(ms: number) {
 		return new Promise((rs) => setTimeout(rs, ms));
 	}
+
+	// rome-ignore lint/suspicious/noExplicitAny: 属性随意
+	export function dom(tag: string, settings: any, ...children: HTMLElement[]) {
+		let tmp = document.createElement(tag);
+		if (settings.class) {
+			for (let cl of settings.class) {
+				tmp.classList.add(cl);
+			}
+			settings.class = undefined;
+		}
+
+		if (settings.style) {
+			for (let cl in settings.style) {
+				tmp.style[cl] = settings.style[cl];
+			}
+			settings.style = undefined;
+		}
+
+		for (let v in settings) {
+			tmp[v] = settings[v];
+		}
+
+		for (let child of children) {
+			if (child) tmp.appendChild(child);
+		}
+		return tmp;
+	}
 }
 
 namespace tests {
@@ -368,7 +549,7 @@ namespace tests {
 	}
 }
 
-declare const loadingMask: HTMLDivElement
+declare const loadingMask: HTMLDivElement;
 const BetterNCM = {
 	fs,
 	app,
@@ -376,17 +557,21 @@ const BetterNCM = {
 	utils,
 	tests,
 	reload() {
-        const anim = loadingMask.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 300, fill: 'forwards', easing: "cubic-bezier(0.42, 0, 0.58, 1)" });
-        anim.commitStyles();
+		const anim = loadingMask.animate([{ opacity: 0 }, { opacity: 1 }], {
+			duration: 300,
+			fill: "forwards",
+			easing: "cubic-bezier(0.42, 0, 0.58, 1)",
+		});
+		anim.commitStyles();
 
-        anim.addEventListener("finish", _ => {
-            document.location.reload();
-        });
-	}
+		anim.addEventListener("finish", (_) => {
+			document.location.reload();
+		});
+	},
 };
 
-location.reload = BetterNCM.reload.bind(this)
+window.dom = utils.dom;
 
 declare var betterncm: typeof BetterNCM;
 betterncm = BetterNCM;
-export default BetterNCM
+export default BetterNCM;

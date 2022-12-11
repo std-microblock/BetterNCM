@@ -1,8 +1,7 @@
-/** 一个由 C++ 侧设置的访问密钥，以免出现非法调用 */
-declare const BETTERNCM_API_KEY: string;
-
-const BETTERNCM_API_PATH = "http://localhost:3248/api";
-const BETTERNCM_FILES_PATH = "http://localhost:3248/local";
+export const BETTERNCM_API_PATH = "http://localhost:3248/api";
+export const BETTERNCM_FILES_PATH = "http://localhost:3248/local";
+window.BETTERNCM_API_PATH = BETTERNCM_API_PATH;
+window.BETTERNCM_FILES_PATH = BETTERNCM_FILES_PATH;
 export const ncmFetch = (relPath: string, option?: RequestInit) => {
 	if (option) {
 		option.headers = option.headers || {};
@@ -10,7 +9,7 @@ export const ncmFetch = (relPath: string, option?: RequestInit) => {
 		return fetch(BETTERNCM_API_PATH + relPath, option);
 	} else {
 		return fetch(BETTERNCM_API_PATH + relPath, {
-			headers: { BETTERNCM_API_PATH },
+			headers: { BETTERNCM_API_KEY },
 		});
 	}
 };

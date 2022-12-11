@@ -1,5 +1,7 @@
-import betterncm from "./betterncm-api";
+import BetterNCM from "./betterncm-api";
 import ShadowRealm from "shadowrealm-api";
+import { initPluginManager, onPluginLoaded } from "./plugin-manager";
+import { ncmFetch } from "./betterncm-api/base";
 
 export interface InjectFile {
 	file: string;
@@ -35,6 +37,10 @@ export interface PluginManifest {
 }
 
 export class NCMPlugin extends EventTarget {
+	pluginPath: string = "";
+	injects: NCMInjectPlugin[] = [];
+	manifest: PluginManifest;
+	finished: boolean = false;
 	constructor(manifest: PluginManifest, pluginPath: string) {
 		super();
 		this.manifest = manifest;
@@ -50,10 +56,36 @@ export class NCMPlugin extends EventTarget {
 			});
 		});
 	}
-	pluginPath: string = "";
-	injects: NCMInjectPlugin[];
-	manifest: PluginManifest;
-	finished: boolean;
+}
+
+namespace configToolBox {
+	export function makeBtn(
+		text: string,
+		onClick: () => void,
+		smaller = false,
+		args = {},
+	) {
+		return dom("a", {
+			class: ["u-ibtn5", smaller && "u-ibtnsz8"],
+			style: { margin: ".2em .5em" },
+			innerText: text,
+			onclick: onClick,
+			...args,
+		});
+	}
+
+	export function makeCheckbox(args = {}) {
+		return dom("input", { type: "checkbox", ...args });
+	}
+
+	export function makeInput(value, args = {}) {
+		return dom("input", {
+			value,
+			style: { margin: ".2em .5em", borderRadius: ".5em" },
+			class: ["u-txt", "sc-flag"],
+			...args,
+		});
+	}
 }
 
 export class NCMInjectPlugin extends EventTarget {
@@ -61,6 +93,7 @@ export class NCMInjectPlugin extends EventTarget {
 	manifest: PluginManifest;
 	configViewElement: HTMLElement | null = null;
 	mainPlugin: NCMPlugin;
+	finished: boolean = false;
 	constructor(mainPlugin: NCMPlugin) {
 		super();
 		this.mainPlugin = mainPlugin;
@@ -102,6 +135,10 @@ export class NCMInjectPlugin extends EventTarget {
 		localStorage[`config.betterncm.${this.manifest.name}`] =
 			JSON.stringify(config);
 	}
+	_getConfigElement() {
+		this.dispatchEvent(new CustomEvent("config", { detail: configToolBox }));
+		return this.configViewElement;
+	}
 }
 
 export let loadedPlugins: typeof window.loadedPlugins = {};
@@ -116,17 +153,17 @@ async function loadPlugins() {
 
 	async function loadPlugin(pluginPath: string, devMode = false) {
 		let manifest = JSON.parse(
-			await betterncm.fs.readFileText(`${pluginPath}/manifest.json`),
+			await BetterNCM.fs.readFileText(`${pluginPath}/manifest.json`),
 		);
 		const mainPlugin = new NCMPlugin(manifest, pluginPath);
 		loadedPlugins[manifest.name] = mainPlugin;
 
 		async function loadInject(filePath: string) {
-			const getFileCode = betterncm.fs.readFileText.bind(null, filePath);
+			const getFileCode = BetterNCM.fs.readFileText.bind(null, filePath);
 			let code = await getFileCode();
 			if (devMode) {
 				setInterval(async () => {
-					if (code !== (await getFileCode())) betterncm.reload();
+					if (code !== (await getFileCode())) BetterNCM.reload();
 				}, 500);
 			}
 
@@ -141,6 +178,7 @@ async function loadPlugins() {
 						detail: plugin,
 					}),
 				);
+				plugin.finished = true;
 				loadedPlugins[manifest.name].injects.push(plugin);
 			}
 		}
@@ -157,6 +195,7 @@ async function loadPlugins() {
 				await loadInject(`${pluginPath}/${inject.file}`);
 			}
 		}
+		mainPlugin.finished = true;
 	}
 
 	let loadingPromises: Promise<void>[] = [];
@@ -164,7 +203,7 @@ async function loadPlugins() {
 	window.loadedPlugins = loadedPlugins;
 	window.loadFailedErrors = loadFailedErrors;
 
-	let pluginPaths = await betterncm.fs.readDir("./plugins_runtime");
+	let pluginPaths = await BetterNCM.fs.readDir("./plugins_runtime");
 	for (const path of pluginPaths) {
 		loadingPromises.push(
 			loadPlugin(path)
@@ -175,8 +214,8 @@ async function loadPlugins() {
 		);
 	}
 
-	if (await betterncm.fs.exists("./plugins_dev")) {
-		let devPluginPaths = await betterncm.fs.readDir("./plugins_dev");
+	if (await BetterNCM.fs.exists("./plugins_dev")) {
+		let devPluginPaths = await BetterNCM.fs.readDir("./plugins_dev");
 		for (const path of devPluginPaths) {
 			loadingPromises.push(
 				loadPlugin(path, true)
@@ -201,33 +240,29 @@ async function loadPlugins() {
 
 declare const loadingMask: HTMLDivElement;
 window.addEventListener("DOMContentLoaded", async () => {
-	betterncm.reload = () => {
-		const anim = loadingMask.animate([{ opacity: 0 }, { opacity: 1 }], {
-			duration: 300,
-			fill: "forwards",
-			easing: "cubic-bezier(0.42,0,0.58,1)",
-		});
-		anim.commitStyles();
-
-		anim.addEventListener("finish", (_) => {
-			document.location.reload();
-		});
-	};
+	// 加载管理器样式表
+	const styleContent = await (await ncmFetch("/internal/framework.css")).text();
+	const styleEl = document.createElement("style");
+	styleEl.innerHTML = styleContent;
+	document.head.appendChild(styleEl);
 
 	await Promise.all([
 		loadPlugins(),
-		betterncm.utils.waitForElement("nav", 400),
+		BetterNCM.utils.waitForElement("nav", 400),
+		initPluginManager(),
 	]);
 
-	loadingMask
-		.animate([{ opacity: 1 }, { opacity: 0, display: "none" }], {
-			duration: 300,
-			fill: "forwards",
-			easing: "cubic-bezier(0.42,0,0.58,1)",
-		})
-		.commitStyles();
+	onPluginLoaded(loadedPlugins); // 更新插件管理器那边的插件列表
 
-	if (!("PluginMarket" in loadedPlugins)) {
+	if ("PluginMarket" in loadedPlugins) {
+		loadingMask
+			.animate([{ opacity: 1 }, { opacity: 0, display: "none" }], {
+				duration: 300,
+				fill: "forwards",
+				easing: "cubic-bezier(0.42,0,0.58,1)",
+			})
+			.commitStyles();
+	} else {
 		let attempts = parseInt(
 			localStorage["cc.microblock.loader.reloadPluginAttempts"] || "0",
 		);

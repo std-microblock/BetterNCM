@@ -184,7 +184,10 @@ copy "$(TargetDir)BetterNCMII.dll" "C:\Program Files (x86)\Netease\CloudMusic\ms
   </ItemGroup>
   <ItemGroup>
     <None Include="resource\PluginMarket.plugin" />
+    <None Include="resource\rcdata2.bin" />
     <None Include="src\api.js" />
+    <None Include="src\framework.css" />
+    <None Include="src\framework.js" />
     <None Include="src\loader.js" />
     <None Include="src\plugin_manager.js" />
   </ItemGroup>

@@ -25,21 +25,21 @@ LANGUAGE LANG_CHINESE, SUBLANG_CHINESE_SIMPLIFIED
 // TEXTINCLUDE
 //
 
-1 TEXTINCLUDE
+1 TEXTINCLUDE 
 BEGIN
-"resource.h\0"
+    "resource.h\0"
 END
 
-2 TEXTINCLUDE
+2 TEXTINCLUDE 
 BEGIN
-"#include ""winres.h""\r\n"
-"\0"
+    "#include ""winres.h""\r\n"
+    "\0"
 END
 
-3 TEXTINCLUDE
+3 TEXTINCLUDE 
 BEGIN
-"\r\n"
-"\0"
+    "\r\n"
+    "\0"
 END
 
 #endif    // APSTUDIO_INVOKED
@@ -52,9 +52,10 @@ END
 
 IDR_RCDATA1             RCDATA                  "../resource/PluginMarket.plugin"
 
-loader.js               RCDATA                  "loader.js"
-plugin_manager.js       RCDATA                  "plugin_manager.js"
-api.js                  RCDATA                  "api.js"
+FRAMEWORK.JS            RCDATA                  "framework.js"
+
+FRAMEWORK.CSS           RCDATA                  "framework.css"
+
 #endif    // 中文(简体，中国) resources
 /////////////////////////////////////////////////////////////////////////////
 
