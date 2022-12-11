@@ -26,50 +26,30 @@ export async function initPluginManager() {
 	);
 	ReactDOM.render(<PluginManager />, settingsView);
 	settingsView.classList.add("g-mn");
-
-	const hideSettingsView = () => {
-		document
-			.querySelectorAll(".g-mn")
-			.forEach((v) => ((v as HTMLAnchorElement).style.display = ""));
-		settingsView.style.display = "none";
-	};
-
-	const showSettingsView = () => {
-		document
-			.querySelectorAll(".g-mn")
-			.forEach((v) => ((v as HTMLAnchorElement).style.display = "none"));
-		showSettingsView();
-	};
-
-	hideSettingsView();
-	const updateBackgroundColor = () => {
-		const backgroundColor = window
-			.getComputedStyle(document.body, null)
-			.getPropertyValue("background-color");
-		settingsView.style.backgroundColor = backgroundColor;
-	};
-	window.addEventListener("load", updateBackgroundColor);
+	settingsView.style.display = "none";
 
 	settingsButton.addEventListener("click", () => {
-		hideSettingsView();
+		settingsView.style.display = "none";
+		mainPageView.style.display = "";
 	});
 	betterNCMSettingsButton.addEventListener("click", () => {
 		if (settingsView.style.display === "") {
-			hideSettingsView();
+			settingsView.style.display = "none";
+			mainPageView.style.display = "";
 		} else {
-			updateBackgroundColor();
-
-			showSettingsView();
+			settingsView.style.display = "";
+			mainPageView.style.display = "none";
 		}
 	});
 
 	// 如果外部页面变更（点击了其它按钮跳转）则关闭设置页面
 	window.addEventListener("hashchange", () => {
-		hideSettingsView();
+		settingsView.style.display = "none";
+		mainPageView.style.display = "";
 	});
 	// new MutationObserver((rs) => {
 	// 	console.log(rs);
-	// 	hideSettingsView();
+	// 	settingsView.style.display = "none";
 	// }).observe(mainPageView, {
 	// 	attributes: true,
 	// });

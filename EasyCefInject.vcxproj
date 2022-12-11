@@ -196,11 +196,8 @@ npm run build</Command>
   <ItemGroup>
     <None Include="resource\PluginMarket.plugin" />
     <None Include="resource\rcdata2.bin" />
-    <None Include="src\api.js" />
     <None Include="src\framework.css" />
     <None Include="src\framework.js" />
-    <None Include="src\loader.js" />
-    <None Include="src\plugin_manager.js" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="src\resource.rc" />

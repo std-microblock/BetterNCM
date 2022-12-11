@@ -65,9 +65,6 @@
     <None Include="src\framework.css">
       <Filter>js</Filter>
     </None>
-    <None Include="src\api.js" />
-    <None Include="src\loader.js" />
-    <None Include="src\plugin_manager.js" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="src\resource.rc">
