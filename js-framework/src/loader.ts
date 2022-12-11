@@ -56,6 +56,14 @@ export class NCMPlugin extends EventTarget {
 			});
 		});
 	}
+	haveConfigElement() {
+		return (
+			this.injects.reduce<HTMLElement | null>(
+				(previous, plugin) => previous ?? plugin._getConfigElement(),
+				null,
+			) !== null
+		);
+	}
 }
 
 namespace configToolBox {

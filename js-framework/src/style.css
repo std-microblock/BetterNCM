@@ -64,6 +64,15 @@
     width: 256px;
 }
 
+.plugin-btn-disabled {
+    border-radius: 8px;
+    padding: 8px;
+    text-overflow: ellipsis;
+    max-lines: 1;
+    margin-bottom: 8px;
+    opacity: 0.7;
+}
+
 .plugin-btn {
     border-radius: 8px;
     padding: 8px;
@@ -74,7 +83,7 @@
 
 .plugin-btn:hover,
 .plugin-btn.selected {
-    background-color: #8885;
+    background-color: rgba(136, 136, 136, 0.116);
 }
 
 .bncm-mgr-header>*:nth-child(2)>h1 {

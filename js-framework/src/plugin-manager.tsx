@@ -25,7 +25,9 @@ export async function initPluginManager() {
 		settingsButton.nextElementSibling,
 	);
 	ReactDOM.render(<PluginManager />, settingsView);
-	settingsView.setAttribute("style",`
+	settingsView.setAttribute(
+		"style",
+		`
     -webkit-transform: translateY(-5px);
     margin: 10px;
     border-radius: 10px;
@@ -38,10 +40,10 @@ export async function initPluginManager() {
     top: 60px;
     bottom: 73px;
     position: absolute;
-    right: 0;`);
+    right: 0;`,
+	);
 
 	settingsView.style.display = "none";
-
 
 	settingsButton.addEventListener("click", () => {
 		settingsView.style.display = "none";
@@ -231,7 +233,6 @@ const PluginManager: React.FC = () => {
 	return (
 		<div className="bncm-mgr">
 			<div>
-
 				<section className="bncm-mgr-header" ref={headerRef}>
 					<img
 						src="https://s1.ax1x.com/2022/08/11/vGlJN8.png"
@@ -242,8 +243,8 @@ const PluginManager: React.FC = () => {
 					/>
 					<div>
 						<h1>
-							BetterNCM <span style={{fontSize: 'smaller', opacity: '0.8'}}>0.2.5</span>
-
+							BetterNCM{" "}
+							<span style={{ fontSize: "smaller", opacity: "0.8" }}>0.2.5</span>
 						</h1>
 						<div className="bncm-mgr-btns">
 							<Button
@@ -335,24 +336,42 @@ const PluginManager: React.FC = () => {
 					>
 						<div>
 							<div>
-								{loadedPluginsList.map((key) => {
-									const loadPlugin = loadedPlugins[key];
-									return (
-										// rome-ignore lint/a11y/useKeyWithClickEvents: <explanation>
-										<div
-											className={
-												selectedPlugin?.manifest.name === key
-													? "plugin-btn selected"
-													: "plugin-btn"
-											}
-											onClick={() => {
-												setSelectedPlugin(loadPlugin);
-											}}
-										>
-											{loadPlugin.manifest.name}
-										</div>
-									);
-								})}
+								{loadedPluginsList
+									.sort((key1, key2) => {
+										const getSortValue = (key) => {
+											const loadPlugin = loadedPlugins[key];
+											let value = 0;
+											value += loadPlugin.haveConfigElement() ? 1 : 0;
+
+											// Put pluginmarket on top
+											if (loadPlugin.manifest.name.startsWith("PluginMarket"))
+												value += 100000;
+
+											return value;
+										};
+										return getSortValue(key2)-getSortValue(key1);
+									})
+									.map((key) => {
+										const loadPlugin = loadedPlugins[key];
+										const haveConfig = loadPlugin.haveConfigElement();
+										return (
+											// rome-ignore lint/a11y/useKeyWithClickEvents: <explanation>
+											<div
+												className={
+													haveConfig
+														? selectedPlugin?.manifest.name === key
+															? "plugin-btn selected"
+															: "plugin-btn"
+														: "plugin-btn-disabled"
+												}
+												onClick={() => {
+													if (haveConfig) setSelectedPlugin(loadPlugin);
+												}}
+											>
+												{loadPlugin.manifest.name}
+											</div>
+										);
+									})}
 							</div>
 						</div>
 					</div>
@@ -363,6 +382,7 @@ const PluginManager: React.FC = () => {
 									overflowY: "scroll",
 									overflowX: "hidden",
 									padding: "8px",
+									margin: "8px",
 								}}
 								ref={pluginConfigRef}
 							/>
