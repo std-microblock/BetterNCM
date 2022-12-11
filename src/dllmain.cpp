@@ -165,7 +165,7 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 			AllocConsole();
 			freopen("CONOUT$", "w", stdout);
 
-#ifndef DEBUG
+#ifndef _DEBUG
 			ShowWindow(GetConsoleWindow(), SW_HIDE);
 #endif
 

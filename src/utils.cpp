@@ -56,12 +56,12 @@ string getEnvironment(const string& key) {
 
 string datapath = "\\betterncm";
 
-string getNCMPath() {
+wstring getNCMPath() {
 	wchar_t buffer[MAX_PATH];
 	GetModuleFileNameW(NULL, buffer, MAX_PATH);
 	std::wstring::size_type pos = std::wstring(buffer).find_last_of(L"\\/");
 
-	return ws2s(std::wstring(buffer).substr(0, pos));
+	return std::wstring(buffer).substr(0, pos);
 }
 
 string get_command_line() {
@@ -270,13 +270,13 @@ semver::version getNCMExecutableVersion() {
 	DWORD  verHandle = 0;
 	UINT   size = 0;
 	LPBYTE lpBuffer = NULL;
-	DWORD  verSize = GetFileVersionInfoSize(s2ws(getNCMPath() + "\\cloudmusic.exe").c_str(), &verHandle);
+	DWORD  verSize = GetFileVersionInfoSize((getNCMPath() + L"\\cloudmusic.exe").c_str(), &verHandle);
 
 	if (verSize != NULL)
 	{
 		LPSTR verData = new char[verSize];
 
-		if (GetFileVersionInfo(s2ws(getNCMPath() + "\\cloudmusic.exe").c_str(), verHandle, verSize, verData))
+		if (GetFileVersionInfo((getNCMPath() + L"\\cloudmusic.exe").c_str(), verHandle, verSize, verData))
 		{
 			if (VerQueryValue(verData, L"\\", (VOID FAR * FAR*) & lpBuffer, &size))
 			{

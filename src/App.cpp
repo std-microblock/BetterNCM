@@ -256,7 +256,7 @@ std::thread *App::create_server(string apiKey)
 
 	svr.Get("/api/app/ncmpath", [&](const httplib::Request& req, httplib::Response& res) {
 		checkApiKey;
-	res.set_content(getNCMPath(), "text/plain");
+	res.set_content(wstring_to_utf_8(getNCMPath()), "text/plain");
 		});
 
 	svr.Get("/api/app/version", [&](const httplib::Request& req, httplib::Response& res) {
