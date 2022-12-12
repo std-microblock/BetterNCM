@@ -56,6 +56,27 @@ section.better-ncm-manager.ncmm-show {
     height: 100%;
 }
 
+.safe-mode-info {
+    overflow: hidden scroll;
+    padding: 30px;
+}
+
+.safe-mode-info>* {
+    margin: 1rem 0;
+    font-size: small;
+}
+
+.safe-mode-info>h1 {
+    font-size: medium;
+    font-weight: bold;
+}
+
+.safe-mode-info>code {
+    font-family: 'Courier New', Courier, monospace;
+    user-select: text;
+    cursor: text;
+}
+
 .bncm-mgr-header {
     padding: 30px !important;
     display: flex;

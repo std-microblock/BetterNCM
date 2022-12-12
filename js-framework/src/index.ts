@@ -1,3 +1,3 @@
 import "./betterncm-api";
 import "./loader";
-import "./style.css";
+import "./styles/index.css";

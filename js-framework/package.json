@@ -16,8 +16,7 @@
     "@types/react-dom": "^18.0.9",
     "esbuild": "^0.16.4",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "shadowrealm-api": "^0.8.2"
+    "react-dom": "^18.2.0"
   },
   "dependencies": {
     "typescript": "^4.9.4"

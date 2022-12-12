@@ -1,159 +1,63 @@
 import BetterNCM from "./betterncm-api";
-import ShadowRealm from "shadowrealm-api";
 import { initPluginManager, onPluginLoaded } from "./plugin-manager";
 import { ncmFetch } from "./betterncm-api/base";
-
-export interface InjectFile {
-	file: string;
-}
-
-export interface HijackOperation {
-	type: string;
-}
-
-export interface HijackReplaceOrRegexOperation extends HijackOperation {
-	type: "replace" | "regex";
-	from: string;
-	to: string;
-}
-
-export interface HijackAppendOrPrependOperation extends HijackOperation {
-	type: "append" | "prepend";
-	code: string;
-}
-
-export interface PluginManifest {
-	manifest_version: number;
-	name: string;
-	version: string;
-	injects: { [pageType: string]: InjectFile };
-	hijacks: {
-		[versionRange: string]: {
-			[matchUrlPath: string]:
-				| HijackReplaceOrRegexOperation
-				| HijackAppendOrPrependOperation;
-		};
-	};
-}
-
-export class NCMPlugin extends EventTarget {
-	pluginPath: string = "";
-	injects: NCMInjectPlugin[] = [];
-	manifest: PluginManifest;
-	finished: boolean = false;
-	constructor(manifest: PluginManifest, pluginPath: string) {
-		super();
-		this.manifest = manifest;
-		this.pluginPath = pluginPath;
-		this.addEventListener("load", (evt: CustomEvent) => {
-			this.injects.forEach((inject) => {
-				inject.dispatchEvent(evt);
-			});
-		});
-		this.addEventListener("allpluginsloaded", (evt: CustomEvent) => {
-			this.injects.forEach((inject) => {
-				inject.dispatchEvent(evt);
-			});
-		});
-	}
-	haveConfigElement() {
-		return (
-			this.injects.reduce<HTMLElement | null>(
-				(previous, plugin) => previous ?? plugin._getConfigElement(),
-				null,
-			) !== null
-		);
-	}
-}
-
-namespace configToolBox {
-	export function makeBtn(
-		text: string,
-		onClick: () => void,
-		smaller = false,
-		args = {},
-	) {
-		return dom("a", {
-			class: ["u-ibtn5", smaller && "u-ibtnsz8"],
-			style: { margin: ".2em .5em" },
-			innerText: text,
-			onclick: onClick,
-			...args,
-		});
-	}
-
-	export function makeCheckbox(args = {}) {
-		return dom("input", { type: "checkbox", ...args });
-	}
-
-	export function makeInput(value, args = {}) {
-		return dom("input", {
-			value,
-			style: { margin: ".2em .5em", borderRadius: ".5em" },
-			class: ["u-txt", "sc-flag"],
-			...args,
-		});
-	}
-}
-
-export class NCMInjectPlugin extends EventTarget {
-	pluginPath: string = "";
-	manifest: PluginManifest;
-	configViewElement: HTMLElement | null = null;
-	mainPlugin: NCMPlugin;
-	finished: boolean = false;
-	constructor(mainPlugin: NCMPlugin) {
-		super();
-		this.mainPlugin = mainPlugin;
-		this.manifest = mainPlugin.manifest;
-		this.pluginPath = mainPlugin.pluginPath;
-	}
-
-	onLoad(fn: (selfPlugin: NCMPlugin, evt: CustomEvent) => void) {
-		this.addEventListener("load", (evt: CustomEvent) => {
-			fn.call(this, evt.detail, evt);
-		});
-	}
-	// rome-ignore lint/suspicious/noExplicitAny: TODO: 工具类参数
-	onConfig(fn: (toolsBox: any) => HTMLElement) {
-		this.addEventListener("config", (evt: CustomEvent) => {
-			this.configViewElement = fn.call(this, evt.detail);
-			console.log(this.configViewElement);
-		});
-	}
-	onAllPluginsLoaded(
-		fn: (loadedPlugins: typeof window.loadedPlugins, evt: CustomEvent) => void,
-	) {
-		this.addEventListener("allpluginsloaded", function (evt: CustomEvent) {
-			fn.call(this, evt.detail, evt);
-		});
-	}
-	getConfig<T>(key: string, defaultValue: T): T;
-	getConfig<T>(key: string, defaultValue?: T): T | undefined {
-		const config = JSON.parse(
-			localStorage[`config.betterncm.${this.manifest.name}`] || "{}",
-		);
-		if (config[key] !== undefined) return config[key];
-		return defaultValue;
-	}
-	setConfig<T>(key: string, value: T) {
-		const config = JSON.parse(
-			localStorage[`config.betterncm.${this.manifest.name}`] || "{}",
-		);
-		config[key] = value;
-		localStorage[`config.betterncm.${this.manifest.name}`] =
-			JSON.stringify(config);
-	}
-	_getConfigElement() {
-		if (!this.configViewElement)
-			this.dispatchEvent(new CustomEvent("config", { detail: configToolBox }));
-		return this.configViewElement;
-	}
-}
+import { NCMPlugin, NCMInjectPlugin } from "./plugin";
 
 export let loadedPlugins: typeof window.loadedPlugins = {};
 
+const SAFE_MODE_KEY = "betterncm.safemode";
+const LOAD_ERROR_KEY = "betterncm.loaderror";
+
+/**
+ * 禁用安全模式，将会在下一次重载生效
+ *
+ * 详情请参阅 `enableSafeMode`
+ *
+ * @see {@link enableSafeMode}
+ */
+export function disableSafeMode() {
+	localStorage.removeItem(SAFE_MODE_KEY);
+	localStorage.removeItem(LOAD_ERROR_KEY);
+}
+
+/**
+ * 启用安全模式，将会在下一次重载生效
+ *
+ * 在该模式下，只会加载插件管理器本身，所有插件（包括插件商店）将会被忽略加载
+ *
+ * 同时如果有加载错误的情况的话（即设置了 `LOAD_ERROR_KEY`）则会在插件管理器内显示
+ *
+ * 供用户和插件作者排查加载错误
+ */
+export function enableSafeMode() {
+	localStorage.setItem(SAFE_MODE_KEY, "true");
+}
+
+export class PluginLoadError extends Error {
+	constructor(
+		public readonly pluginPath: string,
+		public readonly rawError: Error,
+		message?: string,
+		options?: ErrorOptions,
+	) {
+		super(message, options);
+	}
+
+	override toString(): string {
+		return `插件 ${this.pluginPath} 加载出错: ${this.rawError}`;
+	}
+}
+
+export const isSafeMode = () => localStorage.getItem(SAFE_MODE_KEY) === "true";
+
+export const getLoadError = () => localStorage.getItem(LOAD_ERROR_KEY) || "";
+
 async function loadPlugins() {
+	if (isSafeMode()) {
+		window.loadedPlugins = loadedPlugins;
+		return;
+	}
+
 	// rome-ignore lint/suspicious/noExplicitAny: AsyncFunction 并不暴露成类，需要手动获取
 	const AsyncFunction = async function () {}.constructor as any;
 	const pageMap = {
@@ -179,15 +83,28 @@ async function loadPlugins() {
 
 			if (filePath.endsWith(".js")) {
 				const plugin = new NCMInjectPlugin(mainPlugin);
-				new AsyncFunction("plugin", code).call(
+				const loadingPromise = new AsyncFunction("plugin", code).call(
 					loadedPlugins[manifest.name],
 					plugin,
 				);
+				await loadingPromise;
 				plugin.dispatchEvent(
 					new CustomEvent("load", {
 						detail: plugin,
 					}),
 				);
+				if (plugin.loadError) {
+					throw new PluginLoadError(
+						filePath,
+						plugin.loadError,
+						`插件脚本 ${filePath} 加载出错: ${
+							plugin.loadError.stack || plugin.loadError
+						}`,
+						{
+							cause: plugin.loadError,
+						},
+					);
+				}
 				plugin.finished = true;
 				loadedPlugins[manifest.name].injects.push(plugin);
 			}
@@ -209,43 +126,46 @@ async function loadPlugins() {
 	}
 
 	const loadingPromises: Promise<void>[] = [];
-	const loadFailedErrors: [string, Error][] = [];
 	window.loadedPlugins = loadedPlugins;
-	window.loadFailedErrors = loadFailedErrors;
 
 	const pluginPaths = await BetterNCM.fs.readDir("./plugins_runtime");
 	for (const path of pluginPaths) {
-		loadingPromises.push(
-			loadPlugin(path)
-				.then(() => {})
-				.catch((e) => {
-					throw Error(`Failed to load plugin ${path}: ${e.toString()}`);
-				}),
-		);
+		loadingPromises.push(loadPlugin(path));
 	}
 
 	if (await BetterNCM.fs.exists("./plugins_dev")) {
 		const devPluginPaths = await BetterNCM.fs.readDir("./plugins_dev");
 		for (const path of devPluginPaths) {
-			loadingPromises.push(
-				loadPlugin(path, true)
-					.then(() => {})
-					.catch((e) => {
-						console.error(`Failed to load dev plugin ${path}: ${e.toString()}`);
-						loadFailedErrors.push([path, e]);
-					}),
-			);
+			loadingPromises.push(loadPlugin(path, true));
 		}
 	}
 
 	await Promise.all(loadingPromises);
 	for (const name in loadedPlugins) {
-		loadedPlugins[name].injects.forEach((v) =>
+		const plugin: NCMPlugin = loadedPlugins[name];
+		plugin.injects.forEach((v) =>
 			v.dispatchEvent(
 				new CustomEvent("allpluginsloaded", { detail: loadedPlugins }),
 			),
 		);
 	}
+}
+
+function onLoadError(e: Error) {
+	const ATTEMPTS_KEY = "cc.microblock.loader.reloadPluginAttempts";
+	const attempts = parseInt(localStorage.getItem(ATTEMPTS_KEY) || "0");
+	const pastError = localStorage.getItem(LOAD_ERROR_KEY) || "";
+	localStorage.setItem(
+		LOAD_ERROR_KEY,
+		`${pastError}第 ${attempts + 1} 次加载发生错误：\n${e.stack || e}\n\n`,
+	);
+	if (attempts < 2) {
+		localStorage.setItem(ATTEMPTS_KEY, String(attempts + 1));
+	} else {
+		enableSafeMode();
+		localStorage.removeItem(ATTEMPTS_KEY);
+	}
+	document.location.reload();
 }
 
 declare const loadingMask: HTMLDivElement;
@@ -256,34 +176,24 @@ window.addEventListener("DOMContentLoaded", async () => {
 	styleEl.innerHTML = styleContent;
 	document.head.appendChild(styleEl);
 
-	await Promise.all([
-		loadPlugins(),
-		BetterNCM.utils.waitForElement("nav", 400),
-		initPluginManager(),
-	]);
+	try {
+		await Promise.all([
+			loadPlugins(),
+			BetterNCM.utils.waitForElement("nav", 400),
+			initPluginManager(),
+		]);
+	} catch (e) {
+		onLoadError(e);
+		return;
+	}
 
 	onPluginLoaded(loadedPlugins); // 更新插件管理器那边的插件列表
 
-	if ("PluginMarket" in loadedPlugins) {
-		loadingMask
-			.animate([{ opacity: 1 }, { opacity: 0, display: "none" }], {
-				duration: 300,
-				fill: "forwards",
-				easing: "cubic-bezier(0.42,0,0.58,1)",
-			})
-			.commitStyles();
-	} else {
-		const attempts = parseInt(
-			localStorage["cc.microblock.loader.reloadPluginAttempts"] || "0",
-		);
-		if (attempts < 3) {
-			localStorage["cc.microblock.loader.reloadPluginAttempts"] = attempts + 1;
-			document.location.reload();
-		} else {
-			localStorage["cc.microblock.loader.reloadPluginAttempts"] = "0";
-			alert(
-				`插件管理器加载失败！已重试 ${attempts} 次仍然加载失败。\n请检查是否有不兼容插件或冲突的插件！`,
-			);
-		}
-	}
+	loadingMask
+		.animate([{ opacity: 1 }, { opacity: 0, display: "none" }], {
+			duration: 300,
+			fill: "forwards",
+			easing: "cubic-bezier(0.42,0,0.58,1)",
+		})
+		.commitStyles();
 });

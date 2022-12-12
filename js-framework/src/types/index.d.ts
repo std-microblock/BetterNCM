@@ -1,5 +1,5 @@
 import { createElement, Fragment } from "react";
-import { NCMPlugin } from "../loader";
+import { NCMPlugin } from "../plugin";
 import BetterNCM from "../betterncm-api";
 
 declare global {
