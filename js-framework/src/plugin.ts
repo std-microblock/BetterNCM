@@ -98,7 +98,7 @@ export class NCMInjectPlugin extends EventTarget {
 	mainPlugin: NCMPlugin;
 	loadError: Error | null = null;
 	finished: boolean = false;
-	constructor(mainPlugin: NCMPlugin) {
+	constructor(mainPlugin: NCMPlugin, public readonly filePath: string) {
 		super();
 		this.mainPlugin = mainPlugin;
 		this.manifest = mainPlugin.manifest;

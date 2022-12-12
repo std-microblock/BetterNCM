@@ -82,7 +82,7 @@ async function loadPlugins() {
 			}
 
 			if (filePath.endsWith(".js")) {
-				const plugin = new NCMInjectPlugin(mainPlugin);
+				const plugin = new NCMInjectPlugin(mainPlugin, filePath);
 				const loadingPromise = new AsyncFunction("plugin", code).call(
 					loadedPlugins[manifest.name],
 					plugin,
@@ -143,11 +143,23 @@ async function loadPlugins() {
 	await Promise.all(loadingPromises);
 	for (const name in loadedPlugins) {
 		const plugin: NCMPlugin = loadedPlugins[name];
-		plugin.injects.forEach((v) =>
-			v.dispatchEvent(
+		plugin.injects.forEach((inject) => {
+			inject.dispatchEvent(
 				new CustomEvent("allpluginsloaded", { detail: loadedPlugins }),
-			),
-		);
+			);
+			if (inject.loadError) {
+				throw new PluginLoadError(
+					inject.filePath,
+					inject.loadError,
+					`插件脚本 ${inject.filePath} 加载出错: ${
+						inject.loadError.stack || inject.loadError
+					}`,
+					{
+						cause: inject.loadError,
+					},
+				);
+			}
+		});
 	}
 }
 
