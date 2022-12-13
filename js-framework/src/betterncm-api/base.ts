@@ -5,7 +5,7 @@ window.BETTERNCM_FILES_PATH = BETTERNCM_FILES_PATH;
 export const ncmFetch = (
 	relPath: string,
 	option?: RequestInit,
-	withApiKey: boolean = false,
+	withApiKey: boolean = true,
 ) => {
 	if (option) {
 		option.headers = option.headers ?? {};
