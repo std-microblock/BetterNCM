@@ -15,7 +15,8 @@ const LOAD_ERROR_KEY = "betterncm.loaderror";
  *
  * @see {@link enableSafeMode}
  */
-export function disableSafeMode() {
+export async function disableSafeMode() {
+	await BetterNCM.app.writeConfig("cc.microblock.betterncm.cpp_side_inject_feature_disabled","false");
 	localStorage.removeItem(SAFE_MODE_KEY);
 	localStorage.removeItem(LOAD_ERROR_KEY);
 }
@@ -29,7 +30,8 @@ export function disableSafeMode() {
  *
  * 供用户和插件作者排查加载错误
  */
-export function enableSafeMode() {
+export async function enableSafeMode() {
+	await BetterNCM.app.writeConfig("cc.microblock.betterncm.cpp_side_inject_feature_disabled","true");
 	localStorage.setItem(SAFE_MODE_KEY, "true");
 }
 
@@ -163,7 +165,7 @@ async function loadPlugins() {
 	}
 }
 
-function onLoadError(e: Error) {
+async function onLoadError(e: Error) {
 	const ATTEMPTS_KEY = "cc.microblock.loader.reloadPluginAttempts";
 	const attempts = parseInt(localStorage.getItem(ATTEMPTS_KEY) || "0");
 	const pastError = localStorage.getItem(LOAD_ERROR_KEY) || "";
@@ -174,7 +176,7 @@ function onLoadError(e: Error) {
 	if (attempts < 2) {
 		localStorage.setItem(ATTEMPTS_KEY, String(attempts + 1));
 	} else {
-		enableSafeMode();
+		await enableSafeMode();
 		localStorage.removeItem(ATTEMPTS_KEY);
 	}
 	document.location.reload();

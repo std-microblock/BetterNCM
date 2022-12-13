@@ -125,7 +125,7 @@ export const HeaderComponent: React.FC = () => {
 					</Button>
 					<Button
 						onClick={async () => {
-							disableSafeMode();
+							await disableSafeMode();
 							await BetterNCM.app.reloadPlugins();
 							BetterNCM.reload();
 						}}
