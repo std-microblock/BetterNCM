@@ -1,3 +1,5 @@
+import BetterNCM from ".";
+
 function initNCMReact() {
 	if ("React" in window) {
 		if ("createElement" in React && "Fragment" in React) {
@@ -9,8 +11,4 @@ function initNCMReact() {
 	return "h" in window && "f" in window;
 }
 
-const reactHookTimer = setInterval(() => {
-	if (initNCMReact()) {
-		clearInterval(reactHookTimer);
-	}
-}, 100);
+BetterNCM.utils.waitForFunction(initNCMReact, 100);
