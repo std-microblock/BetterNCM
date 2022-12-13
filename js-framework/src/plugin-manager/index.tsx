@@ -132,7 +132,11 @@ const PluginManager: React.FC = () => {
 	return (
 		<div className="bncm-mgr">
 			<div>
-				<HeaderComponent />
+				<HeaderComponent
+					onRequestOpenStartupWarnings={() => {
+						setShowStartupWarnings(!showStartupWarnings);
+					}}
+				/>
 				{safeMode ? (
 					<SafeModeInfo />
 				) : showStartupWarnings ? (

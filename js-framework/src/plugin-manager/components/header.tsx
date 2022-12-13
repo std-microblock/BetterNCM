@@ -14,7 +14,9 @@ interface OnlineVersionInfo {
 	versions: ReleaseVersion[];
 }
 
-export const HeaderComponent: React.FC = () => {
+export const HeaderComponent: React.FC<{
+	onRequestOpenStartupWarnings: Function;
+}> = (props) => {
 	const [updateButtonColor, setUpdateButtonColor] =
 		React.useState("transparent"); // #F004 #0F04
 
@@ -159,6 +161,22 @@ export const HeaderComponent: React.FC = () => {
 				<a
 					className="itm"
 					// rome-ignore lint/a11y/useValidAnchor: <explanation>
+					onClick={() => props.onRequestOpenStartupWarnings()}
+					style={{
+						width: "32px",
+						height: "32px",
+					}}
+				>
+					<svg width="32px" height="32px" viewBox="0 0 24 24">
+						<path
+							fill="currentColor"
+							d="M13,9H11V7H13M13,17H11V11H13M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2Z"
+						/>
+					</svg>
+				</a>
+				<a
+					className="itm"
+					// rome-ignore lint/a11y/useValidAnchor: <explanation>
 					onClick={() =>
 						BetterNCM.ncm.openUrl("https://github.com/MicroCBer/BetterNCM")
 					}
@@ -167,10 +185,10 @@ export const HeaderComponent: React.FC = () => {
 						height: "32px",
 					}}
 				>
-					<svg width="32" height="32" viewBox="0 0 16 16" version="1.1">
+					<svg width="32px" height="32px" viewBox="0 0 24 24">
 						<path
-							fillRule="evenodd"
-							d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"
+							fill="currentColor"
+							d="M12,2A10,10 0 0,0 2,12C2,16.42 4.87,20.17 8.84,21.5C9.34,21.58 9.5,21.27 9.5,21C9.5,20.77 9.5,20.14 9.5,19.31C6.73,19.91 6.14,17.97 6.14,17.97C5.68,16.81 5.03,16.5 5.03,16.5C4.12,15.88 5.1,15.9 5.1,15.9C6.1,15.97 6.63,16.93 6.63,16.93C7.5,18.45 8.97,18 9.54,17.76C9.63,17.11 9.89,16.67 10.17,16.42C7.95,16.17 5.62,15.31 5.62,11.5C5.62,10.39 6,9.5 6.65,8.79C6.55,8.54 6.2,7.5 6.75,6.15C6.75,6.15 7.59,5.88 9.5,7.17C10.29,6.95 11.15,6.84 12,6.84C12.85,6.84 13.71,6.95 14.5,7.17C16.41,5.88 17.25,6.15 17.25,6.15C17.8,7.5 17.45,8.54 17.35,8.79C18,9.5 18.38,10.39 18.38,11.5C18.38,15.32 16.04,16.16 13.81,16.41C14.17,16.72 14.5,17.33 14.5,18.26C14.5,19.6 14.5,20.68 14.5,21C14.5,21.27 14.66,21.59 15.17,21.5C19.14,20.16 22,16.42 22,12A10,10 0 0,0 12,2Z"
 						/>
 					</svg>
 				</a>

@@ -1,7 +1,7 @@
 import { getLoadError } from "../../loader";
 
 export const SafeModeInfo: React.FC = () => {
-	const loadError = React.useMemo(getLoadError, undefined);
+	const loadError = React.useMemo(getLoadError, []);
 
 	return (
 		<div className="v-scroll">
