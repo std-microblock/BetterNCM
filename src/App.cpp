@@ -457,7 +457,6 @@ App::App()
 		if (frame->is_main(frame) && frame->is_valid(frame))
 		{
 			wstring url = frame->get_url(frame)->str;
-			// EasyCEFHooks::executeJavaScript(frame, , "betterncm://betterncm/apikey.js");
 			EasyCEFHooks::executeJavaScript(frame, "const BETTERNCM_API_KEY='" + apiKey + "';" + load_string_resource(L"framework.js"), "betterncm://betterncm/framework.js");
 
 			auto loadStartupScripts = [&](string path)
@@ -480,8 +479,10 @@ App::App()
 					}
 			};
 
-			loadStartupScripts(datapath + "/plugins_runtime");
-			loadStartupScripts(datapath + "/plugins_dev");
+			if (readConfig("cc.microblock.betterncm.cpp_side_inject_feature_disabled", "false") != "true") {
+				loadStartupScripts(datapath + "/plugins_runtime");
+				loadStartupScripts(datapath + "/plugins_dev");
+			}
 		}
 	};
 
@@ -531,7 +532,8 @@ App::App()
 
 	vector<nlohmann::json> satisfied_hijacks = loadHijacking(datapath + "/plugins_runtime");
 
-	EasyCEFHooks::onHijackRequest = [=](string url) -> std::function<wstring(wstring)>
+	if (readConfig("cc.microblock.betterncm.cpp_side_inject_feature_disabled", "false") != "true")
+		EasyCEFHooks::onHijackRequest = [=](string url) -> std::function<wstring(wstring)>
 	{
 		vector<nlohmann::json> this_hijacks;
 
