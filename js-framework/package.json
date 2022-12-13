@@ -6,6 +6,7 @@
   "scripts": {
     "build:dev": "esbuild ./src/index.ts --bundle --sourcemap --external:./node_modules/* --target=chrome91 --outfile=../src/framework.js",
     "build": "esbuild ./src/index.ts --minify --bundle --sourcemap --external:./node_modules/* --target=chrome91 --outfile=../src/framework.js",
+    "gentypes": "tsc --outfile index.d.ts --module none",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -16,9 +17,7 @@
     "@types/react-dom": "^18.0.9",
     "esbuild": "^0.16.4",
     "react": "^18.2.0",
-    "react-dom": "^18.2.0"
-  },
-  "dependencies": {
+    "react-dom": "^18.2.0",
     "typescript": "^4.9.4"
   }
 }

@@ -9,6 +9,8 @@
         "target": "ESNext",
         "lib": ["ESNext", "DOM"],
         "moduleResolution": "node",
+        "declaration": true,
+        "emitDeclarationOnly": true,
         "strictNullChecks": true,
         "jsx": "react",
         "jsxFactory": "h",
