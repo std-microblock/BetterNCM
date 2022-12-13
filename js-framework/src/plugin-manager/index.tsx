@@ -3,8 +3,9 @@ import { isSafeMode, loadedPlugins } from "../loader";
 import { NCMPlugin } from "../plugin";
 import { HeaderComponent } from "./components/header";
 import { SafeModeInfo } from "./components/safe-mode-info";
+import { StartupWarning } from "./components/warning";
 
-const configKey = "config.betterncm.manager.open";
+const OPENED_WARNINGS = "config.betterncm.manager.openedwarnings";
 
 export async function initPluginManager() {
 	// 准备设置页面和访问按钮
@@ -87,6 +88,9 @@ const PluginManager: React.FC = () => {
 	);
 	const pluginConfigRef = React.useRef<HTMLDivElement | null>(null);
 	const [loadedPluginsList, setLoadedPlugins] = React.useState<string[]>([]);
+	const [showStartupWarnings, setShowStartupWarnings] = React.useState(
+		localStorage.getItem(OPENED_WARNINGS) !== "true",
+	);
 	const safeMode = React.useMemo(isSafeMode, undefined);
 
 	React.useEffect(() => {
@@ -131,6 +135,13 @@ const PluginManager: React.FC = () => {
 				<HeaderComponent />
 				{safeMode ? (
 					<SafeModeInfo />
+				) : showStartupWarnings ? (
+					<StartupWarning
+						onRequestClose={() => {
+							localStorage.setItem(OPENED_WARNINGS, "true");
+							setShowStartupWarnings(false);
+						}}
+					/>
 				) : (
 					<section
 						style={{
