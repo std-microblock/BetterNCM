@@ -13,28 +13,32 @@ import { tests } from "./tests";
 import { utils } from "./utils";
 
 declare const loadingMask: HTMLDivElement;
+/**
+ * 包含加载动画的重载
+ */
+function reload(): void {
+	const anim = loadingMask.animate([{ opacity: 0 }, { opacity: 1 }], {
+		duration: 300,
+		fill: "forwards",
+		easing: "cubic-bezier(0.42, 0, 0.58, 1)",
+	});
+	anim.commitStyles();
+
+	anim.addEventListener("finish", (_) => {
+		document.location.reload();
+	});
+}
+
 const BetterNCM = {
 	fs,
 	app,
 	ncm,
 	utils,
 	tests,
-	/**
-	 * 包含加载动画的重载
-	 */
-	reload(): void {
-		const anim = loadingMask.animate([{ opacity: 0 }, { opacity: 1 }], {
-			duration: 300,
-			fill: "forwards",
-			easing: "cubic-bezier(0.42, 0, 0.58, 1)",
-		});
-		anim.commitStyles();
-
-		anim.addEventListener("finish", (_) => {
-			document.location.reload();
-		});
-	},
+	reload,
 };
+
+export { fs, app, ncm, utils, tests, reload };
 
 window.dom = utils.dom;
 

@@ -19,6 +19,7 @@ export namespace app {
 	}
 
 	let betterNCMVersion: string | null = null;
+	
 	/**
 	 * 获取当前 BetterNCM 的版本号
 	 * @returns 当前 BetterNCM 的版本号
@@ -35,7 +36,7 @@ export namespace app {
 	/**
 	 * 全屏截图
 	 * @returns 截图的网络地址
-	 * @todo 修改为返回blob
+	 * @todo 修改为返回 Blob
 	 */
 	export async function takeBackgroundScreenshot(): Promise<string> {
 		const r = await ncmFetch("/app/bg_screenshot");
@@ -61,7 +62,7 @@ export namespace app {
 	}
 
 	/**
-	 * 获取目前BetterNCM数据目录
+	 * 获取目前 BetterNCM 数据目录
 	 * @returns 数据目录路径
 	 */
 	export async function getDataPath() {
@@ -71,7 +72,7 @@ export namespace app {
 	}
 
 	/**
-	 * 读取BetterNCM设置
+	 * 读取 BetterNCM 设置
 	 * @param key 键
 	 * @param defaultValue 默认值
 	 * @returns 读取到的值
@@ -84,7 +85,7 @@ export namespace app {
 	}
 
 	/**
-	 * 设置BetterNCM设置
+	 * 设置 BetterNCM 设置
 	 * @param key 键
 	 * @param value 值
 	 * @returns 是否成功
@@ -142,7 +143,7 @@ export namespace app {
 
 	/**
 	 * 获取当前主题是否为亮色主题
-	 * @todo 测试在Win7及Win10下是否正常工作
+	 * @todo 测试在 Windows 7 及 Windows 10 下是否正常工作
 	 * @returns 当前主题是否为亮色主题
 	 */
 	export async function isLightTheme() {
@@ -151,8 +152,8 @@ export namespace app {
 	}
 
 	/**
-	 * 获取执行成功的hijack日志
-	 * @returns hijack日志
+	 * 获取执行成功的 Hijack 日志
+	 * @returns Hijack 日志
 	 */
 	export async function getSucceededHijacks(): Promise<string[]> {
 		const r = await ncmFetch("/app/get_succeeded_hijacks");

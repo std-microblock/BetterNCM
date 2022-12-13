@@ -23,7 +23,7 @@ export namespace utils {
 	 * 重复调用某函数，直到其返回任意真值，并返回该真值。
 	 * @param func 函数
 	 * @param interval 重复调用时间间隔
-	 * @returns func函数返回值
+	 * @returns `func` 函数的返回值
 	 */
 	export function waitForFunction<T>(
 		func: () => T,
@@ -41,7 +41,7 @@ export namespace utils {
 	}
 
 	/**
-	 * 创建一个将在一定时间后resolve的promise
+	 * 创建一个将在一定时间后 resolve 的 Promise
 	 * @param ms 延迟时间，以毫秒为单位。
 	 * @returns 将在ms毫秒后resolve的一个Promise
 	 */
@@ -50,11 +50,11 @@ export namespace utils {
 	}
 
 	/**
-	 * 创建DOM的hyperscript函数
-	 * @deprecated 早期未使用React时自写的h函数，已弃用。
-	 * @param tag
-	 * @param settings
-	 * @param children
+	 * 简易的创建一个元素的函数
+	 * @deprecated 早期未使用 React 时写的辅助函数，已弃用，请考虑使用自带的 React 构建复杂页面。
+	 * @param tag 元素类型
+	 * @param settings 元素的属性键值对
+	 * @param children 元素的子元素，按顺序添加
 	 * @returns
 	 */
 	// rome-ignore lint/suspicious/noExplicitAny: 属性随意

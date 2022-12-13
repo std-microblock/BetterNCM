@@ -1,4 +1,4 @@
-import BetterNCM from ".";
+import { utils } from "./utils";
 
 function initNCMReact() {
 	if ("React" in window) {
@@ -11,4 +11,4 @@ function initNCMReact() {
 	return "h" in window && "f" in window;
 }
 
-BetterNCM.utils.waitForFunction(initNCMReact, 100);
+utils.waitForFunction(initNCMReact, 100);
