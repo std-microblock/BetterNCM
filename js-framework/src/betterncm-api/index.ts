@@ -19,7 +19,10 @@ const BetterNCM = {
 	ncm,
 	utils,
 	tests,
-	reload() {
+	/**
+	 * 包含加载动画的重载
+	 */
+	reload(): void {
 		const anim = loadingMask.animate([{ opacity: 0 }, { opacity: 1 }], {
 			duration: 300,
 			fill: "forwards",
@@ -35,6 +38,6 @@ const BetterNCM = {
 
 window.dom = utils.dom;
 
-declare var betterncm: typeof BetterNCM;
+declare let betterncm: typeof BetterNCM;
 betterncm = BetterNCM;
 export default BetterNCM;

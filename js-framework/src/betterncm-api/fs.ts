@@ -9,7 +9,7 @@ export namespace fs {
 	/**
 	 * 异步读取指定文件夹路径下的所有文件和文件夹
 	 * @param folderPath 需要读取的文件夹路径
-	 * @returns TODO: 返回的啥玩意
+	 * @returns 所有文件和文件夹的相对路径或绝对路径
 	 */
 	export async function readDir(folderPath: string): Promise<string[]> {
 		const r = await ncmFetch(`/fs/read_dir?path=${e(folderPath)}`);
@@ -28,27 +28,25 @@ export namespace fs {
 
 	/**
 	 * 解压指定的 ZIP 压缩文件到一个指定的文件夹中
-	 * 由于 C++ 侧没有对是否解压成功与否做判断，所以请自行确认是否正确解压到了相应位置
-	 * （不过失败的概率应该不大吧）
 	 * @param zipPath 需要解压的 ZIP 压缩文件路径
 	 * @param unzipDest 需要解压到的文件夹路径，如果不存在则会创建，如果解压时有文件存在则会被覆盖
+	 * @returns 返回值，若为0则成功，若为负值则失败
 	 */
 	export async function unzip(
 		zipPath: string,
 		unzipDest: string = `${zipPath}_extracted/`,
-	) {
+	): Promise<number> {
 		const r = await ncmFetch(
 			`/fs/unzip_file?path=${e(zipPath)}&dest=${e(unzipDest)}`,
 		);
-		return r.status === 200;
+		return parseInt(await r.text());
 	}
 
 	/**
 	 * 将文本写入到指定文件内
-	 * 由于 C++ 侧没有对是否写入成功与否做判断，所以请自行确认是否正确写入
-	 * （不过失败的概率应该不大吧）
 	 * @param filePath 需要写入的文件路径
 	 * @param content 需要写入的文件内容
+	 * @returns 是否成功
 	 */
 	export async function writeFileText(filePath: string, content: string) {
 		const r = await ncmFetch(`/fs/write_file_text?path=${e(filePath)}`, {
@@ -62,6 +60,7 @@ export namespace fs {
 	 * 将文本或二进制数据写入到指定文件内
 	 * @param filePath 需要写入的文件路径
 	 * @param content 需要写入的文件内容
+	 * @returns 是否成功
 	 */
 	export async function writeFile(filePath: string, content: string | Blob) {
 		const fd = new FormData();
@@ -75,10 +74,8 @@ export namespace fs {
 
 	/**
 	 * 在指定路径新建文件夹
-	 * 由于 C++ 侧没有对是否创建成功做判断，所以需要自行调用 `betterncm.fs.exists()`
-	 * 函数确认是否成功创建。
 	 * @param dirPath 文件夹的路径
-	 * @see {@link exists}
+	 * @returns 是否成功
 	 */
 	export async function mkdir(dirPath: string) {
 		const r = await ncmFetch(`/fs/mkdir?path=${e(dirPath)}`);

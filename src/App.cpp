@@ -137,9 +137,7 @@ std::thread* App::create_server(string apiKey)
 		dest = datapath + "/" + dest;
 	}
 
-	zip_extract(path.c_str(), dest.c_str(), NULL, NULL);
-
-	res.set_content("ok", "text/plain");
+	res.set_content(to_string(zip_extract(path.c_str(), dest.c_str(), NULL, NULL)), "text/plain");
 		});
 
 	svr.Get("/api/fs/mkdir", [&](const httplib::Request& req, httplib::Response& res) {

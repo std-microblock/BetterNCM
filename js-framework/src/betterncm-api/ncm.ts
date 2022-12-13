@@ -22,7 +22,7 @@ function callCachedSearchFunction<F extends (...args: any[]) => any>(
 
 export namespace ncm {
 	export function findNativeFunction(obj: Object, identifiers: string) {
-		for (const key in obj) {
+		for (let key in obj) {
 			let flag = true;
 			for (
 				let _i = 0, identifiers_1 = identifiers;
@@ -36,8 +36,20 @@ export namespace ncm {
 		}
 	}
 
-	export function openUrl(url: string): void {
-		return callCachedSearchFunction("R$openUrl", [url]);
+	let cachedOpenURLFunc: Function | null = null;
+	export function openUrl(url: string) {
+		if (cachedOpenURLFunc === null) {
+			const findResult = findApiFunction("R$openUrl");
+			if (findResult) {
+				const [openUrl, openUrlRoot] = findResult;
+				cachedOpenURLFunc = openUrl.bind(openUrlRoot);
+			}
+		}
+		if (cachedOpenURLFunc === null) {
+			return null;
+		} else {
+			return cachedOpenURLFunc(url);
+		}
 	}
 
 	export function getNCMPackageVersion(): string {
@@ -221,29 +233,47 @@ export namespace ncm {
 		return null;
 	}
 
-	export interface EAPIRequestConfig {
-		/**
-		 * 返回响应的数据类型，绝大部分情况下都是 `json`
-		 */
-		type: string;
-		// rome-ignore lint/suspicious/noExplicitAny: 该对象可以是任何序列化成 JSON 的对象
-		data?: any;
-		method?: string;
-		// rome-ignore lint/suspicious/noExplicitAny: 该对象可以是任何序列化成 URI 请求字符串的对象
-		query?: { [param: string]: any };
-		onload?: Function;
-		onerror?: Function;
-		oncallback?: Function;
+	// rome-ignore lint/suspicious/noExplicitAny: 这个是网易云自己暴露的对象，里头有很多可以利用的函数
+	declare const dc: any;
+	// rome-ignore lint/suspicious/noExplicitAny: 这个是网易云自己暴露的对象，里头有很多可以利用的函数
+	declare const ctl: any;
+
+	let cachedGetPlayingFunc: Function | null = null;
+	/**
+	 * 获取当前正在播放的歌曲的信息，包括歌曲信息，来源，当前播放状态等
+	 * @todo 补全返回值类型
+	 * @returns 当前歌曲的播放信息
+	 */
+	export function getPlayingSong() {
+		if (cachedGetPlayingFunc === null) {
+			const findResult = findApiFunction("getPlaying");
+			if (findResult) {
+				const [getPlaying, getPlayingRoot] = findResult;
+				cachedGetPlayingFunc = getPlaying.bind(getPlayingRoot);
+			}
+		}
+		if (cachedGetPlayingFunc === null) {
+			return null;
+		} else {
+			return cachedGetPlayingFunc();
+		}
 	}
 
 	/**
-	 * 调用网易云自己的加密请求函数，获取相应的信息
-	 * @param url 请求的链接，通常是 `APP_CONF.domain + 路径`
-	 * @param config 请求的参数
-	 * @todo 确认兼容版本范围内的函数名是否可用
+	 * 获取当前正在播放的歌曲的简要信息
+	 * @deprecated 由于找到了自带的接口，故这个函数被弃用，请转而使用 `betterncm.ncm.getPlayingSong`
+	 * @returns 简化的播放信息
 	 */
-	export function eapiRequest(url: string, config: EAPIRequestConfig) {
-		// 参考 orpheus://orpheus/pub/core.e5842f1.js?d7496bf6377403c83793c37f6fbf0300:formatted:5158
-		return callCachedSearchFunction("$e", [url, config]); // 经测试 2.10.6 可用
+	export function getPlaying() {
+		const playing = getPlayingSong();
+		const result = {
+			id: playing.data.id as number,
+			title: playing.data.name as string,
+			type: "normal",
+		};
+		if (playing.from.fm) {
+			result.type = "fm";
+		}
+		return result;
 	}
 }

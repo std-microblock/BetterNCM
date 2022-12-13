@@ -32,27 +32,50 @@ export namespace app {
 		return betterNCMVersion;
 	}
 
+	/**
+	 * 全屏截图
+	 * @returns 截图的网络地址
+	 * @todo 修改为返回blob
+	 */
 	export async function takeBackgroundScreenshot(): Promise<string> {
 		const r = await ncmFetch("/app/bg_screenshot");
 		return await r.text();
 	}
 
-	export async function getNCMWinPos() {
-		const r = await ncmFetch("/app/get_win_position");
+	/**
+	 * 获取网易云窗口位置
+	 * @returns 位置
+	 */
+	export async function getNCMWinPos(): Promise<{ x: number; y: number }> {
+		const r = await ncmFetch("/app/get_win_position", undefined, false);
 		return await r.json();
 	}
 
+	/**
+	 * 重新解压所有插件
+	 * @returns 是否成功
+	 */
 	export async function reloadPlugins() {
 		const r = await ncmFetch("/app/reload_plugin");
 		return r.status === 200;
 	}
 
+	/**
+	 * 获取目前BetterNCM数据目录
+	 * @returns 数据目录路径
+	 */
 	export async function getDataPath() {
 		const r = await ncmFetch("/app/datapath");
 		const p = await r.text();
 		return p.replace(/\//g, "\\");
 	}
 
+	/**
+	 * 读取BetterNCM设置
+	 * @param key 键
+	 * @param defaultValue 默认值
+	 * @returns 读取到的值
+	 */
 	export async function readConfig(key: string, defaultValue: string) {
 		const r = await ncmFetch(
 			`/app/read_config?key=${e(key)}&default=${e(defaultValue)}`,
@@ -60,41 +83,78 @@ export namespace app {
 		return await r.text();
 	}
 
+	/**
+	 * 设置BetterNCM设置
+	 * @param key 键
+	 * @param value 值
+	 * @returns 是否成功
+	 */
 	export async function writeConfig(key: string, value: string) {
 		const r = await ncmFetch(
 			`/app/write_config?key=${e(key)}&value=${e(value)}`,
 		);
-		return await r.text();
+		return (await r.status) === 200;
 	}
 
+	/**
+	 * 获取网易云安装目录
+	 * @returns 安装目录
+	 */
 	export async function getNCMPath() {
 		const r = await ncmFetch("/app/ncmpath");
 		return await r.text();
 	}
 
+	/**
+	 * 打开网易云主进程的Console
+	 * @returns 是否成功
+	 */
 	export async function showConsole() {
 		const r = await ncmFetch("/app/show_console");
 		return r.status === 200;
 	}
 
+	/**
+	 * 设置Win11 DWM圆角开启状态
+	 * @param enable 是否开启
+	 * @returns 是否成功
+	 */
 	export async function setRoundedCorner(enable = true) {
 		const r = await ncmFetch(`/app/set_rounded_corner?enable=${enable}`);
 		return r.status === 200;
 	}
 
-	export async function openFileDialog(filter: string, initialDir: string) {
+	/**
+	 * 打开一个选择文件对话框
+	 * @param filter 要筛选的文件类型
+	 * @param initialDir 对话框初始地址
+	 * @returns 选择的文件地址，若未选择则为空字符串
+	 */
+	export async function openFileDialog(
+		filter: string,
+		initialDir: string,
+	): Promise<string> {
 		const r = await ncmFetch(
 			`/app/open_file_dialog?filter=${e(filter)}&initialDir=${e(initialDir)}`,
 		);
 		return await r.text();
 	}
 
+	/**
+	 * 获取当前主题是否为亮色主题
+	 * @todo 测试在Win7及Win10下是否正常工作
+	 * @returns 当前主题是否为亮色主题
+	 */
 	export async function isLightTheme() {
 		const r = await ncmFetch("/app/is_light_theme");
-		return (await r.text()) === "true"; // TODO: 这里可以用 JSON 代替
+		return await r.json();
 	}
 
-	export async function getSucceededHijacks() {
+	/**
+	 * 获取执行成功的hijack日志
+	 * @returns hijack日志
+	 */
+	export async function getSucceededHijacks(): Promise<string[]> {
 		const r = await ncmFetch("/app/get_succeeded_hijacks");
 		return await r.json();
 	}
