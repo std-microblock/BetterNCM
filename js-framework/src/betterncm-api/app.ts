@@ -19,7 +19,7 @@ export namespace app {
 	}
 
 	let betterNCMVersion: string | null = null;
-	
+
 	/**
 	 * 获取当前 BetterNCM 的版本号
 	 * @returns 当前 BetterNCM 的版本号
@@ -48,7 +48,9 @@ export namespace app {
 	 * @returns 位置
 	 */
 	export async function getNCMWinPos(): Promise<{ x: number; y: number }> {
-		const r = await betterncmFetch("/app/get_win_position", undefined, false);
+		const r = await betterncmFetch("/app/get_win_position", {
+			ignoreApiKey: true,
+		});
 		return await r.json();
 	}
 

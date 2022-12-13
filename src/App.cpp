@@ -79,12 +79,13 @@ void exec(string cmd, bool ele, bool showWindow = false)
 
 std::thread* App::create_server(string apiKey)
 {
-	return new std::thread([=]
+	if (this->server_thread) return server_thread;
+	this->httpServer = new httplib::Server();
+	this->server_port = this->httpServer->bind_to_any_port("127.0.0.1");
+	server_thread = new std::thread([=]
 		{
-			httplib::Server svr;
-	this->httpServer = &svr;
-
-	svr.Get("/api/fs/read_dir", [&](const httplib::Request& req, httplib::Response& res) {
+			auto* svr = this->httpServer;
+	svr->Get("/api/fs/read_dir", [&](const httplib::Request& req, httplib::Response& res) {
 		checkApiKey;
 	using namespace std;
 	namespace fs = std::filesystem;
@@ -105,7 +106,7 @@ std::thread* App::create_server(string apiKey)
 	res.set_content(((nlohmann::json)paths).dump(), "application/json");
 		});
 
-	svr.Get("/api/fs/read_file_text", [&](const httplib::Request& req, httplib::Response& res) {
+	svr->Get("/api/fs/read_file_text", [&](const httplib::Request& req, httplib::Response& res) {
 		checkApiKey;
 	using namespace std;
 	namespace fs = std::filesystem;
@@ -120,7 +121,7 @@ std::thread* App::create_server(string apiKey)
 	}
 		});
 
-	svr.Get("/api/fs/unzip_file", [&](const httplib::Request& req, httplib::Response& res) {
+	svr->Get("/api/fs/unzip_file", [&](const httplib::Request& req, httplib::Response& res) {
 		checkApiKey;
 	using namespace std;
 	namespace fs = std::filesystem;
@@ -140,7 +141,7 @@ std::thread* App::create_server(string apiKey)
 	res.set_content(to_string(zip_extract(path.c_str(), dest.c_str(), NULL, NULL)), "text/plain");
 		});
 
-	svr.Get("/api/fs/mkdir", [&](const httplib::Request& req, httplib::Response& res) {
+	svr->Get("/api/fs/mkdir", [&](const httplib::Request& req, httplib::Response& res) {
 		checkApiKey;
 	using namespace std;
 	namespace fs = std::filesystem;
@@ -157,7 +158,7 @@ std::thread* App::create_server(string apiKey)
 	}
 		});
 
-	svr.Get("/api/fs/exists", [&](const httplib::Request& req, httplib::Response& res) {
+	svr->Get("/api/fs/exists", [&](const httplib::Request& req, httplib::Response& res) {
 		checkApiKey;
 	using namespace std;
 	namespace fs = std::filesystem;
@@ -172,7 +173,7 @@ std::thread* App::create_server(string apiKey)
 	}
 		});
 
-	svr.Post("/api/fs/write_file_text", [&](const httplib::Request& req, httplib::Response& res) {
+	svr->Post("/api/fs/write_file_text", [&](const httplib::Request& req, httplib::Response& res) {
 		checkApiKey;
 	using namespace std;
 	namespace fs = std::filesystem;
@@ -189,7 +190,7 @@ std::thread* App::create_server(string apiKey)
 	}
 		});
 
-	svr.Post("/api/fs/write_file", [&](const httplib::Request& req, httplib::Response& res) {
+	svr->Post("/api/fs/write_file", [&](const httplib::Request& req, httplib::Response& res) {
 		checkApiKey;
 	using namespace std;
 	namespace fs = std::filesystem;
@@ -212,7 +213,7 @@ std::thread* App::create_server(string apiKey)
 	}
 		});
 
-	svr.Get("/api/fs/remove", [&](const httplib::Request& req, httplib::Response& res) {
+	svr->Get("/api/fs/remove", [&](const httplib::Request& req, httplib::Response& res) {
 		checkApiKey;
 	using namespace std;
 	namespace fs = std::filesystem;
@@ -231,65 +232,65 @@ std::thread* App::create_server(string apiKey)
 
 
 
-	svr.Post("/api/app/exec", [&](const httplib::Request& req, httplib::Response& res) {
+	svr->Post("/api/app/exec", [&](const httplib::Request& req, httplib::Response& res) {
 		checkApiKey;
 	auto cmd = req.body;
 	exec(cmd, false, req.has_param("_showWindow"));
 	res.status = 200;
 		});
 
-	svr.Post("/api/app/exec_ele", [&](const httplib::Request& req, httplib::Response& res) {
+	svr->Post("/api/app/exec_ele", [&](const httplib::Request& req, httplib::Response& res) {
 		checkApiKey;
 	auto cmd = req.body;
 	exec(cmd, true, req.has_param("_showWindow"));
 	res.status = 200;
 		});
 
-	svr.Get("/api/app/datapath", [&](const httplib::Request& req, httplib::Response& res) {
+	svr->Get("/api/app/datapath", [&](const httplib::Request& req, httplib::Response& res) {
 		checkApiKey;
 	res.set_content(datapath, "text/plain");
 		});
 
-	svr.Get("/api/app/ncmpath", [&](const httplib::Request& req, httplib::Response& res) {
+	svr->Get("/api/app/ncmpath", [&](const httplib::Request& req, httplib::Response& res) {
 		checkApiKey;
 	res.set_content(wstring_to_utf_8(getNCMPath()), "text/plain");
 		});
 
-	svr.Get("/api/app/version", [&](const httplib::Request& req, httplib::Response& res) {
+	svr->Get("/api/app/version", [&](const httplib::Request& req, httplib::Response& res) {
 		checkApiKey;
 	res.set_content(version, "text/plain");
 		});
 
-	svr.Get("/api/app/read_config", [&](const httplib::Request& req, httplib::Response& res) {
+	svr->Get("/api/app/read_config", [&](const httplib::Request& req, httplib::Response& res) {
 		checkApiKey;
 	res.set_content(readConfig(req.get_param_value("key"), req.get_param_value("default")), "text/plain");
 		});
 
-	svr.Get("/api/app/write_config", [&](const httplib::Request& req, httplib::Response& res) {
+	svr->Get("/api/app/write_config", [&](const httplib::Request& req, httplib::Response& res) {
 		checkApiKey;
 	writeConfig(req.get_param_value("key"), req.get_param_value("value"));
 	res.status = 200;
 		});
 
-	svr.Get("/api/app/reload_plugin", [&](const httplib::Request& req, httplib::Response& res) {
+	svr->Get("/api/app/reload_plugin", [&](const httplib::Request& req, httplib::Response& res) {
 		checkApiKey;
 	extractPlugins();
 	res.status = 200;
 		});
 
-	svr.Get("/api/app/get_succeeded_hijacks", [&](const httplib::Request& req, httplib::Response& res) {
+	svr->Get("/api/app/get_succeeded_hijacks", [&](const httplib::Request& req, httplib::Response& res) {
 		checkApiKey;
 	std::shared_lock<std::shared_timed_mutex> guard(succeeded_hijacks_lock);
 	res.set_content(((nlohmann::json)succeeded_hijacks).dump(), "application/json");
 		});
 
-	svr.Get("/api/app/show_console", [&](const httplib::Request& req, httplib::Response& res) {
+	svr->Get("/api/app/show_console", [&](const httplib::Request& req, httplib::Response& res) {
 		checkApiKey;
 	ShowWindow(GetConsoleWindow(), SW_SHOW);
 	res.status = 200;
 		});
 
-	svr.Get("/api/app/set_rounded_corner", [&](const httplib::Request& req, httplib::Response& res) {
+	svr->Get("/api/app/set_rounded_corner", [&](const httplib::Request& req, httplib::Response& res) {
 		checkApiKey;
 	bool enable = req.get_param_value("enable") == "true";
 	HWND ncmWin = FindWindow(L"OrpheusBrowserHost", NULL);
@@ -303,7 +304,7 @@ std::thread* App::create_server(string apiKey)
 	res.status = 200;
 		});
 
-	svr.Get("/api/app/bg_screenshot", [&](const httplib::Request& req, httplib::Response& res) {
+	svr->Get("/api/app/bg_screenshot", [&](const httplib::Request& req, httplib::Response& res) {
 		checkApiKey;
 	HWND ncmWin = FindWindow(L"OrpheusBrowserHost", NULL);
 	SetWindowDisplayAffinity(ncmWin, WDA_EXCLUDEFROMCAPTURE);
@@ -312,7 +313,7 @@ std::thread* App::create_server(string apiKey)
 	SetWindowDisplayAffinity(ncmWin, WDA_NONE);
 		});
 
-	svr.Get("/api/app/is_light_theme", [&](const httplib::Request& req, httplib::Response& res) {
+	svr->Get("/api/app/is_light_theme", [&](const httplib::Request& req, httplib::Response& res) {
 		checkApiKey;
 
 	// based on https://stackoverflow.com/questions/51334674/how-to-detect-windows-10-light-dark-mode-in-win32-application
@@ -344,7 +345,7 @@ std::thread* App::create_server(string apiKey)
 		});
 
 
-	svr.Get("/api/app/get_win_position", [&](const httplib::Request& req, httplib::Response& res) {
+	svr->Get("/api/app/get_win_position", [&](const httplib::Request& req, httplib::Response& res) {
 		HWND ncmWin = FindWindow(L"OrpheusBrowserHost", NULL);
 	int x = 0, y = 0;
 	RECT rect = { NULL };
@@ -361,7 +362,7 @@ std::thread* App::create_server(string apiKey)
 
 		});
 
-	svr.Get("/api/app/open_file_dialog", [&](const httplib::Request& req, httplib::Response& res) {
+	svr->Get("/api/app/open_file_dialog", [&](const httplib::Request& req, httplib::Response& res) {
 		checkApiKey;
 	TCHAR szBuffer[MAX_PATH] = { 0 };
 	OPENFILENAME ofn = { 0 };
@@ -383,15 +384,19 @@ std::thread* App::create_server(string apiKey)
 		});
 
 	// 加载插件管理器的样式文件
-	svr.Get("/api/internal/framework.css", [&](const httplib::Request& req, httplib::Response& res) {
+	svr->Get("/api/internal/framework.css", [&](const httplib::Request& req, httplib::Response& res) {
 		checkApiKey;
 	res.set_content(load_string_resource(L"framework.css"), "text/css");
 
 		});
 
-	svr.set_mount_point("/local", datapath);
+	svr->set_mount_point("/local", datapath);
 
-	svr.listen("127.0.0.1", 3248); });
+
+
+	svr->listen_after_bind();
+		});
+	return server_thread;
 }
 
 // https://stackoverflow.com/questions/440133/how-do-i-create-a-random-alpha-numeric-string-in-c
@@ -455,7 +460,14 @@ App::App()
 		if (frame->is_main(frame) && frame->is_valid(frame))
 		{
 			wstring url = frame->get_url(frame)->str;
-			EasyCEFHooks::executeJavaScript(frame, "const BETTERNCM_API_KEY='" + apiKey + "';" + load_string_resource(L"framework.js"), "betterncm://betterncm/framework.js");
+
+			EasyCEFHooks::executeJavaScript(frame,
+				"const BETTERNCM_API_KEY='" + apiKey + "'; " +
+				"const BETTERNCM_API_PORT = " + to_string(this->server_port) + ";" +
+				"const BETTERNCM_API_PATH = 'http://localhost:" + to_string(this->server_port) + "/api'; " +
+				"const BETTERNCM_FILES_PATH = 'http://localhost:" + to_string(this->server_port) + "/local';" +
+				"console.log('BetterNCM API Initialized on',BETTERNCM_API_PORT);" +
+				load_string_resource(L"framework.js"), "betterncm://betterncm/framework.js");
 
 			auto loadStartupScripts = [&](string path)
 			{

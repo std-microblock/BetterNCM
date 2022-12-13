@@ -7,6 +7,7 @@ declare global {
 	const BETTERNCM_API_KEY: string;
 	const BETTERNCM_API_PATH: string;
 	const BETTERNCM_FILES_PATH: string;
+	const BETTERNCM_API_PORT: number;
 	const h: typeof createElement;
 	const f: typeof Fragment;
 	const dom: typeof BetterNCM.utils.dom;
