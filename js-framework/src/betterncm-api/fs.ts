@@ -1,4 +1,4 @@
-import { ncmFetch } from "./base";
+import { betterncmFetch } from "./base";
 
 const e = encodeURIComponent;
 
@@ -12,7 +12,7 @@ export namespace fs {
 	 * @returns 所有文件和文件夹的相对路径或绝对路径
 	 */
 	export async function readDir(folderPath: string): Promise<string[]> {
-		const r = await ncmFetch(`/fs/read_dir?path=${e(folderPath)}`);
+		const r = await betterncmFetch(`/fs/read_dir?path=${e(folderPath)}`);
 		return await r.json();
 	}
 
@@ -22,7 +22,7 @@ export namespace fs {
 	 * @returns 对应文件的文本形式
 	 */
 	export async function readFileText(filePath: string): Promise<string> {
-		const r = await ncmFetch(`/fs/read_file_text?path=${e(filePath)}`);
+		const r = await betterncmFetch(`/fs/read_file_text?path=${e(filePath)}`);
 		return await r.text();
 	}
 
@@ -36,7 +36,7 @@ export namespace fs {
 		zipPath: string,
 		unzipDest: string = `${zipPath}_extracted/`,
 	): Promise<number> {
-		const r = await ncmFetch(
+		const r = await betterncmFetch(
 			`/fs/unzip_file?path=${e(zipPath)}&dest=${e(unzipDest)}`,
 		);
 		return parseInt(await r.text());
@@ -49,7 +49,7 @@ export namespace fs {
 	 * @returns 是否成功
 	 */
 	export async function writeFileText(filePath: string, content: string) {
-		const r = await ncmFetch(`/fs/write_file_text?path=${e(filePath)}`, {
+		const r = await betterncmFetch(`/fs/write_file_text?path=${e(filePath)}`, {
 			method: "POST",
 			body: content,
 		});
@@ -65,7 +65,7 @@ export namespace fs {
 	export async function writeFile(filePath: string, content: string | Blob) {
 		const fd = new FormData();
 		fd.append("file", content);
-		const r = await ncmFetch(`/fs/write_file?path=${e(filePath)}`, {
+		const r = await betterncmFetch(`/fs/write_file?path=${e(filePath)}`, {
 			method: "POST",
 			body: fd,
 		});
@@ -78,7 +78,7 @@ export namespace fs {
 	 * @returns 是否成功
 	 */
 	export async function mkdir(dirPath: string) {
-		const r = await ncmFetch(`/fs/mkdir?path=${e(dirPath)}`);
+		const r = await betterncmFetch(`/fs/mkdir?path=${e(dirPath)}`);
 		return r.status === 200;
 	}
 
@@ -88,7 +88,7 @@ export namespace fs {
 	 * @returns 是否存在
 	 */
 	export async function exists(path: string): Promise<boolean> {
-		const r = await ncmFetch(`/fs/exists?path=${e(path)}`);
+		const r = await betterncmFetch(`/fs/exists?path=${e(path)}`);
 		return await r.json();
 	}
 
@@ -97,7 +97,7 @@ export namespace fs {
 	 * @param path 指定的文件或文件夹路径
 	 */
 	export async function remove(path: string) {
-		const r = await ncmFetch(`/fs/remove?path=${e(path)}`);
+		const r = await betterncmFetch(`/fs/remove?path=${e(path)}`);
 		return r.status === 200;
 	}
 }
