@@ -1,6 +1,6 @@
 import BetterNCM from "./betterncm-api";
 import { initPluginManager, onPluginLoaded } from "./plugin-manager";
-import { ncmFetch } from "./betterncm-api/base";
+import { betterncmFetch } from "./betterncm-api/base";
 import { NCMPlugin, NCMInjectPlugin } from "./plugin";
 
 export let loadedPlugins: typeof window.loadedPlugins = {};
@@ -185,7 +185,7 @@ async function onLoadError(e: Error) {
 declare const loadingMask: HTMLDivElement;
 window.addEventListener("DOMContentLoaded", async () => {
 	// 加载管理器样式表
-	const styleContent = await (await ncmFetch("/internal/framework.css")).text();
+	const styleContent = await (await betterncmFetch("/internal/framework.css")).text();
 	const styleEl = document.createElement("style");
 	styleEl.innerHTML = styleContent;
 	document.head.appendChild(styleEl);

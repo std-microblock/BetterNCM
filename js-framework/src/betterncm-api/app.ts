@@ -1,4 +1,4 @@
-import { ncmFetch } from "./base";
+import { betterncmFetch } from "./base";
 
 const e = encodeURIComponent;
 
@@ -11,7 +11,7 @@ export namespace app {
 	 * @returns TODO: 返回的啥玩意
 	 */
 	export async function exec(cmd: string, elevate = false, showWindow = false) {
-		const r = await ncmFetch(
+		const r = await betterncmFetch(
 			`/app/exec${elevate ? "_ele" : ""}${showWindow ? "?_showWindow" : ""}`,
 			{ method: "POST", body: cmd },
 		);
@@ -26,7 +26,7 @@ export namespace app {
 	 */
 	export async function getBetterNCMVersion(): Promise<string> {
 		if (betterNCMVersion === null) {
-			const r = await ncmFetch("/app/version");
+			const r = await betterncmFetch("/app/version");
 			betterNCMVersion = await r.text();
 		}
 
@@ -39,7 +39,7 @@ export namespace app {
 	 * @todo 修改为返回 Blob
 	 */
 	export async function takeBackgroundScreenshot(): Promise<string> {
-		const r = await ncmFetch("/app/bg_screenshot");
+		const r = await betterncmFetch("/app/bg_screenshot");
 		return await r.text();
 	}
 
@@ -48,7 +48,7 @@ export namespace app {
 	 * @returns 位置
 	 */
 	export async function getNCMWinPos(): Promise<{ x: number; y: number }> {
-		const r = await ncmFetch("/app/get_win_position", undefined, false);
+		const r = await betterncmFetch("/app/get_win_position", undefined, false);
 		return await r.json();
 	}
 
@@ -57,7 +57,7 @@ export namespace app {
 	 * @returns 是否成功
 	 */
 	export async function reloadPlugins() {
-		const r = await ncmFetch("/app/reload_plugin");
+		const r = await betterncmFetch("/app/reload_plugin");
 		return r.status === 200;
 	}
 
@@ -66,7 +66,7 @@ export namespace app {
 	 * @returns 数据目录路径
 	 */
 	export async function getDataPath() {
-		const r = await ncmFetch("/app/datapath");
+		const r = await betterncmFetch("/app/datapath");
 		const p = await r.text();
 		return p.replace(/\//g, "\\");
 	}
@@ -78,7 +78,7 @@ export namespace app {
 	 * @returns 读取到的值
 	 */
 	export async function readConfig(key: string, defaultValue: string) {
-		const r = await ncmFetch(
+		const r = await betterncmFetch(
 			`/app/read_config?key=${e(key)}&default=${e(defaultValue)}`,
 		);
 		return await r.text();
@@ -91,7 +91,7 @@ export namespace app {
 	 * @returns 是否成功
 	 */
 	export async function writeConfig(key: string, value: string) {
-		const r = await ncmFetch(
+		const r = await betterncmFetch(
 			`/app/write_config?key=${e(key)}&value=${e(value)}`,
 		);
 		return (await r.status) === 200;
@@ -102,7 +102,7 @@ export namespace app {
 	 * @returns 安装目录
 	 */
 	export async function getNCMPath() {
-		const r = await ncmFetch("/app/ncmpath");
+		const r = await betterncmFetch("/app/ncmpath");
 		return await r.text();
 	}
 
@@ -111,7 +111,7 @@ export namespace app {
 	 * @returns 是否成功
 	 */
 	export async function showConsole() {
-		const r = await ncmFetch("/app/show_console");
+		const r = await betterncmFetch("/app/show_console");
 		return r.status === 200;
 	}
 
@@ -121,7 +121,7 @@ export namespace app {
 	 * @returns 是否成功
 	 */
 	export async function setRoundedCorner(enable = true) {
-		const r = await ncmFetch(`/app/set_rounded_corner?enable=${enable}`);
+		const r = await betterncmFetch(`/app/set_rounded_corner?enable=${enable}`);
 		return r.status === 200;
 	}
 
@@ -135,7 +135,7 @@ export namespace app {
 		filter: string,
 		initialDir: string,
 	): Promise<string> {
-		const r = await ncmFetch(
+		const r = await betterncmFetch(
 			`/app/open_file_dialog?filter=${e(filter)}&initialDir=${e(initialDir)}`,
 		);
 		return await r.text();
@@ -147,7 +147,7 @@ export namespace app {
 	 * @returns 当前主题是否为亮色主题
 	 */
 	export async function isLightTheme() {
-		const r = await ncmFetch("/app/is_light_theme");
+		const r = await betterncmFetch("/app/is_light_theme");
 		return await r.json();
 	}
 
@@ -156,7 +156,7 @@ export namespace app {
 	 * @returns Hijack 日志
 	 */
 	export async function getSucceededHijacks(): Promise<string[]> {
-		const r = await ncmFetch("/app/get_succeeded_hijacks");
+		const r = await betterncmFetch("/app/get_succeeded_hijacks");
 		return await r.json();
 	}
 }
