@@ -8,6 +8,7 @@
 class App {
 	httplib::Server* httpServer = nullptr;
 	std::thread* server_thread;
+	int server_port;
 	std::thread* create_server(string apiKey);
 	void extractPlugins();
 	string readConfig(const string& key, const string& def);
