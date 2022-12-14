@@ -21,7 +21,7 @@ export interface PluginManifest {
 	manifest_version: number;
 	name: string;
 	version: string;
-	injects: { [pageType: string]: InjectFile };
+	injects: { [pageType: string]: InjectFile[] };
 	hijacks: {
 		[versionRange: string]: {
 			[matchUrlPath: string]:

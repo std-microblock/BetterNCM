@@ -16,7 +16,10 @@ const LOAD_ERROR_KEY = "betterncm.loaderror";
  * @see {@link enableSafeMode}
  */
 export async function disableSafeMode() {
-	await BetterNCM.app.writeConfig("cc.microblock.betterncm.cpp_side_inject_feature_disabled","false");
+	await BetterNCM.app.writeConfig(
+		"cc.microblock.betterncm.cpp_side_inject_feature_disabled",
+		"false",
+	);
 	localStorage.removeItem(SAFE_MODE_KEY);
 	localStorage.removeItem(LOAD_ERROR_KEY);
 }
@@ -31,7 +34,10 @@ export async function disableSafeMode() {
  * 供用户和插件作者排查加载错误
  */
 export async function enableSafeMode() {
-	await BetterNCM.app.writeConfig("cc.microblock.betterncm.cpp_side_inject_feature_disabled","true");
+	await BetterNCM.app.writeConfig(
+		"cc.microblock.betterncm.cpp_side_inject_feature_disabled",
+		"true",
+	);
 	localStorage.setItem(SAFE_MODE_KEY, "true");
 }
 
@@ -67,12 +73,9 @@ async function loadPlugins() {
 	};
 	const pageName = pageMap[location.pathname];
 
-	async function loadPlugin(pluginPath: string, devMode = false) {
-		const manifest = JSON.parse(
-			await BetterNCM.fs.readFileText(`${pluginPath}/manifest.json`),
-		);
-		const mainPlugin = new NCMPlugin(manifest, pluginPath);
-		loadedPlugins[manifest.name] = mainPlugin;
+	async function loadPlugin(mainPlugin: NCMPlugin, devMode = false) {
+		const manifest = mainPlugin.manifest;
+		const pluginPath = mainPlugin.pluginPath;
 
 		async function loadInject(filePath: string) {
 			const getFileCode = BetterNCM.fs.readFileText.bind(null, filePath);
@@ -131,15 +134,35 @@ async function loadPlugins() {
 	window.loadedPlugins = loadedPlugins;
 
 	const pluginPaths = await BetterNCM.fs.readDir("./plugins_runtime");
-	for (const path of pluginPaths) {
-		loadingPromises.push(loadPlugin(path));
-	}
+
+	const loadPluginByPath = async (path: string) => {
+		try {
+			const manifest = JSON.parse(
+				await BetterNCM.fs.readFileText(`${path}/manifest.json`),
+			);
+			const mainPlugin = new NCMPlugin(manifest, path);
+
+			if (!(manifest.name in loadedPlugins)) {
+				loadedPlugins[manifest.name] = mainPlugin;
+				loadingPromises.push(loadPlugin(mainPlugin, true));
+			} else {
+				console.warn(
+					manifest.name,
+					"duplicated, the plugin at",
+					path,
+					"wont be loaded.",
+				);
+			}
+		} catch (e) {
+			console.error("Failed to load plugin", path, e);
+		}
+	};
+
+	for (const path of pluginPaths) await loadPluginByPath(path);
 
 	if (await BetterNCM.fs.exists("./plugins_dev")) {
 		const devPluginPaths = await BetterNCM.fs.readDir("./plugins_dev");
-		for (const path of devPluginPaths) {
-			loadingPromises.push(loadPlugin(path, true));
-		}
+		for (const path of devPluginPaths) await loadPluginByPath(path);
 	}
 
 	await Promise.all(loadingPromises);
@@ -185,7 +208,9 @@ async function onLoadError(e: Error) {
 declare const loadingMask: HTMLDivElement;
 window.addEventListener("DOMContentLoaded", async () => {
 	// 加载管理器样式表
-	const styleContent = await (await betterncmFetch("/internal/framework.css")).text();
+	const styleContent = await (
+		await betterncmFetch("/internal/framework.css")
+	).text();
 	const styleEl = document.createElement("style");
 	styleEl.innerHTML = styleContent;
 	document.head.appendChild(styleEl);
