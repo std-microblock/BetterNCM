@@ -17,6 +17,10 @@ declare const loadingMask: HTMLDivElement;
  * 包含加载动画的重载
  */
 function reload(): void {
+	if(!loadingMask){
+		document.location.reload();
+		return;
+	}
 	const anim = loadingMask.animate([{ opacity: 0 }, { opacity: 1 }], {
 		duration: 300,
 		fill: "forwards",

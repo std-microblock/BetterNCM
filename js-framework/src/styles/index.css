@@ -110,20 +110,47 @@ body.mq-playing section.better-ncm-manager.ncmm-show {
     border-radius: 8px;
     padding: 8px;
     text-overflow: ellipsis;
-    max-lines: 1;
     margin-bottom: 8px;
     opacity: 0.7;
+}
+
+.plugin-list-name{
+    float: left;
+    width: 85%;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 .plugin-btn {
     border-radius: 8px;
     padding: 8px;
-    text-overflow: ellipsis;
-    max-lines: 1;
     margin-bottom: 8px;
 }
 
-.plugin-btn:hover,
+.plugin-btn::after {
+    display: table;
+    clear: both;
+    content: "";
+}
+
+.plugin-uninstall-btn{
+    float: right;
+    opacity: 0;
+    transition: opacity 0.2s;
+    width: 13px;
+    cursor: pointer;
+}
+
+.plugin-uninstall-btn:hover{
+    opacity: 1 !important;
+}
+
+.plugin-btn:hover .plugin-uninstall-btn{
+    opacity: 0.4;
+}
+
+.plugin-btn:not(.plugin-btn-disabled):hover,
 .plugin-btn.selected {
     background-color: rgba(136, 136, 136, 0.116);
 }
@@ -144,3 +171,4 @@ body.mq-playing section.better-ncm-manager.ncmm-show {
 .header-ctl {
     margin: 28px 0 0 30px;
 }
+
