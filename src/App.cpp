@@ -542,9 +542,10 @@ App::App()
 
 	vector<nlohmann::json> satisfied_hijacks = loadHijacking(datapath + "/plugins_runtime");
 
-	if (readConfig("cc.microblock.betterncm.cpp_side_inject_feature_disabled", "false") != "true")
-		EasyCEFHooks::onHijackRequest = [=](string url) -> std::function<wstring(wstring)>
+
+	EasyCEFHooks::onHijackRequest = [=](string url) -> std::function<wstring(wstring)>
 	{
+		if (readConfig("cc.microblock.betterncm.cpp_side_inject_feature_disabled", "false") == "true")return nullptr;
 		vector<nlohmann::json> this_hijacks;
 
 		auto filter_hijacks = [&](vector<nlohmann::json> full)
