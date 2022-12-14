@@ -128,18 +128,24 @@ export class NCMInjectPlugin extends EventTarget {
 			fn.call(this, evt.detail, evt);
 		});
 	}
+	getConfig<T>(key: string): T | undefined;
 	getConfig<T>(key: string, defaultValue: T): T;
 	getConfig<T>(key: string, defaultValue?: T): T | undefined {
-		const config = JSON.parse(
-			localStorage[`config.betterncm.${this.manifest.name}`] || "{}",
-		);
-		if (config[key] !== undefined) return config[key];
+		try {
+			const config = JSON.parse(
+				localStorage.getItem(`config.betterncm.${this.manifest.name}`) || "{}",
+			);
+			if (config[key] !== undefined) return config[key];
+		} catch {}
 		return defaultValue;
 	}
 	setConfig<T>(key: string, value: T) {
-		const config = JSON.parse(
-			localStorage[`config.betterncm.${this.manifest.name}`] || "{}",
+		let config = JSON.parse(
+			localStorage.getItem(`config.betterncm.${this.manifest.name}`) || "{}",
 		);
+		if (!config || typeof config !== "object") {
+			config = Object.create(null);
+		}
 		config[key] = value;
 		localStorage[`config.betterncm.${this.manifest.name}`] =
 			JSON.stringify(config);
