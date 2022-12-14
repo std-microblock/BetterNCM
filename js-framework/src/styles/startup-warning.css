@@ -5,7 +5,7 @@
 .startup-warning>* {
     margin: 1rem 0;
     font-size: medium;
-    font-weight: lighter;
+    font-weight: normal;
 }
 
 
@@ -16,6 +16,7 @@
 
 .startup-warning b {
     font-weight: bolder;
+    font-size: larger;
 }
 
 .startup-warning button {

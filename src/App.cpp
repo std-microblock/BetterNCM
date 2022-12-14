@@ -466,7 +466,7 @@ App::App()
 !(function fixNCMReloadPosition() {
 	let oChannelCall = channel.call;
 	channel.call = (name,...args) => {
-		if (name === "winhelper.setWindowPosition" && window.screenX !== 0) return;
+		if (name === "winhelper.setWindowPosition" && window.screenX !== 0) return; 
 		oChannelCall(name,...args);
 	};
 })();
