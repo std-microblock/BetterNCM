@@ -61,8 +61,7 @@ export const HeaderComponent: React.FC<{
 		})();
 	}, [latestVersion]);
 
-	const onUpdateButtonClicked = React.useMemo(
-		() => async () => {
+	const onUpdateButtonClicked = React.useCallback(async () => {
 			if (latestVersion && latestVersion.version !== currentVersion) {
 				const ncmpath = await BetterNCM.app.getNCMPath();
 				const datapath = await BetterNCM.app.getDataPath();
@@ -86,7 +85,7 @@ export const HeaderComponent: React.FC<{
 				setLatestVersion(null);
 			}
 		},
-		[],
+		[latestVersion],
 	);
 
 	return (
