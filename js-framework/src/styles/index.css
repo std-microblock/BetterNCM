@@ -22,6 +22,10 @@ section.better-ncm-manager.ncmm-show {
     display: block !important;
 }
 
+body.mq-playing section.better-ncm-manager.ncmm-show {
+    display: none !important;
+}
+
 .bncm-mgr {
     overflow: hidden;
     position: relative;

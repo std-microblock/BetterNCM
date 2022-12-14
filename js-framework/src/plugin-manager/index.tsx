@@ -36,6 +36,7 @@ export async function initPluginManager() {
 	ReactDOM.render(<PluginManager />, settingsView);
 
 	settingsView.classList.add("better-ncm-manager");
+	settingsView.classList.add("g-mn");
 
 	function showSettings() {
 		// 有插件似乎会替换主页元素，导致我们的设置页面无法显示，需要进行检查
