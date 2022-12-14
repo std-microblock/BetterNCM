@@ -8,6 +8,8 @@ declare global {
 	const BETTERNCM_API_PATH: string;
 	const BETTERNCM_FILES_PATH: string;
 	const BETTERNCM_API_PORT: number;
+	// rome-ignore lint/suspicious/noExplicitAny: 网易云自带IPC对象，因为量比较大所以不做类型限定了
+	const channel: any;
 	const h: typeof createElement;
 	const f: typeof Fragment;
 	const dom: typeof BetterNCM.utils.dom;

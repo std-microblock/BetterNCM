@@ -462,6 +462,17 @@ App::App()
 			wstring url = frame->get_url(frame)->str;
 
 			EasyCEFHooks::executeJavaScript(frame,
+				R"(
+!(function fixNCMReloadPosition() {
+	let oChannelCall = channel.call;
+	channel.call = (name,...args) => {
+		if (name === "winhelper.setWindowPosition" && window.screenX !== 0) return;
+		oChannelCall(name,...args);
+	};
+})();
+)", "betterncm://betterncm/fix_window_position.js");
+
+			EasyCEFHooks::executeJavaScript(frame,
 				"const BETTERNCM_API_KEY='" + apiKey + "'; " +
 				"const BETTERNCM_API_PORT = " + to_string(this->server_port) + ";" +
 				"const BETTERNCM_API_PATH = 'http://localhost:" + to_string(this->server_port) + "/api'; " +
