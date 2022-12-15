@@ -93,16 +93,14 @@ std::thread* App::create_server(string apiKey)
 
 	BNString path = req.get_param_value("path");
 
+	if (path[1] != ':') {
+		path = datapath + L"/" + path;
+	}
+
 	vector<string> paths;
 
-	if (path[1] == ':') {
-		for (const auto& entry : fs::directory_iterator((wstring)path))
-			paths.push_back(entry.path().string());
-	}
-	else {
-		for (const auto& entry : fs::directory_iterator(datapath + L"/" + path))
-			paths.push_back(pystring::slice(entry.path().string(), datapath.length() + 1));
-	}
+	for (const auto& entry : fs::directory_iterator((wstring)path))
+		paths.push_back(BNString(entry.path().wstring()).utf8());
 
 	res.set_content(((nlohmann::json)paths).dump(), "application/json");
 		});
@@ -441,18 +439,18 @@ App::App()
 			)
 		{
 			auto cef_browser_host = browser->get_host(browser);
-			if (browser->get_host(browser)->has_dev_tools(cef_browser_host))
-			{
-				browser->get_host(browser)->close_dev_tools(cef_browser_host);
-			}
-			else
-			{
-				CefWindowInfo windowInfo{};
-				CefBrowserSettings settings{};
-				CefPoint point{};
-				windowInfo.SetAsPopup(NULL, "EasyCEFInject DevTools");
-				cef_browser_host->show_dev_tools(cef_browser_host, &windowInfo, client, &settings, &point);
-			}
+				if (browser->get_host(browser)->has_dev_tools(cef_browser_host))
+				{
+					browser->get_host(browser)->close_dev_tools(cef_browser_host);
+				}
+				else
+				{
+					CefWindowInfo windowInfo{};
+					CefBrowserSettings settings{};
+					CefPoint point{};
+					windowInfo.SetAsPopup(NULL, "EasyCEFInject DevTools");
+					cef_browser_host->show_dev_tools(cef_browser_host, &windowInfo, client, &settings, &point);
+				}
 		}
 	};
 
