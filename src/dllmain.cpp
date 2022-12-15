@@ -7,7 +7,7 @@
 #include "utils.h"
 
 #pragma comment(linker, "/EXPORT:vSetDdrawflag=_AheadLib_vSetDdrawflag,@1")
-#pragma comment(linker, "/EXPORT:AlphaBlend=_AheadLib_AlphaBlend,@2")
+#pragma comment(linker, "/EXPORT:AlphaBlend=_AheadLib_AlphaBlend,@2") 
 #pragma comment(linker, "/EXPORT:DllInitialize=_AheadLib_DllInitialize,@3")
 #pragma comment(linker, "/EXPORT:GradientFill=_AheadLib_GradientFill,@4")
 #pragma comment(linker, "/EXPORT:TransparentBlt=_AheadLib_TransparentBlt,@5")
@@ -16,7 +16,7 @@
 #define NAKED __declspec(naked)
 #define EXPORT __declspec(dllexport)
 
-#define ALCPP EXPORT NAKED
+#define ALCPP EXPORT NAKED 
 #define ALSTD EXTERNC EXPORT NAKED void __stdcall
 #define ALCFAST EXTERNC EXPORT NAKED void __fastcall
 #define ALCDECL EXTERNC NAKED void __cdecl
