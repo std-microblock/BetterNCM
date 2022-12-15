@@ -154,7 +154,8 @@ async function loadPlugins() {
 				);
 			}
 		} catch (e) {
-			console.error("Failed to load plugin", path, e);
+			if (e instanceof SyntaxError) console.error("Failed to load plugin:", e);
+			else throw e;
 		}
 	};
 
