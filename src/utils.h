@@ -1,18 +1,19 @@
 #pragma once
 #include "pch.h"
 #include <string>
+#include "../utils/BNString.hpp"
 #include "pystring/pystring.h"
 
-string read_to_string(const string& path);
+BNString read_to_string(const BNString& path);
 string ws2s(const wstring& str);
-std::wstring s2ws(const std::string& s, bool isUtf8 = true);
-void write_file_text(const string& path, const string& text, bool append = false);
-string getEnvironment(const string& key);
-wstring getNCMPath();
+std::wstring s2ws(const string& s, bool isUtf8 = true);
+void write_file_text(const BNString& path, const BNString& text, bool append = false);
+BNString getEnvironment(const BNString& key);
+BNString getNCMPath();
 
 string get_command_line();
 
-extern string datapath;
+extern BNString datapath;
 
 bool screenCapturePart(LPCWSTR fname);
 bool saveBitmap(LPCWSTR filename, HBITMAP bmp, HPALETTE pal);
@@ -31,7 +32,7 @@ void alert(T item)
 
 
 std::string load_string_resource(LPCTSTR name);
-std::string wstring_to_utf_8(const std::wstring& str);
+std::string wstring_to_utf8(const std::wstring& str);
 std::wstring utf8_to_wstring(const std::string& utf8);
 semver::version getNCMExecutableVersion();
 std::wstring wreplaceAll(std::wstring str, const std::wstring& from, const std::wstring& to);

@@ -185,6 +185,7 @@ npm run build</Command>
     <ClInclude Include="src\pch.h" />
     <ClInclude Include="src\resource.h" />
     <ClInclude Include="src\utils.h" />
+    <ClInclude Include="utils\BNString.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\App.cpp" />

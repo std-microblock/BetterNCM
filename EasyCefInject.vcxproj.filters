@@ -36,6 +36,9 @@
     <ClInclude Include="src\framework.h">
       <Filter>头文件</Filter>
     </ClInclude>
+    <ClInclude Include="utils\BNString.hpp">
+      <Filter>头文件</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\dllmain.cpp">
@@ -59,9 +62,6 @@
     <None Include="resource\rcdata2.bin">
       <Filter>js</Filter>
     </None>
-    <None Include="src\framework.js">
-      <Filter>js</Filter>
-    </None>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="src\resource.rc">
@@ -72,5 +72,6 @@
     <Text Include="src\framework.css">
       <Filter>js</Filter>
     </Text>
+    <Text Include="src\framework.js" />
   </ItemGroup>
 </Project>

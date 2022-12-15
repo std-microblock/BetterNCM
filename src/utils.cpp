@@ -6,11 +6,11 @@
 #pragma comment(lib, "version.lib")
 
 extern HMODULE g_hModule;
-string read_to_string(const string& path) {
-	std::ifstream t(path);
-	std::stringstream buffer;
+BNString read_to_string(const BNString& path) {
+	std::wifstream t(path);
+	std::wstringstream buffer;
 	buffer << t.rdbuf();
-	return string(buffer.str());
+	return buffer.str();
 }
 
 // https://stackoverflow.com/questions/4804298/how-to-convert-wstring-into-string   (modified)
@@ -38,8 +38,8 @@ std::wstring s2ws(const std::string& s, bool isUtf8)
 }
 
 
-void write_file_text(const string& path, const string& text, bool append) {
-	ofstream file;
+void write_file_text(const BNString& path, const BNString& text, bool append) {
+	std::wofstream file;
 	if (append)
 		file.open(path, std::ios_base::app);
 	else
@@ -50,13 +50,14 @@ void write_file_text(const string& path, const string& text, bool append) {
 }
 
 // https://stackoverflow.com/questions/4130180/how-to-use-vs-c-getenvironmentvariable-as-cleanly-as-possible
-string getEnvironment(const string& key) {
-	return ws2s(wstring(_wgetenv(s2ws(key).c_str())));
+BNString getEnvironment(const BNString& key) {
+	if (!_wgetenv(key.c_str()))return BNString("");
+	return ws2s(wstring(_wgetenv(key.c_str())));
 }
 
-string datapath = "\\betterncm";
+BNString datapath = "\\betterncm";
 
-wstring getNCMPath() {
+BNString getNCMPath() {
 	wchar_t buffer[MAX_PATH];
 	GetModuleFileNameW(NULL, buffer, MAX_PATH);
 	std::wstring::size_type pos = std::wstring(buffer).find_last_of(L"\\/");
@@ -181,7 +182,7 @@ std::string load_string_resource(LPCTSTR name)
 	return ret;
 }
 
-std::string wstring_to_utf_8(const std::wstring& str)
+std::string wstring_to_utf8(const std::wstring& str)
 {
 	std::string ret;
 	int len = WideCharToMultiByte(CP_UTF8, 0, str.c_str(), str.length(), NULL, 0, NULL, NULL);

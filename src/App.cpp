@@ -9,14 +9,15 @@ namespace fs = std::filesystem;
 
 const auto version = "0.2.4";
 
-extern string datapath;
+extern BNString datapath;
 
 string App::readConfig(const string& key, const string& def)
 {
-	auto configPath = datapath + "/config.json";
+	auto configPath = datapath + L"/config.json";
 	if (!fs::exists(configPath))
 		write_file_text(configPath, "{}");
-	auto json = nlohmann::json::parse(read_to_string(configPath));
+	auto str = read_to_string(configPath).utf8();
+	auto json = nlohmann::json::parse(str);
 	if (!(json[key].is_string()))
 		json[key] = def;
 	write_file_text(configPath, json.dump());
@@ -25,10 +26,10 @@ string App::readConfig(const string& key, const string& def)
 
 void App::writeConfig(const string& key, const string& val)
 {
-	auto configPath = datapath + "/config.json";
+	auto configPath = datapath.utf8() + "/config.json";
 	if (!fs::exists(configPath))
 		write_file_text(configPath, "{}");
-	auto json = nlohmann::json::parse(read_to_string(configPath));
+	auto json = nlohmann::json::parse(read_to_string(configPath).utf8());
 	json[key] = val;
 	write_file_text(configPath, json.dump());
 }
@@ -90,16 +91,16 @@ std::thread* App::create_server(string apiKey)
 	using namespace std;
 	namespace fs = std::filesystem;
 
-	auto path = req.get_param_value("path");
+	BNString path = req.get_param_value("path");
 
 	vector<string> paths;
 
 	if (path[1] == ':') {
-		for (const auto& entry : fs::directory_iterator(path))
+		for (const auto& entry : fs::directory_iterator((wstring)path))
 			paths.push_back(entry.path().string());
 	}
 	else {
-		for (const auto& entry : fs::directory_iterator(datapath + "/" + path))
+		for (const auto& entry : fs::directory_iterator(datapath + L"/" + path))
 			paths.push_back(pystring::slice(entry.path().string(), datapath.length() + 1));
 	}
 
@@ -111,13 +112,13 @@ std::thread* App::create_server(string apiKey)
 	using namespace std;
 	namespace fs = std::filesystem;
 
-	auto path = req.get_param_value("path");
+	BNString path = req.get_param_value("path");
 
 	if (path[1] != ':') {
-		res.set_content(read_to_string(datapath + "/" + path), "text/plain");
+		res.set_content(read_to_string(datapath + L"/" + path).utf8(), "text/plain");
 	}
 	else {
-		res.set_content(read_to_string(path), "text/plain");
+		res.set_content(read_to_string(path).utf8(), "text/plain");
 	}
 		});
 
@@ -126,19 +127,19 @@ std::thread* App::create_server(string apiKey)
 	using namespace std;
 	namespace fs = std::filesystem;
 
-	auto path = req.get_param_value("path");
+	BNString path = req.get_param_value("path");
 
-	auto dest = req.get_param_value("dest");
+	BNString dest = req.get_param_value("dest");
 
 	if (path[1] != ':') {
-		path = datapath + "/" + path;
+		path = datapath + L"/" + path;
 	}
 
 	if (dest[1] != ':') {
-		dest = datapath + "/" + dest;
+		dest = datapath + L"/" + dest;
 	}
 
-	res.set_content(to_string(zip_extract(path.c_str(), dest.c_str(), NULL, NULL)), "text/plain");
+	res.set_content(to_string(zip_extract(path.utf8().c_str(), dest.utf8().c_str(), NULL, NULL)), "text/plain");
 		});
 
 	svr->Get("/api/fs/mkdir", [&](const httplib::Request& req, httplib::Response& res) {
@@ -146,14 +147,14 @@ std::thread* App::create_server(string apiKey)
 	using namespace std;
 	namespace fs = std::filesystem;
 
-	auto path = req.get_param_value("path");
+	BNString path = req.get_param_value("path");
 
 	if (path[1] != ':') {
-		fs::create_directories(datapath + "/" + path);
+		fs::create_directories(datapath + L"/" + path);
 		res.status = 200;
 	}
 	else {
-		fs::create_directories(path);
+		fs::create_directories((wstring)path);
 		res.status = 200;
 	}
 		});
@@ -163,13 +164,13 @@ std::thread* App::create_server(string apiKey)
 	using namespace std;
 	namespace fs = std::filesystem;
 
-	auto path = req.get_param_value("path");
+	BNString path = req.get_param_value("path");
 
 	if (path[1] != ':') {
-		res.set_content(fs::exists(datapath + "/" + path) ? "true" : "false", "text/plain");
+		res.set_content(fs::exists(datapath + L"/" + path) ? "true" : "false", "text/plain");
 	}
 	else {
-		res.set_content(fs::exists(path) ? "true" : "false", "text/plain");
+		res.set_content(fs::exists((wstring)path) ? "true" : "false", "text/plain");
 	}
 		});
 
@@ -178,10 +179,10 @@ std::thread* App::create_server(string apiKey)
 	using namespace std;
 	namespace fs = std::filesystem;
 
-	auto path = req.get_param_value("path");
+	BNString path = req.get_param_value("path");
 
 	if (path[1] != ':') {
-		write_file_text(datapath + "/" + path, req.body);
+		write_file_text(datapath + L"/" + path, req.body);
 		res.status = 200;
 	}
 	else {
@@ -195,11 +196,11 @@ std::thread* App::create_server(string apiKey)
 	using namespace std;
 	namespace fs = std::filesystem;
 
-	auto path = req.get_param_value("path");
+	BNString path = req.get_param_value("path");
 
 	if (path[1] != ':') {
 		auto file = req.get_file_value("file");
-		ofstream ofs(datapath + "/" + path, ios::binary);
+		ofstream ofs(datapath + L"/" + path, ios::binary);
 		ofs << file.content;
 
 		res.status = 200;
@@ -218,14 +219,14 @@ std::thread* App::create_server(string apiKey)
 	using namespace std;
 	namespace fs = std::filesystem;
 
-	auto path = req.get_param_value("path");
+	BNString path = req.get_param_value("path");
 
 	if (path[1] != ':') {
-		fs::remove_all(datapath + "/" + path);
+		fs::remove_all(datapath + L"/" + path);
 		res.status = 200;
 	}
 	else {
-		fs::remove_all(path);
+		fs::remove_all((wstring)path);
 		res.status = 200;
 	}
 		});
@@ -248,12 +249,12 @@ std::thread* App::create_server(string apiKey)
 
 	svr->Get("/api/app/datapath", [&](const httplib::Request& req, httplib::Response& res) {
 		checkApiKey;
-	res.set_content(datapath, "text/plain");
+	res.set_content(datapath.utf8(), "text/plain");
 		});
 
 	svr->Get("/api/app/ncmpath", [&](const httplib::Request& req, httplib::Response& res) {
 		checkApiKey;
-	res.set_content(wstring_to_utf_8(getNCMPath()), "text/plain");
+	res.set_content(getNCMPath().utf8(), "text/plain");
 		});
 
 	svr->Get("/api/app/version", [&](const httplib::Request& req, httplib::Response& res) {
@@ -308,7 +309,7 @@ std::thread* App::create_server(string apiKey)
 		checkApiKey;
 	HWND ncmWin = FindWindow(L"OrpheusBrowserHost", NULL);
 	SetWindowDisplayAffinity(ncmWin, WDA_EXCLUDEFROMCAPTURE);
-	screenCapturePart(s2ws(datapath + "/screenshot.bmp").c_str());
+	screenCapturePart(s2ws(datapath.utf8() + "/screenshot.bmp").c_str());
 	res.set_content("http://localhost:3248/local/screenshot.bmp", "text/plain");
 	SetWindowDisplayAffinity(ncmWin, WDA_NONE);
 		});
@@ -501,8 +502,8 @@ App::App()
 			};
 
 			if (readConfig("cc.microblock.betterncm.cpp_side_inject_feature_disabled", "false") != "true") {
-				loadStartupScripts(datapath + "/plugins_runtime");
-				loadStartupScripts(datapath + "/plugins_dev");
+				loadStartupScripts(datapath.utf8() + "/plugins_runtime");
+				loadStartupScripts(datapath.utf8() + "/plugins_dev");
 			}
 		}
 	};
@@ -545,13 +546,13 @@ App::App()
 				}
 				catch (std::invalid_argument e)
 				{
-					write_file_text(datapath + "/log.log", string("\n[" + file.path().string() + "]Plugin Hijacking Error: ") + (e.what()), true);
+					write_file_text(datapath.utf8() + "/log.log", string("\n[" + file.path().string() + "]Plugin Hijacking Error: ") + (e.what()), true);
 				}
 			}
 		return satisfied_hijacks;
 	};
 
-	vector<nlohmann::json> satisfied_hijacks = loadHijacking(datapath + "/plugins_runtime");
+	vector<nlohmann::json> satisfied_hijacks = loadHijacking(datapath.utf8() + "/plugins_runtime");
 
 
 	EasyCEFHooks::onHijackRequest = [=](string url) -> std::function<wstring(wstring)>
@@ -580,7 +581,7 @@ App::App()
 
 		filter_hijacks(satisfied_hijacks);
 
-		auto satisfied_hijacks_dev = loadHijacking(datapath + "/plugins_dev");
+		auto satisfied_hijacks_dev = loadHijacking(datapath.utf8() + "/plugins_dev");
 		filter_hijacks(satisfied_hijacks_dev);
 
 		std::function<wstring(wstring)> processor = nullptr;
@@ -658,31 +659,31 @@ App::~App()
 	httpServer = nullptr;
 	EasyCEFHooks::UninstallHook();
 
-	if (fs::exists(datapath + "/plugins_runtime"))
-		fs::remove_all(datapath + "/plugins_runtime");
+	if (fs::exists(datapath.utf8() + "/plugins_runtime"))
+		fs::remove_all(datapath.utf8() + "/plugins_runtime");
 }
 
 void App::extractPlugins()
 {
 	error_code ec;
-	if (fs::exists(datapath + "/plugins_runtime"))
-		fs::remove_all(datapath + "/plugins_runtime", ec);
+	if (fs::exists(datapath.utf8() + "/plugins_runtime"))
+		fs::remove_all(datapath.utf8() + "/plugins_runtime", ec);
 
-	fs::create_directories(datapath + "/plugins_runtime");
+	fs::create_directories(datapath.utf8() + "/plugins_runtime");
 
-	for (auto file : fs::directory_iterator(datapath + "/plugins"))
+	for (auto file : fs::directory_iterator(datapath.utf8() + "/plugins"))
 	{
 		auto path = file.path().string();
 		if (pystring::endswith(path, ".plugin"))
 		{
-			zip_extract(path.c_str(), (datapath + "/plugins_runtime/tmp").c_str(), NULL, NULL);
+			zip_extract(path.c_str(), (datapath.utf8() + "/plugins_runtime/tmp").c_str(), NULL, NULL);
 			try
 			{
-				auto modManifest = nlohmann::json::parse(read_to_string(datapath + "/plugins_runtime/tmp/manifest.json"));
+				auto modManifest = nlohmann::json::parse(read_to_string(datapath.utf8() + "/plugins_runtime/tmp/manifest.json"));
 				if (modManifest["manifest_version"] == 1)
 				{
-					write_file_text(datapath + "/plugins_runtime/tmp/.plugin.path.meta", pystring::slice(path, datapath.length()));
-					fs::rename(datapath + "/plugins_runtime/tmp", datapath + "/plugins_runtime/" + (string)modManifest["name"]);
+					write_file_text(datapath.utf8() + "/plugins_runtime/tmp/.plugin.path.meta", pystring::slice(path, datapath.length()));
+					fs::rename(datapath.utf8() + "/plugins_runtime/tmp", datapath.utf8() + "/plugins_runtime/" + (string)modManifest["name"]);
 				}
 				else
 				{
@@ -691,8 +692,8 @@ void App::extractPlugins()
 			}
 			catch (exception e)
 			{
-				write_file_text(datapath + "/log.log", string("\nPlugin Loading Error: ") + (e.what()), true);
-				fs::remove_all(datapath + "/plugins_runtime/tmp");
+				write_file_text(datapath.utf8() + "/log.log", BNString::fromGBK(string("\nPlugin Loading Error: ") + (e.what())), true);
+				fs::remove_all(datapath.utf8() + "/plugins_runtime/tmp");
 			}
 		}
 	}

@@ -169,7 +169,7 @@ public:
 	int datasize = 0;
 	int dataPointer = 0;
 	void fillData(wstring s) {
-		fillData(wstring_to_utf_8(s));
+		fillData(wstring_to_utf8(s));
 	};
 	void fillData(string s) {
 		data = std::vector<char>(s.begin(), s.end());
@@ -231,7 +231,7 @@ int CEF_CALLBACK hook_scheme_handler_read(struct _cef_resource_handler_t* self,
 	if (processor) {
 		cout << urlMap[self].url << " hijacked" << endl;
 		urlMap[self].fillData(self, callback);
-		urlMap[self].fillData(wstring_to_utf_8(processor(urlMap[self].getDataStr())));
+		urlMap[self].fillData(wstring_to_utf8(processor(urlMap[self].getDataStr())));
 		if (urlMap[self].sendData(data_out, bytes_to_read, bytes_read))return 1;
 		else {
 			urlMap.erase(self);

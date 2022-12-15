@@ -10,7 +10,7 @@
 #pragma comment(linker, "/EXPORT:AlphaBlend=_AheadLib_AlphaBlend,@2") 
 #pragma comment(linker, "/EXPORT:DllInitialize=_AheadLib_DllInitialize,@3")
 #pragma comment(linker, "/EXPORT:GradientFill=_AheadLib_GradientFill,@4")
-#pragma comment(linker, "/EXPORT:TransparentBlt=_AheadLib_TransparentBlt,@5")
+#pragma comment(linker, "/EXPORT:TransparentBlt=_AheadLib_TransparentBlt,@5") 
 
 #define EXTERNC extern "C"
 #define NAKED __declspec(naked)
@@ -156,6 +156,8 @@ ALCDECL AheadLib_TransparentBlt(void)
 #pragma runtime_checks( "", restore )
 HMODULE  g_hModule = nullptr;
 
+extern BNString datapath;
+
 BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 {
 	if (dwReason == DLL_PROCESS_ATTACH)
@@ -164,12 +166,11 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 		if (pystring::find(get_command_line(), "--type") == -1) {
 			AllocConsole();
 			freopen("CONOUT$", "w", stdout);
-
 #ifndef _DEBUG
 			ShowWindow(GetConsoleWindow(), SW_HIDE);
 #endif
 
-			extern string datapath;
+
 			namespace fs = std::filesystem;
 
 			// Pick data folder
@@ -177,24 +178,26 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 				datapath = getEnvironment("BETTERNCM_PROFILE");
 			}
 			else {
-				if ((int)fs::status(getEnvironment("USERPROFILE") + "\\betterncm").permissions() & (int)std::filesystem::perms::owner_write) {
-					datapath = getEnvironment("USERPROFILE") + "\\betterncm";
+				if ((int)fs::status(getEnvironment("USERPROFILE") + L"\\betterncm").permissions() & (int)std::filesystem::perms::owner_write) {
+					datapath = getEnvironment("USERPROFILE") + L"\\betterncm";
 				}
 				else {
 					datapath = "C:\\betterncm";
 				}
 			}
 
-			if ((int)fs::status(datapath).permissions() & (int)std::filesystem::perms::owner_write) {
+			std::wcout << L"Data folder picked: {}" << datapath;
+
+			if ((int)fs::status((wstring)datapath).permissions() & (int)std::filesystem::perms::owner_write) {
 				// Create data folder
-				fs::create_directories(datapath + "/plugins");
+				fs::create_directories(datapath + L"/plugins");
 
 				// PluginMarket
 				HRSRC myResource = ::FindResource(hModule, MAKEINTRESOURCE(IDR_RCDATA1), RT_RCDATA);
 				unsigned int myResourceSize = ::SizeofResource(hModule, myResource);
 				HGLOBAL myResourceData = ::LoadResource(hModule, myResource);
 				void* pMyBinaryData = ::LockResource(myResourceData);
-				std::ofstream f(datapath + "/plugins/PluginMarket.plugin", std::ios::out | std::ios::binary);
+				std::ofstream f(datapath + L"/plugins/PluginMarket.plugin", std::ios::out | std::ios::binary);
 				f.write((char*)pMyBinaryData, myResourceSize);
 				f.close();
 
