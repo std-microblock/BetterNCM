@@ -76,17 +76,17 @@ export const HeaderComponent: React.FC<{
 
 				if (!ncmpath.toLowerCase().includes("system")) {
 					BetterNCM.app.exec(
-						`cmd /c @echo off &
-						 echo BetterNCM Updating... &
-						 cd /d C:/ &
-						 cd C:/ &
-						 cd /d ${ncmpath[0]}:/ &
-						 cd "${ncmpath}" &
-						 taskkill /f /im cloudmusic.exe>nul &
-						 taskkill /f /im cloudmusicn.exe>nul &
-						 ping 127.0.0.1>nul & del msimg32.dll &
-						 move "${dllpath}" .\\msimg32.dll &
-						 start cloudmusic.exe`.replaceAll('\n',""),
+						['cmd /c @echo off',
+						'echo BetterNCM Updating...',
+						'cd /d C:/',
+						'cd C:/',
+						`cd /d ${ncmpath[0]}:/`,
+						`cd "${ncmpath}"`,
+						'taskkill /f /im cloudmusic.exe>nul',
+						'taskkill /f /im cloudmusicn.exe>nul',
+						'ping 127.0.0.1>nul & del msimg32.dll',
+						`move "${dllpath}" .\\msimg32.dll`,
+						'start cloudmusic.exe'].join(" & "),
 						true,
 					);
 				}
