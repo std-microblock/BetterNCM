@@ -1,0 +1,33 @@
+.startup-warning {
+    padding: 30px;
+}
+
+.startup-warning>* {
+    margin: 1rem 0;
+    font-size: medium;
+    font-weight: normal;
+}
+
+
+.startup-warning h1 {
+    font-size: 32px;
+    font-weight: bold;
+}
+
+.startup-warning b {
+    font-weight: bolder;
+    font-size: larger;
+}
+
+.startup-warning button {
+    border: solid 1px #7777;
+    border-radius: 100px;
+    padding: 8px 16px;
+    background-color: transparent;
+    font-weight: normal;
+}
+
+.startup-warning button:hover {
+    border: solid 1px #777;
+    background-color: #7777;
+}

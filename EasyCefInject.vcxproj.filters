@@ -56,13 +56,10 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="resource\PluginMarket.plugin" />
-    <None Include="src\api.js">
+    <None Include="resource\rcdata2.bin">
       <Filter>js</Filter>
     </None>
-    <None Include="src\loader.js">
-      <Filter>js</Filter>
-    </None>
-    <None Include="src\plugin_manager.js">
+    <None Include="src\framework.js">
       <Filter>js</Filter>
     </None>
   </ItemGroup>
@@ -70,5 +67,10 @@
     <ResourceCompile Include="src\resource.rc">
       <Filter>源文件</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="src\framework.css">
+      <Filter>js</Filter>
+    </Text>
   </ItemGroup>
 </Project>

@@ -6,24 +6,17 @@
 <a href=https://www.bilibili.com/video/BV1g841187g6/>介绍视频</a> · 
 <a href=https://microblock.cc/betterncm/>项目页面</a>
 
-
 </h3>
-
-
-
-
-
 
 ![image](https://user-images.githubusercontent.com/66859419/204120694-a716c6a0-3b2a-4f99-9a2b-f93dd917a367.png)
 
+---
 
-***
 最新测试兼容版本：`2.10.6`
 
 # 安装
 
 使用[BetterNCM Installer](https://github.com/MicroCBer/BetterNCM-Installer)一键安装~
-
 
 # Star History
 

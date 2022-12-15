@@ -105,6 +105,10 @@
 ping localhost -n 2 &gt; nul
 copy "$(TargetDir)BetterNCMII.dll" "C:\Program Files (x86)\Netease\CloudMusic\msimg32.dll" /y</Command>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>cd js-framework
+npm run build:dev</Command>
+    </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -132,6 +136,13 @@ copy "$(TargetDir)BetterNCMII.dll" "C:\Program Files (x86)\Netease\CloudMusic\ms
 ping localhost -n 2
 copy "$(TargetDir)BetterNCMII.dll" "C:\Program Files (x86)\Netease\CloudMusic\msimg32.dll" /y</Command>
     </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>cd js-framework
+npm run build</Command>
+    </PreBuildEvent>
+    <CustomBuildStep>
+      <Inputs>%(Inputs)</Inputs>
+    </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
@@ -184,9 +195,13 @@ copy "$(TargetDir)BetterNCMII.dll" "C:\Program Files (x86)\Netease\CloudMusic\ms
   </ItemGroup>
   <ItemGroup>
     <None Include="resource\PluginMarket.plugin" />
-    <None Include="src\api.js" />
-    <None Include="src\loader.js" />
-    <None Include="src\plugin_manager.js" />
+    <None Include="resource\rcdata2.bin" />
+    <Text Include="src\framework.css">
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</DeploymentContent>
+    </Text>
+    <Text Include="src\framework.js">
+      <DeploymentContent Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">true</DeploymentContent>
+    </Text>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="src\resource.rc" />
