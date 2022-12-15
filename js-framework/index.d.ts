@@ -1,10 +1,38 @@
 /// <reference types="react" />
-declare function initNCMReact(): boolean;
-declare const reactHookTimer: number;
+declare module "betterncm-api/utils" {
+    export namespace utils {
+        function waitForElement<K extends keyof HTMLElementTagNameMap>(selector: K, interval?: number): Promise<HTMLElementTagNameMap[K] | null>;
+        function waitForElement<K extends keyof SVGElementTagNameMap>(selector: K, interval?: number): Promise<SVGElementTagNameMap[K] | null>;
+        function waitForElement<E extends Element = Element>(selector: string, interval?: number): Promise<E | null>;
+        /**
+         * 重复调用某函数，直到其返回任意真值，并返回该真值。
+         * @param func 函数
+         * @param interval 重复调用时间间隔
+         * @returns `func` 函数的返回值
+         */
+        function waitForFunction<T>(func: () => T, interval?: number): Promise<T>;
+        /**
+         * 创建一个将在一定时间后 resolve 的 Promise
+         * @param ms 延迟时间，以毫秒为单位。
+         * @returns 将在ms毫秒后resolve的一个Promise
+         */
+        function delay(ms: number): Promise<unknown>;
+        /**
+         * 简易的创建一个元素的函数
+         * @deprecated 早期未使用 React 时写的辅助函数，已弃用，请考虑使用自带的 React 构建复杂页面。
+         * @param tag 元素类型
+         * @param settings 元素的属性键值对
+         * @param children 元素的子元素，按顺序添加
+         * @returns
+         */
+        function dom(tag: string, settings: any, ...children: HTMLElement[]): HTMLElement;
+    }
+}
+declare module "betterncm-api/react" { }
 declare module "betterncm-api/base" {
-    export const BETTERNCM_API_PATH = "http://localhost:3248/api";
-    export const BETTERNCM_FILES_PATH = "http://localhost:3248/local";
-    export const ncmFetch: (relPath: string, option?: RequestInit) => Promise<Response>;
+    export const betterncmFetch: (relPath: string, option?: RequestInit & {
+        ignoreApiKey?: boolean;
+    }) => Promise<Response>;
 }
 declare module "betterncm-api/fs" {
     /**
@@ -14,7 +42,7 @@ declare module "betterncm-api/fs" {
         /**
          * 异步读取指定文件夹路径下的所有文件和文件夹
          * @param folderPath 需要读取的文件夹路径
-         * @returns TODO: 返回的啥玩意
+         * @returns 所有文件和文件夹的相对路径或绝对路径
          */
         function readDir(folderPath: string): Promise<string[]>;
         /**
@@ -25,32 +53,29 @@ declare module "betterncm-api/fs" {
         function readFileText(filePath: string): Promise<string>;
         /**
          * 解压指定的 ZIP 压缩文件到一个指定的文件夹中
-         * 由于 C++ 侧没有对是否解压成功与否做判断，所以请自行确认是否正确解压到了相应位置
-         * （不过失败的概率应该不大吧）
          * @param zipPath 需要解压的 ZIP 压缩文件路径
          * @param unzipDest 需要解压到的文件夹路径，如果不存在则会创建，如果解压时有文件存在则会被覆盖
+         * @returns 返回值，若为0则成功，若为负值则失败
          */
-        function unzip(zipPath: string, unzipDest?: string): Promise<boolean>;
+        function unzip(zipPath: string, unzipDest?: string): Promise<number>;
         /**
          * 将文本写入到指定文件内
-         * 由于 C++ 侧没有对是否写入成功与否做判断，所以请自行确认是否正确写入
-         * （不过失败的概率应该不大吧）
          * @param filePath 需要写入的文件路径
          * @param content 需要写入的文件内容
+         * @returns 是否成功
          */
         function writeFileText(filePath: string, content: string): Promise<boolean>;
         /**
          * 将文本或二进制数据写入到指定文件内
          * @param filePath 需要写入的文件路径
          * @param content 需要写入的文件内容
+         * @returns 是否成功
          */
         function writeFile(filePath: string, content: string | Blob): Promise<boolean>;
         /**
          * 在指定路径新建文件夹
-         * 由于 C++ 侧没有对是否创建成功做判断，所以需要自行调用 `betterncm.fs.exists()`
-         * 函数确认是否成功创建。
          * @param dirPath 文件夹的路径
-         * @see {@link exists}
+         * @returns 是否成功
          */
         function mkdir(dirPath: string): Promise<boolean>;
         /**
@@ -81,24 +106,84 @@ declare module "betterncm-api/app" {
          * @returns 当前 BetterNCM 的版本号
          */
         function getBetterNCMVersion(): Promise<string>;
+        /**
+         * 全屏截图
+         * @returns 截图的网络地址
+         * @todo 修改为返回 Blob
+         */
         function takeBackgroundScreenshot(): Promise<string>;
-        function getNCMWinPos(): Promise<any>;
+        /**
+         * 获取网易云窗口位置
+         * @returns 位置
+         */
+        function getNCMWinPos(): Promise<{
+            x: number;
+            y: number;
+        }>;
+        /**
+         * 重新解压所有插件
+         * @returns 是否成功
+         */
         function reloadPlugins(): Promise<boolean>;
+        /**
+         * 获取目前 BetterNCM 数据目录
+         * @returns 数据目录路径
+         */
         function getDataPath(): Promise<string>;
+        /**
+         * 读取 BetterNCM 设置
+         * @param key 键
+         * @param defaultValue 默认值
+         * @returns 读取到的值
+         */
         function readConfig(key: string, defaultValue: string): Promise<string>;
-        function writeConfig(key: string, value: string): Promise<string>;
+        /**
+         * 设置 BetterNCM 设置
+         * @param key 键
+         * @param value 值
+         * @returns 是否成功
+         */
+        function writeConfig(key: string, value: string): Promise<boolean>;
+        /**
+         * 获取网易云安装目录
+         * @returns 安装目录
+         */
         function getNCMPath(): Promise<string>;
+        /**
+         * 打开网易云主进程的Console
+         * @returns 是否成功
+         */
         function showConsole(): Promise<boolean>;
+        /**
+         * 设置Win11 DWM圆角开启状态
+         * @param enable 是否开启
+         * @returns 是否成功
+         */
         function setRoundedCorner(enable?: boolean): Promise<boolean>;
+        /**
+         * 打开一个选择文件对话框
+         * @param filter 要筛选的文件类型
+         * @param initialDir 对话框初始地址
+         * @returns 选择的文件地址，若未选择则为空字符串
+         */
         function openFileDialog(filter: string, initialDir: string): Promise<string>;
-        function isLightTheme(): Promise<boolean>;
-        function getSucceededHijacks(): Promise<any>;
+        /**
+         * 获取当前主题是否为亮色主题
+         * @todo 测试在 Windows 7 及 Windows 10 下是否正常工作
+         * @returns 当前主题是否为亮色主题
+         */
+        function isLightTheme(): Promise<any>;
+        /**
+         * 获取执行成功的 Hijack 日志
+         * @returns Hijack 日志
+         */
+        function getSucceededHijacks(): Promise<string[]>;
     }
 }
 declare module "betterncm-api/ncm" {
     export namespace ncm {
         function findNativeFunction(obj: Object, identifiers: string): string | undefined;
-        function openUrl(url: string): void;
+        function openUrl(url: string): any;
         function getNCMPackageVersion(): string;
         function getNCMFullVersion(): string;
         function getNCMVersion(): string;
@@ -106,43 +191,28 @@ declare module "betterncm-api/ncm" {
         function searchApiFunction(nameOrFinder: string | ((func: Function) => boolean), root?: any, currentPath?: string[], prevObjects?: any[], result?: [Function, any, string[]][]): [Function, any, string[]][];
         function searchForData(finder: (func: any) => boolean, root?: any, currentPath?: string[], prevObjects?: any[], result?: [any, any, string[]][]): [any, any, string[]][];
         function findApiFunction(nameOrFinder: string | ((func: Function) => boolean), root?: any, currentPath?: string[], prevObjects?: any[]): [Function, any, string[]] | null;
-        interface EAPIRequestConfig {
-            /**
-             * 返回响应的数据类型，绝大部分情况下都是 `json`
-             */
-            type: string;
-            data?: any;
-            method?: string;
-            query?: {
-                [param: string]: any;
-            };
-            onload?: Function;
-            onerror?: Function;
-            oncallback?: Function;
-        }
         /**
-         * 调用网易云自己的加密请求函数，获取相应的信息
-         * @param url 请求的链接，通常是 `APP_CONF.domain + 路径`
-         * @param config 请求的参数
-         * @todo 确认兼容版本范围内的函数名是否可用
+         * 获取当前正在播放的歌曲的信息，包括歌曲信息，来源，当前播放状态等
+         * @todo 补全返回值类型
+         * @returns 当前歌曲的播放信息
          */
-        function eapiRequest(url: string, config: EAPIRequestConfig): any;
+        function getPlayingSong(): any;
+        /**
+         * 获取当前正在播放的歌曲的简要信息
+         * @deprecated 由于找到了自带的接口，故这个函数被弃用，请转而使用 `betterncm.ncm.getPlayingSong`
+         * @returns 简化的播放信息
+         */
+        function getPlaying(): {
+            id: number;
+            title: string;
+            type: string;
+        };
     }
 }
 declare module "betterncm-api/tests" {
     export namespace tests {
         function fail(reason: string): Promise<void>;
         function success(message: string): Promise<void>;
-    }
-}
-declare module "betterncm-api/utils" {
-    export namespace utils {
-        function waitForElement<K extends keyof HTMLElementTagNameMap>(selector: K, interval?: number): Promise<HTMLElementTagNameMap[K] | null>;
-        function waitForElement<K extends keyof SVGElementTagNameMap>(selector: K, interval?: number): Promise<SVGElementTagNameMap[K] | null>;
-        function waitForElement<E extends Element = Element>(selector: string, interval?: number): Promise<E | null>;
-        function waitForFunction<T>(func: () => T, interval?: number): Promise<T>;
-        function delay(ms: number): Promise<unknown>;
-        function dom(tag: string, settings: any, ...children: HTMLElement[]): HTMLElement;
     }
 }
 declare module "betterncm-api/index" {
@@ -152,20 +222,25 @@ declare module "betterncm-api/index" {
      *
      * 插件作者可以通过此处的接口来和界面或程序外部交互
      */
-    import "./react";
+    import "betterncm-api/react";
     import { fs } from "betterncm-api/fs";
     import { app } from "betterncm-api/app";
     import { ncm } from "betterncm-api/ncm";
     import { tests } from "betterncm-api/tests";
     import { utils } from "betterncm-api/utils";
+    /**
+     * 包含加载动画的重载
+     */
+    function reload(): void;
     const BetterNCM: {
         fs: typeof fs;
         app: typeof app;
         ncm: typeof ncm;
         utils: typeof utils;
         tests: typeof tests;
-        reload(): void;
+        reload: typeof reload;
     };
+    export { fs, app, ncm, utils, tests, reload };
     export default BetterNCM;
 }
 declare module "plugin" {
@@ -189,7 +264,7 @@ declare module "plugin" {
         name: string;
         version: string;
         injects: {
-            [pageType: string]: InjectFile;
+            [pageType: string]: InjectFile[];
         };
         hijacks: {
             [versionRange: string]: {
@@ -217,6 +292,7 @@ declare module "plugin" {
         onLoad(fn: (selfPlugin: NCMPlugin, evt: CustomEvent) => void): void;
         onConfig(fn: (toolsBox: any) => HTMLElement): void;
         onAllPluginsLoaded(fn: (loadedPlugins: typeof window.loadedPlugins, evt: CustomEvent) => void): void;
+        getConfig<T>(key: string): T | undefined;
         getConfig<T>(key: string, defaultValue: T): T;
         setConfig<T>(key: string, value: T): void;
         _getConfigElement(): HTMLElement | null;
@@ -231,10 +307,17 @@ declare module "plugin-manager/components/progress-ring" {
     }>;
 }
 declare module "plugin-manager/components/header" {
-    export const HeaderComponent: React.FC;
+    export const HeaderComponent: React.FC<{
+        onRequestOpenStartupWarnings: Function;
+    }>;
 }
 declare module "plugin-manager/components/safe-mode-info" {
     export const SafeModeInfo: React.FC;
+}
+declare module "plugin-manager/components/warning" {
+    export const StartupWarning: React.FC<{
+        onRequestClose: Function;
+    }>;
 }
 declare module "plugin-manager/index" {
     import { loadedPlugins } from "loader";
@@ -250,7 +333,7 @@ declare module "loader" {
      *
      * @see {@link enableSafeMode}
      */
-    export function disableSafeMode(): void;
+    export function disableSafeMode(): Promise<void>;
     /**
      * 启用安全模式，将会在下一次重载生效
      *
@@ -260,7 +343,7 @@ declare module "loader" {
      *
      * 供用户和插件作者排查加载错误
      */
-    export function enableSafeMode(): void;
+    export function enableSafeMode(): Promise<void>;
     export class PluginLoadError extends Error {
         readonly pluginPath: string;
         readonly rawError: Error;
