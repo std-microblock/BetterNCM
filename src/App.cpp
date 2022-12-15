@@ -113,11 +113,14 @@ std::thread* App::create_server(string apiKey)
 	BNString path = req.get_param_value("path");
 
 	if (path[1] != ':') {
-		res.set_content(read_to_string(datapath + L"/" + path).utf8(), "text/plain");
+		path = datapath + L"/" + path;
 	}
-	else {
-		res.set_content(read_to_string(path).utf8(), "text/plain");
-	}
+
+
+		std::ifstream t(path);
+		std::stringstream buffer;
+		buffer << t.rdbuf();
+		res.set_content(buffer.str(), "text/plain");
 		});
 
 	svr->Get("/api/fs/unzip_file", [&](const httplib::Request& req, httplib::Response& res) {

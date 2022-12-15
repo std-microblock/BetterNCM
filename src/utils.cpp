@@ -7,8 +7,8 @@
 
 extern HMODULE g_hModule;
 BNString read_to_string(const BNString& path) {
-	std::wifstream t(path);
-	std::wstringstream buffer;
+	std::ifstream t(path);
+	std::stringstream buffer;
 	buffer << t.rdbuf();
 	return buffer.str();
 }
