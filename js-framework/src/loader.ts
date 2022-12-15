@@ -7,6 +7,7 @@ export let loadedPlugins: typeof window.loadedPlugins = {};
 
 const SAFE_MODE_KEY = "betterncm.safemode";
 const LOAD_ERROR_KEY = "betterncm.loaderror";
+const CPP_SIDE_INJECT_DISABLE_KEY = "cc.microblock.betterncm.cpp_side_inject_feature_disabled";
 
 /**
  * 禁用安全模式，将会在下一次重载生效
@@ -17,7 +18,7 @@ const LOAD_ERROR_KEY = "betterncm.loaderror";
  */
 export async function disableSafeMode() {
 	await BetterNCM.app.writeConfig(
-		"cc.microblock.betterncm.cpp_side_inject_feature_disabled",
+		CPP_SIDE_INJECT_DISABLE_KEY,
 		"false",
 	);
 	localStorage.removeItem(SAFE_MODE_KEY);
@@ -35,7 +36,7 @@ export async function disableSafeMode() {
  */
 export async function enableSafeMode() {
 	await BetterNCM.app.writeConfig(
-		"cc.microblock.betterncm.cpp_side_inject_feature_disabled",
+		CPP_SIDE_INJECT_DISABLE_KEY,
 		"true",
 	);
 	localStorage.setItem(SAFE_MODE_KEY, "true");
