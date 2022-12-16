@@ -117,10 +117,10 @@ std::thread* App::create_server(string apiKey)
 	}
 
 
-		std::ifstream t(path);
-		std::stringstream buffer;
-		buffer << t.rdbuf();
-		res.set_content(buffer.str(), "text/plain");
+	std::ifstream t(path);
+	std::stringstream buffer;
+	buffer << t.rdbuf();
+	res.set_content(buffer.str(), "text/plain");
 		});
 
 	svr->Get("/api/fs/unzip_file", [&](const httplib::Request& req, httplib::Response& res) {
@@ -142,6 +142,29 @@ std::thread* App::create_server(string apiKey)
 
 	res.set_content(to_string(zip_extract(path.utf8().c_str(), dest.utf8().c_str(), NULL, NULL)), "text/plain");
 		});
+
+	svr->Get("/api/fs/rename", [&](const httplib::Request& req, httplib::Response& res) {
+		checkApiKey;
+	using namespace std;
+	namespace fs = std::filesystem;
+
+	BNString path = req.get_param_value("path");
+
+	BNString dest = req.get_param_value("dest");
+
+	if (path[1] != ':') {
+		path = datapath + L"/" + path;
+	}
+
+	if (dest[1] != ':') {
+		dest = datapath + L"/" + dest;
+	}
+
+	fs::rename((wstring)path, (wstring)dest);
+
+	res.set_content("ok", "text/plain");
+		});
+
 
 	svr->Get("/api/fs/mkdir", [&](const httplib::Request& req, httplib::Response& res) {
 		checkApiKey;
@@ -442,18 +465,18 @@ App::App()
 			)
 		{
 			auto cef_browser_host = browser->get_host(browser);
-				if (browser->get_host(browser)->has_dev_tools(cef_browser_host))
-				{
-					browser->get_host(browser)->close_dev_tools(cef_browser_host);
-				}
-				else
-				{
-					CefWindowInfo windowInfo{};
-					CefBrowserSettings settings{};
-					CefPoint point{};
-					windowInfo.SetAsPopup(NULL, "EasyCEFInject DevTools");
-					cef_browser_host->show_dev_tools(cef_browser_host, &windowInfo, client, &settings, &point);
-				}
+			if (browser->get_host(browser)->has_dev_tools(cef_browser_host))
+			{
+				browser->get_host(browser)->close_dev_tools(cef_browser_host);
+			}
+			else
+			{
+				CefWindowInfo windowInfo{};
+				CefBrowserSettings settings{};
+				CefPoint point{};
+				windowInfo.SetAsPopup(NULL, "EasyCEFInject DevTools");
+				cef_browser_host->show_dev_tools(cef_browser_host, &windowInfo, client, &settings, &point);
+			}
 		}
 	};
 

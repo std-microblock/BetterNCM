@@ -30,16 +30,16 @@ export namespace fs {
 	 * 解压指定的 ZIP 压缩文件到一个指定的文件夹中
 	 * @param zipPath 需要解压的 ZIP 压缩文件路径
 	 * @param unzipDest 需要解压到的文件夹路径，如果不存在则会创建，如果解压时有文件存在则会被覆盖
-	 * @returns 返回值，若为0则成功，若为负值则失败
+	 * @returns 返回值，是否成功
 	 */
 	export async function unzip(
 		zipPath: string,
 		unzipDest: string = `${zipPath}_extracted/`,
-	): Promise<number> {
+	): Promise<boolean> {
 		const r = await betterncmFetch(
 			`/fs/unzip_file?path=${e(zipPath)}&dest=${e(unzipDest)}`,
 		);
-		return parseInt(await r.text());
+		return parseInt(await r.text()) === 0;
 	}
 
 	/**

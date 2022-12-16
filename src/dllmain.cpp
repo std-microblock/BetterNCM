@@ -186,7 +186,7 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 				}
 			}
 
-			std::wcout << L"Data folder picked: {}" << datapath;
+			std::wcout << L"Data folder picked: " << datapath << "\n";
 
 			if ((int)fs::status((wstring)datapath).permissions() & (int)std::filesystem::perms::owner_write) {
 				// Create data folder
