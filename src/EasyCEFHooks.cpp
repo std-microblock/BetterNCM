@@ -3,6 +3,7 @@
 #include "EasyCEFHooks.h"
 #include <mmdeviceapi.h>
 #include <Audioclient.h>
+#include "include/capi/cef_base_capi.h"
 
 #define CAST_TO(target,to) reinterpret_cast<decltype(&to)>(target)
 
@@ -30,16 +31,63 @@ std::function<bool(string)> EasyCEFHooks::onAddCommandLine = [](string arg) { re
 std::function<std::function<wstring(wstring)>(string)> EasyCEFHooks::onHijackRequest = [](string url) { return nullptr; };
 
 
+
+int _stdcall execute(struct _cef_v8handler_t* self,
+	const cef_string_t* name,
+	struct _cef_v8value_t* object,
+	size_t argumentsCount,
+	struct _cef_v8value_t* const* arguments,
+	struct _cef_v8value_t** retval,
+	cef_string_t* exception) {
+	*retval = cef_v8value_create_string(CefString(L"Hello BetterNCM Native Call Îßºþ£¡£¡£¡£¡£¡£¡£¡£¡").GetStruct());
+	return 1;
+};
+
+void CEF_CALLBACK add_ref(struct _cef_base_ref_counted_t* self) {
+
+}
+
+///
+// Called to decrement the reference count for the object. If the reference
+// count falls to 0 the object should self-delete. Returns true (1) if the
+// resulting reference count is 0.
+///
+int CEF_CALLBACK release(struct _cef_base_ref_counted_t* self) {
+	return 0;
+}
+
+///
+// Returns true (1) if the current reference count is 1.
+///
+int CEF_CALLBACK has_one_ref(struct _cef_base_ref_counted_t* self) {
+	return 1;
+}
+
+///
+// Returns true (1) if the current reference count is at least 1.
+///
+int CEF_CALLBACK has_at_least_one_ref(struct _cef_base_ref_counted_t* self) {
+	return 1;
+}
+
 cef_v8context_t* hook_cef_v8context_get_current_context() {
 	cef_v8context_t* context = CAST_TO(origin_cef_v8context_get_current_context, hook_cef_v8context_get_current_context)();
 
-	cef_browser_t* browser = context->get_browser(context);
-	auto host = browser->get_host(browser);
+	auto global = context->get_global(context);
 
+	_cef_v8value_t* native_value = cef_v8value_create_object(nullptr, nullptr);
+	auto handler = new cef_v8handler_t{};
+	handler->base.size = sizeof(cef_v8handler_t);
+	handler->base.add_ref = add_ref;
+	handler->base.has_at_least_one_ref = has_at_least_one_ref;
+	handler->base.release = release;
+	handler->base.has_one_ref = has_one_ref;
 
-	contextl = context;
-	frame = browser->get_main_frame(browser);
+	handler->execute = execute;
+	auto fn = cef_v8value_create_function(CefString("test").GetStruct(), handler);
+	native_value->set_value_bykey(native_value, CefString("test").GetStruct(), fn, V8_PROPERTY_ATTRIBUTE_NONE);
 
+	global->set_value_bykey(global, CefString("betterncm_native").GetStruct(), native_value, V8_PROPERTY_ATTRIBUTE_NONE);
 	return context;
 }
 
@@ -49,8 +97,11 @@ int CEF_CALLBACK hook_cef_on_key_event(struct _cef_keyboard_handler_t* self,
 	cef_event_handle_t os_event) {
 	EasyCEFHooks::onKeyEvent(cef_client, browser, event);
 
+
+
 	return CAST_TO(origin_cef_on_key_event, hook_cef_on_key_event)(self, browser, event, os_event);
 }
+
 
 
 struct _cef_keyboard_handler_t* CEF_CALLBACK hook_cef_get_keyboard_handler(struct _cef_client_t* self) {
@@ -64,10 +115,12 @@ struct _cef_keyboard_handler_t* CEF_CALLBACK hook_cef_get_keyboard_handler(struc
 }
 
 
+
 void CEF_CALLBACK hook_cef_on_load_start(struct _cef_load_handler_t* self,
 	struct _cef_browser_t* browser,
 	struct _cef_frame_t* frame,
 	cef_transition_type_t transition_type) {
+
 
 	auto cef_browser_host = browser->get_host(browser);
 	auto hwnd = browser->get_host(browser)->get_window_handle(cef_browser_host);
@@ -138,11 +191,16 @@ void CEF_CALLBACK hook_on_before_command_line_processing(
 			CefString str = "ignore-certificate-errors";
 			command_line->append_switch(command_line, str.GetStruct());
 		}
+		{
+			CefString str = "single-process";
+			command_line->append_switch(command_line, str.GetStruct());
+		}
 
 		origin_command_line_append_switch = command_line->append_switch;
 		command_line->append_switch = hook_command_line_append_switch;
 		CAST_TO(origin_on_before_command_line_processing, hook_on_before_command_line_processing)(self, process_type, command_line);
 }
+
 
 
 
@@ -153,6 +211,8 @@ int hook_cef_initialize(const struct _cef_main_args_t* args,
 
 	_cef_settings_t s = *settings;
 	s.background_color = 0x000000ff;
+
+
 
 	origin_on_before_command_line_processing = application->on_before_command_line_processing;
 	application->on_before_command_line_processing = hook_on_before_command_line_processing;
@@ -214,7 +274,7 @@ public:
 		*bytes_read = dataSize;
 
 		return 1;
-	}
+}
 };
 
 map<_cef_resource_handler_t*, CefRequestMITMProcess> urlMap;
