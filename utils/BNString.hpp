@@ -7,19 +7,19 @@
 
 class BNString :public std::wstring {
 private:
-	static std::string wstring_to_utf8(const std::wstring& str)
+	static std::string wstring_to_utf8(const BNString* str)
 	{
 		std::string ret;
-		int len = WideCharToMultiByte(CP_UTF8, 0, str.c_str(), str.length(), NULL, 0, NULL, NULL);
+		int len = WideCharToMultiByte(CP_UTF8, 0, str->c_str(), str->length(), NULL, 0, NULL, NULL);
 		if (len > 0)
 		{
 			ret.resize(len);
-			WideCharToMultiByte(CP_UTF8, 0, str.c_str(), str.length(), &ret[0], len, NULL, NULL);
+			WideCharToMultiByte(CP_UTF8, 0, str->c_str(), str->length(), &ret[0], len, NULL, NULL);
 		}
 		return ret;
 	}
 
-	static std::wstring gbk_to_wstring(const std::string& str)
+	static BNString gbk_to_wstring(const std::string& str)
 	{
 		const char* GBK_LOCALE_NAME = ".936";
 		std::wstring_convert<std::codecvt_byname<wchar_t, char, mbstate_t>> convert(new std::codecvt_byname<wchar_t, char, mbstate_t>(GBK_LOCALE_NAME));
@@ -70,7 +70,7 @@ private:
 		return convert.to_bytes(tmp_wstr);
 	}
 
-	static std::wstring utf8_to_wstring(const std::string& utf8)
+	static BNString utf8_to_wstring(const std::string& utf8)
 	{
 		std::vector<unsigned long> unicode;
 		size_t i = 0;
@@ -164,22 +164,22 @@ public:
 		return *this;
 	}
 
-	inline string toUtf8String() {
-		return wstring_to_utf8(*this);
+	inline const string toUtf8String() const {
+		return wstring_to_utf8(this);
 	}
-	inline string utf8() {
+	inline const string utf8() const {
 		return this->toUtf8String();
 	}
-	inline string toANSIString() {
-		return utf8_string_to_asni_string(wstring_to_utf8(*this));
+	inline const string toANSIString() const {
+		return utf8_string_to_asni_string(wstring_to_utf8(this));
 	}
-	inline string ansi() {
+	inline const string ansi() const {
 		return this->toANSIString();
 	}
-	inline string toGBKString() {
+	inline const string toGBKString() const {
 		return utf8_string_to_gbk_string(this->toUtf8String());
 	}
-	inline string gbk() {
+	inline const string gbk() const {
 		return this->toGBKString();
 	}
 };

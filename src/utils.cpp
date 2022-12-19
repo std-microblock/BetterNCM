@@ -7,10 +7,13 @@
 
 extern HMODULE g_hModule;
 BNString read_to_string(const BNString& path) {
-	std::ifstream t(path);
-	std::stringstream buffer;
-	buffer << t.rdbuf();
-	return buffer.str();
+	std::ifstream file(path.gbk());
+	if (!file) {
+		throw new exception("Failed to open file");
+	}
+	string content = string((std::istreambuf_iterator<char>(file)),
+		std::istreambuf_iterator<char>());
+	return content;
 }
 
 // https://stackoverflow.com/questions/4804298/how-to-convert-wstring-into-string   (modified)

@@ -6,6 +6,7 @@
 #include "resource.h"
 #include "utils.h"
 
+
 #pragma comment(linker, "/EXPORT:vSetDdrawflag=_AheadLib_vSetDdrawflag,@1")
 #pragma comment(linker, "/EXPORT:AlphaBlend=_AheadLib_AlphaBlend,@2") 
 #pragma comment(linker, "/EXPORT:DllInitialize=_AheadLib_DllInitialize,@3")

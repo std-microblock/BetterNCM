@@ -11,27 +11,24 @@ const auto version = "0.2.4";
 
 extern BNString datapath;
 
-string App::readConfig(const string& key, const string& def)
-{
-	auto configPath = datapath + L"/config.json";
-	if (!fs::exists(configPath))
-		write_file_text(configPath, "{}");
-	auto str = read_to_string(configPath).utf8();
-	auto json = nlohmann::json::parse(str);
-	if (!(json[key].is_string()))
-		json[key] = def;
-	write_file_text(configPath, json.dump());
-	return json[key];
+nlohmann::json config;
+std::mutex configMutex;
+
+string App::readConfig(const string& key, const string& def) {
+	std::lock_guard<std::mutex> lock(configMutex);
+
+	auto it = config.find(key);
+	if (it == config.end()) {
+		return def;
+	}
+	return it.value().get<string>();
 }
 
-void App::writeConfig(const string& key, const string& val)
-{
-	auto configPath = datapath.utf8() + "/config.json";
-	if (!fs::exists(configPath))
-		write_file_text(configPath, "{}");
-	auto json = nlohmann::json::parse(read_to_string(configPath).utf8());
-	json[key] = val;
-	write_file_text(configPath, json.dump());
+void App::writeConfig(const string& key, const string& value) {
+	std::lock_guard<std::mutex> lock(configMutex);
+	config[key] = value;
+	ofstream file("config.json");
+	file << config;
 }
 
 void exec(string cmd, bool ele, bool showWindow = false)
@@ -448,6 +445,11 @@ App::App()
 {
 
 	cout << "BetterNCM v" << version << " running on NCM " << getNCMExecutableVersion() << endl;
+
+	std::lock_guard<std::mutex> lock(configMutex);
+	std::ifstream file("config.json");
+	file >> config;
+
 	extractPlugins();
 
 	auto apiKey = random_string(64);

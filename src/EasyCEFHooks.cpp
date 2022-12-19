@@ -1,6 +1,8 @@
 #pragma once
 #include "pch.h"
 #include "EasyCEFHooks.h"
+#include <mmdeviceapi.h>
+#include <Audioclient.h>
 
 #define CAST_TO(target,to) reinterpret_cast<decltype(&to)>(target)
 
@@ -293,7 +295,6 @@ int hook_cef_register_scheme_handler_factory(
 }
 
 
-
 bool EasyCEFHooks::InstallHooks() {
 	DetourTransactionBegin();
 	DetourUpdateThread(GetCurrentThread());
@@ -322,6 +323,7 @@ bool EasyCEFHooks::InstallHooks() {
 		DetourAttach(&origin_cef_initialize, hook_cef_initialize);
 	else
 		return false;
+
 
 	LONG ret = DetourTransactionCommit();
 	return ret == NO_ERROR;
