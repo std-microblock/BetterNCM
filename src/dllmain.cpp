@@ -6,7 +6,6 @@
 #include "resource.h"
 #include "utils.h"
 
-
 #pragma comment(linker, "/EXPORT:vSetDdrawflag=_AheadLib_vSetDdrawflag,@1")
 #pragma comment(linker, "/EXPORT:AlphaBlend=_AheadLib_AlphaBlend,@2") 
 #pragma comment(linker, "/EXPORT:DllInitialize=_AheadLib_DllInitialize,@3")
@@ -26,7 +25,7 @@ string script;
 
 
 void message(string title, string text) {
-	MessageBox(NULL, s2ws(text).c_str(), s2ws(title).c_str(), 0);
+	MessageBox(NULL, util::s2ws(text).c_str(), util::s2ws(title).c_str(), 0);
 }
 
 
@@ -164,7 +163,7 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 	if (dwReason == DLL_PROCESS_ATTACH)
 	{
 		g_hModule = hModule;
-		if (pystring::find(get_command_line(), "--type") == -1) {
+		if (util::get_command_line().find(L"--type") == string::npos) {
 			AllocConsole();
 			freopen("CONOUT$", "w", stdout);
 #ifndef _DEBUG
@@ -176,17 +175,16 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 
 			// Pick data folder
 			if (getenv("BETTERNCM_PROFILE")) {
-				datapath = getEnvironment("BETTERNCM_PROFILE");
+				datapath = util::getEnvironment("BETTERNCM_PROFILE");
 			}
 			else {
-				if ((int)fs::status(getEnvironment("USERPROFILE") + L"\\betterncm").permissions() & (int)std::filesystem::perms::owner_write) {
-					datapath = getEnvironment("USERPROFILE") + L"\\betterncm";
+				if ((int)fs::status(util::getEnvironment("USERPROFILE") + L"\\betterncm").permissions() & (int)std::filesystem::perms::owner_write) {
+					datapath = util::getEnvironment("USERPROFILE") + L"\\betterncm";
 				}
 				else {
 					datapath = "C:\\betterncm";
 				}
 			}
-
 			std::wcout << L"Data folder picked: " << datapath << "\n";
 
 			if ((int)fs::status((wstring)datapath).permissions() & (int)std::filesystem::perms::owner_write) {
@@ -206,7 +204,7 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 				app = new App();
 			}
 			else {
-				alert(L"BetterNCM访问数据目录失败！可能需要以管理员身份运行或更改数据目录。\n\nBetterNCM将不会运行");
+				util::alert(L"BetterNCM访问数据目录失败！可能需要以管理员身份运行或更改数据目录。\n\nBetterNCM将不会运行");
 			}
 		}
 

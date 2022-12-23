@@ -93,12 +93,14 @@
       <PrecompiledHeader>Create</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <PreprocessToFile>false</PreprocessToFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
       <AdditionalDependencies>libcef.lib;dwmapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
     </Link>
     <PostBuildEvent>
       <Command>taskkill /f /im cloudmusic.exe &gt; nul
@@ -193,6 +195,7 @@ npm run build</Command>
     <ClCompile Include="src\EasyCEFHooks.cpp" />
     <ClCompile Include="src\pch.cpp" />
     <ClCompile Include="src\utils.cpp" />
+    <ClCompile Include="src\v8NativeCalls.cpp" />
   </ItemGroup>
   <ItemGroup>
     <None Include="resource\PluginMarket.plugin" />

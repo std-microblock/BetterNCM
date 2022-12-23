@@ -1,11 +1,7 @@
 #pragma once
 #include "pch.h"
 #include "EasyCEFHooks.h"
-#include <mmdeviceapi.h>
-#include <Audioclient.h>
 #include "include/capi/cef_base_capi.h"
-
-#define CAST_TO(target,to) reinterpret_cast<decltype(&to)>(target)
 
 _cef_frame_t* frame = NULL;
 cef_v8context_t* contextl = NULL;
@@ -25,71 +21,13 @@ PVOID origin_cef_scheme_handler_create = NULL;
 PVOID origin_scheme_handler_read = NULL;
 PVOID origin_get_headers = NULL;
 
-std::function<void(struct _cef_browser_t* browser, struct _cef_frame_t* frame, cef_transition_type_t transition_type)> EasyCEFHooks::onLoadStart = [](auto browser, auto frame, auto transition_type) {};
+std::function<void(struct _cef_browser_t* browser, struct _cef_frame_t* frame)> EasyCEFHooks::onLoadStart = [](auto browser, auto frame) {};
 std::function<void(_cef_client_t*, struct _cef_browser_t*, const struct _cef_key_event_t*)> EasyCEFHooks::onKeyEvent = [](auto client, auto browser, auto key) {};
 std::function<bool(string)> EasyCEFHooks::onAddCommandLine = [](string arg) { return true;  };
 std::function<std::function<wstring(wstring)>(string)> EasyCEFHooks::onHijackRequest = [](string url) { return nullptr; };
 
 
 
-int _stdcall execute(struct _cef_v8handler_t* self,
-	const cef_string_t* name,
-	struct _cef_v8value_t* object,
-	size_t argumentsCount,
-	struct _cef_v8value_t* const* arguments,
-	struct _cef_v8value_t** retval,
-	cef_string_t* exception) {
-	*retval = cef_v8value_create_string(CefString(L"Hello BetterNCM Native Call Îßºþ£¡£¡£¡£¡£¡£¡£¡£¡").GetStruct());
-	return 1;
-};
-
-void CEF_CALLBACK add_ref(struct _cef_base_ref_counted_t* self) {
-
-}
-
-///
-// Called to decrement the reference count for the object. If the reference
-// count falls to 0 the object should self-delete. Returns true (1) if the
-// resulting reference count is 0.
-///
-int CEF_CALLBACK release(struct _cef_base_ref_counted_t* self) {
-	return 0;
-}
-
-///
-// Returns true (1) if the current reference count is 1.
-///
-int CEF_CALLBACK has_one_ref(struct _cef_base_ref_counted_t* self) {
-	return 1;
-}
-
-///
-// Returns true (1) if the current reference count is at least 1.
-///
-int CEF_CALLBACK has_at_least_one_ref(struct _cef_base_ref_counted_t* self) {
-	return 1;
-}
-
-cef_v8context_t* hook_cef_v8context_get_current_context() {
-	cef_v8context_t* context = CAST_TO(origin_cef_v8context_get_current_context, hook_cef_v8context_get_current_context)();
-
-	auto global = context->get_global(context);
-
-	_cef_v8value_t* native_value = cef_v8value_create_object(nullptr, nullptr);
-	auto handler = new cef_v8handler_t{};
-	handler->base.size = sizeof(cef_v8handler_t);
-	handler->base.add_ref = add_ref;
-	handler->base.has_at_least_one_ref = has_at_least_one_ref;
-	handler->base.release = release;
-	handler->base.has_one_ref = has_one_ref;
-
-	handler->execute = execute;
-	auto fn = cef_v8value_create_function(CefString("test").GetStruct(), handler);
-	native_value->set_value_bykey(native_value, CefString("test").GetStruct(), fn, V8_PROPERTY_ATTRIBUTE_NONE);
-
-	global->set_value_bykey(global, CefString("betterncm_native").GetStruct(), native_value, V8_PROPERTY_ATTRIBUTE_NONE);
-	return context;
-}
 
 int CEF_CALLBACK hook_cef_on_key_event(struct _cef_keyboard_handler_t* self,
 	struct _cef_browser_t* browser,
@@ -97,12 +35,21 @@ int CEF_CALLBACK hook_cef_on_key_event(struct _cef_keyboard_handler_t* self,
 	cef_event_handle_t os_event) {
 	EasyCEFHooks::onKeyEvent(cef_client, browser, event);
 
-
-
 	return CAST_TO(origin_cef_on_key_event, hook_cef_on_key_event)(self, browser, event, os_event);
 }
 
 
+void process_context(cef_v8context_t* context);
+
+cef_v8context_t* hook_cef_v8context_get_current_context() {
+	cef_v8context_t* context = CAST_TO(origin_cef_v8context_get_current_context, hook_cef_v8context_get_current_context)();
+
+	_cef_v8value_t* global = context->get_global(context);
+	if (!global->has_value_bykey(global, CefString("betterncm_native").GetStruct()))
+		process_context(context);
+
+	return context;
+}
 
 struct _cef_keyboard_handler_t* CEF_CALLBACK hook_cef_get_keyboard_handler(struct _cef_client_t* self) {
 	auto keyboard_handler = CAST_TO(origin_cef_get_keyboard_handler, hook_cef_get_keyboard_handler)(self);
@@ -127,8 +74,12 @@ void CEF_CALLBACK hook_cef_on_load_start(struct _cef_load_handler_t* self,
 	SetLayeredWindowAttributes(hwnd, NULL, NULL, NULL);
 
 
+
 	CAST_TO(origin_cef_on_load_start, hook_cef_on_load_start)(self, browser, frame, transition_type);
-	EasyCEFHooks::onLoadStart(browser, frame, transition_type);
+	EasyCEFHooks::onLoadStart(browser, frame);
+
+	//cef_v8context_t* context = CAST_TO(origin_cef_v8context_get_current_context, hook_cef_v8context_get_current_context)();
+	//v8NativeCalls::process_context(context);
 }
 
 void CEF_CALLBACK hook_cef_on_load_error(struct _cef_load_handler_t* self,
@@ -231,7 +182,7 @@ public:
 	int datasize = 0;
 	int dataPointer = 0;
 	void fillData(wstring s) {
-		fillData(wstring_to_utf8(s));
+		fillData(util::wstring_to_utf8(s));
 	};
 	void fillData(string s) {
 		data = std::vector<char>(s.begin(), s.end());
@@ -239,10 +190,10 @@ public:
 	void fillData(_cef_resource_handler_t* self, _cef_callback_t* callback);
 	wstring getDataStr() {
 		try {
-			return utf8_to_wstring(string(data.begin(), data.end()));
+			return util::utf8_to_wstring(string(data.begin(), data.end()));
 		}
 		catch (exception e) {
-			alert(e.what());
+			util::alert(e.what());
 			return L"";
 		}
 
@@ -274,7 +225,7 @@ public:
 		*bytes_read = dataSize;
 
 		return 1;
-}
+	}
 };
 
 map<_cef_resource_handler_t*, CefRequestMITMProcess> urlMap;
@@ -293,7 +244,7 @@ int CEF_CALLBACK hook_scheme_handler_read(struct _cef_resource_handler_t* self,
 	if (processor) {
 		cout << urlMap[self].url << " hijacked" << endl;
 		urlMap[self].fillData(self, callback);
-		urlMap[self].fillData(wstring_to_utf8(processor(urlMap[self].getDataStr())));
+		urlMap[self].fillData(util::wstring_to_utf8(processor(urlMap[self].getDataStr())));
 		if (urlMap[self].sendData(data_out, bytes_to_read, bytes_read))return 1;
 		else {
 			urlMap.erase(self);
@@ -365,7 +316,7 @@ bool EasyCEFHooks::InstallHooks() {
 	origin_cef_register_scheme_handler_factory = DetourFindFunction("libcef.dll", "cef_register_scheme_handler_factory");
 
 	if (origin_cef_v8context_get_current_context)
-		DetourAttach(&origin_cef_v8context_get_current_context, (PVOID)hook_cef_v8context_get_current_context);
+		DetourAttach(&origin_cef_v8context_get_current_context, hook_cef_v8context_get_current_context);
 	else
 		return false;
 
@@ -391,12 +342,15 @@ bool EasyCEFHooks::InstallHooks() {
 
 bool EasyCEFHooks::UninstallHook()
 {
-	DetourTransactionBegin();
-	DetourUpdateThread(GetCurrentThread());
-	DetourDetach(&origin_cef_v8context_get_current_context, hook_cef_v8context_get_current_context);
-	DetourDetach(&origin_cef_browser_host_create_browser, hook_cef_browser_host_create_browser);
-	LONG ret = DetourTransactionCommit();
-	return ret == NO_ERROR;
+	//DetourTransactionBegin();
+	//DetourUpdateThread(GetCurrentThread());
+	//DetourDetach(&origin_cef_browser_host_create_browser, hook_cef_browser_host_create_browser);
+	//DetourDetach(&origin_cef_register_scheme_handler_factory, hook_cef_register_scheme_handler_factory);
+	//DetourDetach(&origin_cef_initialize, hook_cef_initialize);
+	//DetourDetach(&origin_cef_v8context_get_current_context, hook_cef_v8context_get_current_context);
+
+	//LONG ret = DetourTransactionCommit();
+	return true;
 }
 
 void EasyCEFHooks::executeJavaScript(_cef_frame_t* frame, string script, string url) {
