@@ -17,6 +17,8 @@ declare global {
 	const ReactDOM: typeof import("react-dom");
 	// rome-ignore lint/suspicious/noExplicitAny: 云村自带的应用配置属性，因为量比较大所以不做类型限定了
 	const APP_CONF: any;
+	// rome-ignore lint/suspicious/noExplicitAny: <explanation>
+	const betterncm_native: any;
 	interface Window {
 		React: typeof import("react");
 		ReactDOM: typeof import("react-dom");

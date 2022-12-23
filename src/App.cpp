@@ -10,7 +10,7 @@ using namespace util;
 
 namespace fs = std::filesystem;
 
-const auto version = "0.2.4";
+const string version = "0.2.5";
 
 extern BNString datapath;
 

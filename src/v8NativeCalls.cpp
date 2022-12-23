@@ -4,19 +4,22 @@
 #include "include/capi/cef_v8_capi.h"
 #include "EasyCEFHooks.h"
 #include<variant>
+#include "App.h"
 typedef cef_string_userfree_t cef_str_arg;
 
 
 vector<string> apis;
 _cef_v8value_t* native_value;
 
-cef_v8value_t* create(string val) {
+
+
+cef_v8value_t* create(const string& val) {
 	CefString s;
 	s.FromString(val);
 	return cef_v8value_create_string(s.GetStruct());
 }
 
-cef_v8value_t* create(wstring val) {
+cef_v8value_t* create(const wstring& val) {
 	CefString s;
 	s.FromWString(val);
 	return cef_v8value_create_string(s.GetStruct());
@@ -25,6 +28,7 @@ cef_v8value_t* create(wstring val) {
 cef_v8value_t* create(int val) {
 	return cef_v8value_create_int(val);
 }
+
 
 cef_v8value_t* create(unsigned int val) {
 	return cef_v8value_create_uint(val);
@@ -38,8 +42,22 @@ cef_v8value_t* create(bool val) {
 	return cef_v8value_create_bool(val);
 }
 
+cef_v8value_t* create() {
+	return cef_v8value_create_undefined();
+}
+
 cef_v8value_t* create(cef_v8value_t* val) {
 	return val;
+}
+
+
+
+template<typename T>
+cef_v8value_t* create(vector<T> val) {
+	cef_v8value_t* arr = cef_v8value_create_array(val.size());
+	for (const auto& item : val)
+		arr->set_value_byindex(arr, &item - &val[0], create(item));
+	return arr;
 }
 
 template <typename R, typename... Args>
@@ -120,15 +138,146 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 		DEFINE_API(
 			test.add,
 			[](int a, double b) {
-			return a+b;
+				return a + b;
 			}
 		);
 
+		namespace fs = std::filesystem;
+
+		DEFINE_API(
+			fs.readDir,
+			[](BNString path) {
+				if (path[1] != ':') {
+					path = datapath + L"/" + path;
+				}
+
+		vector<string> paths;
+
+		for (const auto& entry : fs::directory_iterator((wstring)path))
+			paths.push_back(BNString(entry.path().wstring()).utf8());
+
+		return paths;
+
+			}
+		);
+
+		DEFINE_API(
+			fs.readFileText,
+			[](BNString path) {
+				if (path[1] != ':') {
+					path = datapath + L"/" + path;
+				}
+
+		vector<string> paths;
+
+		std::ifstream t(path);
+		std::stringstream buffer;
+		buffer << t.rdbuf();
+		return buffer.str();
+			}
+		);
+
+		DEFINE_API(
+			fs.unzip,
+			[](BNString path, BNString dest) {
+				if (path[1] != ':') {
+					path = datapath + L"/" + path;
+				}
+
+		if (dest[1] != ':') {
+			dest = datapath + L"/" + dest;
+		}
+		return zip_extract(path.utf8().c_str(), dest.utf8().c_str(), NULL, NULL);
+			}
+		);
+
+		DEFINE_API(
+			fs.rename,
+			[](BNString path, BNString dest) {
+				if (path[1] != ':') {
+					path = datapath + L"/" + path;
+				}
+
+		if (dest[1] != ':') {
+			dest = datapath + L"/" + dest;
+		}
+		fs::rename((wstring)path, (wstring)dest);
+		return true;
+			}
+		);
+
+		DEFINE_API(
+			fs.rename,
+			[](BNString path) {
+				if (path[1] != ':') {
+					fs::create_directories(datapath + L"/" + path);
+				}
+				else {
+					fs::create_directories((wstring)path);
+				}
+		return true;
+			}
+		);
+
+		DEFINE_API(
+			fs.exists,
+			[](BNString path) {
+				if (path[1] != ':') {
+					path = datapath + L"/" + path;
+				}
+		return fs::exists((wstring)path);
+			}
+		);
+
+		DEFINE_API(
+			fs.writeFileText,
+			[](BNString path, BNString body) {
+				if (path[1] != ':') {
+					path = datapath + L"/" + path;
+				}
+
+		util::write_file_text(path, body);
+		return true;
+			}
+		);
+
+		DEFINE_API(
+			fs.remove,
+			[](BNString path) {
+				if (path[1] != ':') {
+					path = datapath + L"/" + path;
+				}
+
+		fs::remove_all((wstring)path);
+		return true;
+			}
+		);
+
+		DEFINE_API(
+			app.datapath,
+			[]() {
+				return datapath;
+			}
+		);
+
+		DEFINE_API(
+			app.ncmpath,
+			[]() {
+				return util::getNCMPath();
+			}
+		);
+
+		DEFINE_API(
+			app.version,
+			[]() {
+				return version;
+			}
+		);
 	}
 	catch (std::exception e) {
 		if (!self)return -1;
 
-		auto s = (new CefString(e.what()));
+		auto s = (new CefString(BNString::fromGBK(e.what())));
 		const cef_string_t* str = s->GetStruct();
 		*exception = *str;
 		return 1;
@@ -196,24 +345,24 @@ void process_context(cef_v8context_t* context) {
 		for (const auto& name : apis) {
 			vector<string> v;
 			pystring::split(name, v, ".");
-			std::reverse(v.begin(), v.end());
 
-			_cef_v8value_t* val = cef_v8value_create_object(nullptr, nullptr);
+			_cef_v8value_t* val = native_value;
+
 			for (const auto& step : v) {
-				if (&step == &v[0]) {
+				auto st = CefString(step);
+				auto s = st.GetStruct();
+
+				if (&step == &*(v.end() - 1)) {
 					auto fn = cef_v8value_create_function(CefString(name).GetStruct(), handler);
-					val->set_value_bykey(val, CefString(step).GetStruct(), fn, V8_PROPERTY_ATTRIBUTE_NONE);
-				}
-				else if (&step == &*(v.end() - 1)) {
-					native_value->set_value_bykey(native_value, CefString(step).GetStruct(), val, V8_PROPERTY_ATTRIBUTE_NONE);
+					val->set_value_bykey(val, s, fn, V8_PROPERTY_ATTRIBUTE_NONE);
 				}
 				else {
-					auto nextObj = cef_v8value_create_object(nullptr, nullptr);
-					nextObj->set_value_bykey(val, CefString(step).GetStruct(), val, V8_PROPERTY_ATTRIBUTE_NONE);
-					val = nextObj;
+					if (!(val->has_value_bykey(val, s)))
+						val->set_value_bykey(val, s, cef_v8value_create_object(nullptr, nullptr), V8_PROPERTY_ATTRIBUTE_NONE);
+
+					val = val->get_value_bykey(val, s);
 				}
 			}
-
 		}
 	}
 	global->set_value_bykey(global, CefString("betterncm_native").GetStruct(), native_value, V8_PROPERTY_ATTRIBUTE_NONE);
