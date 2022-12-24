@@ -44,9 +44,7 @@ void process_context(cef_v8context_t* context);
 cef_v8context_t* hook_cef_v8context_get_current_context() {
 	cef_v8context_t* context = CAST_TO(origin_cef_v8context_get_current_context, hook_cef_v8context_get_current_context)();
 
-	_cef_v8value_t* global = context->get_global(context);
-	if (!global->has_value_bykey(global, CefString("betterncm_native").GetStruct()))
-		process_context(context);
+	process_context(context);
 
 	return context;
 }

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 #include "pch.h"
 #include "include/capi/cef_base_capi.h"
 #include "include/capi/cef_v8_capi.h"
@@ -134,6 +134,12 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 #define DEFINE_API(name,func) if(self==0)apis.push_back(#name);else if(#name==nameS){ *retval = check_params_call(std::function(func), argumentsCount, arguments); return 1;}
 	try {
 
+		DEFINE_API(
+			test.m.i.c.r.o.b.l.o.c.k,
+			[]() {
+				return wstring(L"🍊🍊🍊");
+			}
+		);
 
 		DEFINE_API(
 			test.add,
@@ -324,9 +330,6 @@ int CEF_CALLBACK has_at_least_one_ref(struct _cef_base_ref_counted_t* self) {
 cef_v8context_t* last_context;
 
 void process_context(cef_v8context_t* context) {
-	_cef_v8value_t* global = context->get_global(context);
-
-
 
 	if (last_context != context) {
 		last_context = context;
@@ -364,7 +367,10 @@ void process_context(cef_v8context_t* context) {
 				}
 			}
 		}
+
+		_cef_v8value_t* global = context->get_global(context);
+		global->set_value_bykey(global, CefString("betterncm_native").GetStruct(), native_value, V8_PROPERTY_ATTRIBUTE_NONE);
+
 	}
-	global->set_value_bykey(global, CefString("betterncm_native").GetStruct(), native_value, V8_PROPERTY_ATTRIBUTE_NONE);
 
 }
