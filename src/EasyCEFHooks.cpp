@@ -140,10 +140,10 @@ void CEF_CALLBACK hook_on_before_command_line_processing(
 			CefString str = "ignore-certificate-errors";
 			command_line->append_switch(command_line, str.GetStruct());
 		}
-		{
-			CefString str = "single-process";
-			command_line->append_switch(command_line, str.GetStruct());
-		}
+		//{
+		//	CefString str = "single-process";
+		//	command_line->append_switch(command_line, str.GetStruct());
+		//}
 
 		origin_command_line_append_switch = command_line->append_switch;
 		command_line->append_switch = hook_command_line_append_switch;

@@ -163,31 +163,33 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 	if (dwReason == DLL_PROCESS_ATTACH)
 	{
 		g_hModule = hModule;
-		if (util::get_command_line().find(L"--type") == string::npos) {
-			AllocConsole();
-			freopen("CONOUT$", "w", stdout);
+		namespace fs = std::filesystem;
+
+		// Pick data folder
+		if (getenv("BETTERNCM_PROFILE")) {
+			datapath = util::getEnvironment("BETTERNCM_PROFILE");
+		}
+		else {
+			if ((int)fs::status(util::getEnvironment("USERPROFILE") + L"\\betterncm").permissions() & (int)std::filesystem::perms::owner_write) {
+				datapath = util::getEnvironment("USERPROFILE") + L"\\betterncm";
+			}
+			else {
+				datapath = "C:\\betterncm";
+			}
+		}
+		std::wcout << L"Data folder picked: " << datapath << "\n";
+
+		if ((int)fs::status((wstring)datapath).permissions() & (int)std::filesystem::perms::owner_write) {
+
+			if (util::get_command_line().find(L"--type") == string::npos) {
+				AllocConsole();
+				freopen("CONOUT$", "w", stdout);
 #ifndef _DEBUG
-			ShowWindow(GetConsoleWindow(), SW_HIDE);
+				ShowWindow(GetConsoleWindow(), SW_HIDE);
 #endif
 
 
-			namespace fs = std::filesystem;
 
-			// Pick data folder
-			if (getenv("BETTERNCM_PROFILE")) {
-				datapath = util::getEnvironment("BETTERNCM_PROFILE");
-			}
-			else {
-				if ((int)fs::status(util::getEnvironment("USERPROFILE") + L"\\betterncm").permissions() & (int)std::filesystem::perms::owner_write) {
-					datapath = util::getEnvironment("USERPROFILE") + L"\\betterncm";
-				}
-				else {
-					datapath = "C:\\betterncm";
-				}
-			}
-			std::wcout << L"Data folder picked: " << datapath << "\n";
-
-			if ((int)fs::status((wstring)datapath).permissions() & (int)std::filesystem::perms::owner_write) {
 				// Create data folder
 				fs::create_directories(datapath + L"/plugins");
 
@@ -202,12 +204,16 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 
 				// Inject NCM
 				app = new App();
+
 			}
 			else {
-				util::alert(L"BetterNCM访问数据目录失败！可能需要以管理员身份运行或更改数据目录。\n\nBetterNCM将不会运行");
+				EasyCEFHooks::InstallHooks();
 			}
 		}
-
+		else {
+			if (util::get_command_line().find(L"--type") == string::npos)
+				util::alert(L"BetterNCM访问数据目录失败！可能需要以管理员身份运行或更改数据目录。\n\nBetterNCM将不会运行");
+		}
 
 
 
