@@ -106,7 +106,7 @@ ping localhost -n 2 &gt; nul
 copy "$(TargetDir)BetterNCMII.dll" "C:\Program Files (x86)\Netease\CloudMusic\msimg32.dll" /y</Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>cd js-framework
+      <Command>cd /D $(SolutionDir)js-framework
 npm run build:dev</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
