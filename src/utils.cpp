@@ -55,7 +55,7 @@ void write_file_text(const BNString& path, const BNString& text, bool append) {
 // https://stackoverflow.com/questions/4130180/how-to-use-vs-c-getenvironmentvariable-as-cleanly-as-possible
 BNString getEnvironment(const BNString& key) {
 	if (!_wgetenv(key.c_str()))return BNString("");
-	return ws2s(wstring(_wgetenv(key.c_str())));
+	return wstring(_wgetenv(key.c_str()));
 }
 
 BNString datapath = "\\betterncm";
@@ -64,8 +64,9 @@ BNString getNCMPath() {
 	wchar_t buffer[MAX_PATH];
 	GetModuleFileNameW(NULL, buffer, MAX_PATH);
 	std::wstring::size_type pos = std::wstring(buffer).find_last_of(L"\\/");
-
-	return std::wstring(buffer).substr(0, pos);
+	if (pos != std::wstring::npos)
+		buffer[pos] = L'\0';
+	return std::wstring(buffer);
 }
 
 string get_command_line() {
