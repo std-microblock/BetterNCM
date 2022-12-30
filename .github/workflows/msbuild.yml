@@ -22,11 +22,13 @@ jobs:
 
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
-      
+    
     - name: Install VCPKG packages
-      working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: vcpkg install cpp-httplib:x86-windows detours:x86-windows pystring:x86-windows nlohmann-json:x86-windows kubazip:x86-windows neargye-semver:x86-windows ; vcpkg integrate install
-
+      uses: lukka/run-vcpkg@v4
+      with:
+        vcpkgArguments: 'cpp-httplib:x86-windows detours:x86-windows pystring:x86-windows nlohmann-json:x86-windows kubazip:x86-windows neargye-semver:x86-windows'
+        vcpkgDirectory: '${{ github.workspace }}/vcpkg'
+        
     - name: Install NPM packages
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: cd ./js-framework ; npm i
@@ -34,3 +36,12 @@ jobs:
     - name: Build
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: msbuild .\BetterNCMII.sln -p:Platform="x86" -p:Configuration=Release
+      
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3.1.1
+      with:
+        # Artifact name
+        name: BetterNCMII
+        # A file, directory or wildcard pattern that describes what to upload
+        path: ${{env.GITHUB_WORKSPACE}}/Release/BetterNCMII.dll
+
