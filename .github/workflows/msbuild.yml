@@ -41,4 +41,4 @@ jobs:
         # Artifact name
         name: BetterNCMII
         # A file, directory or wildcard pattern that describes what to upload
-        path: ${{env.GITHUB_WORKSPACE}}/Release/BetterNCMII.dll
+        path: ${{ github.workspace }}/Release/BetterNCMII.dll
