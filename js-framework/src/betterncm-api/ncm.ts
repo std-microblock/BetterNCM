@@ -36,20 +36,8 @@ export namespace ncm {
 		}
 	}
 
-	let cachedOpenURLFunc: Function | null = null;
 	export function openUrl(url: string) {
-		if (cachedOpenURLFunc === null) {
-			const findResult = findApiFunction("R$openUrl");
-			if (findResult) {
-				const [openUrl, openUrlRoot] = findResult;
-				cachedOpenURLFunc = openUrl.bind(openUrlRoot);
-			}
-		}
-		if (cachedOpenURLFunc === null) {
-			return null;
-		} else {
-			return cachedOpenURLFunc(url);
-		}
+		channel.call('os.navigateExternal', () => {}, [url]);
 	}
 
 	export function getNCMPackageVersion(): string {
