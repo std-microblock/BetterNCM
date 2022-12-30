@@ -501,9 +501,9 @@ App::App()
 		{
 			wstring url = frame->get_url(frame)->str;
 
-			EasyCEFHooks::executeJavaScript(frame,
+			EasyCEFHooks::executeJavaScript(frame, 
 				R"(
-!(function fixNCMReloadPosition() {
+(location.pathname==="/pub/app.html")&&!(function fixNCMReloadPosition() {
 	let oChannelCall = channel.call;
 	channel.call = (name,...args) => {
 		if (name === "winhelper.setWindowPosition" && window.screenX !== 0) return; 
