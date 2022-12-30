@@ -25,11 +25,11 @@ jobs:
       
     - name: Install VCPKG packages
       working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: vcpkg install cpp-httplib:x86-windows detours:x86-windows pystring:x86-windows nlohmann-json:x86-windows kubazip:x86-windows neargye-semver:x86-windows & vcpkg integrate install
+      run: vcpkg install cpp-httplib:x86-windows detours:x86-windows pystring:x86-windows nlohmann-json:x86-windows kubazip:x86-windows neargye-semver:x86-windows ; vcpkg integrate install
 
     - name: Install NPM packages
-      working-directory: ${{env.GITHUB_WORKSPACE}}/js-framework
-      run: npm i
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: cd ./js-framework ; npm i
 
     - name: Build
       working-directory: ${{env.GITHUB_WORKSPACE}}
