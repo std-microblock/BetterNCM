@@ -110,7 +110,7 @@ export const HeaderComponent: React.FC<{
 			<div>
 				<h1>
 					BetterNCM{" "}
-					<span style={{ fontSize: "smaller", opacity: "0.8" }}>0.2.5</span>
+					<span style={{ fontSize: "smaller", opacity: "0.8" }}>{betterncm_native.app.version()}</span>
 				</h1>
 				<div className="bncm-mgr-btns">
 					<Button
