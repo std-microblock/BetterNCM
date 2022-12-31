@@ -185,4 +185,36 @@ public:
 	inline const string gbk() const {
 		return this->toGBKString();
 	}
+
+
+	bool startsWith(const std::wstring& prefix) const {
+		if (prefix.length() > this->length()) return false;
+		return this->substr(0, prefix.length()) == prefix;
+	}
+
+	bool endsWith(const std::wstring& suffix) const {
+		if (suffix.length() > this->length()) return false;
+		return this->substr(this->length() - suffix.length()) == suffix;
+	}
+
+	bool includes(const std::wstring& search) const {
+		return this->find(search) != std::wstring::npos;
+	}
+
+	int indexOf(const std::wstring& search) const {
+		size_t index = this->find(search);
+		if (index == std::wstring::npos) return -1;
+		return static_cast<int>(index);
+	}
+
+	BNString& replace(const std::wstring& search, const std::wstring& replacement) {
+		size_t index = 0;
+		while ((index = this->find(search, index)) != std::wstring::npos) {
+			this->erase(index, search.length());
+			this->insert(index, replacement);
+			index += replacement.length();
+		}
+		return *this;
+	}
+
 };

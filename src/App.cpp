@@ -504,7 +504,7 @@ App::App()
 		{
 			wstring url = frame->get_url(frame)->str;
 
-			EasyCEFHooks::executeJavaScript(frame, 
+			EasyCEFHooks::executeJavaScript(frame,
 				R"(
 (location.pathname==="/pub/app.html")&&!(function fixNCMReloadPosition() {
 	let oChannelCall = channel.call;
@@ -708,24 +708,24 @@ App::~App()
 void App::extractPlugins()
 {
 	error_code ec;
-	if (fs::exists(datapath.utf8() + "/plugins_runtime"))
-		fs::remove_all(datapath.utf8() + "/plugins_runtime", ec);
+	if (fs::exists(datapath + L"/plugins_runtime"))
+		fs::remove_all(datapath + L"/plugins_runtime", ec);
 
-	fs::create_directories(datapath.utf8() + "/plugins_runtime");
+	fs::create_directories(datapath + L"/plugins_runtime");
 
-	for (auto file : fs::directory_iterator(datapath.utf8() + "/plugins"))
+	for (auto file : fs::directory_iterator(datapath + L"/plugins"))
 	{
-		auto path = file.path().string();
-		if (pystring::endswith(path, ".plugin"))
+		BNString path = file.path().wstring();
+		if (path.endsWith(L".plugin"))
 		{
-			zip_extract(path.c_str(), (datapath.utf8() + "/plugins_runtime/tmp").c_str(), NULL, NULL);
+			zip_extract(path.utf8().c_str(), BNString(datapath + L"/plugins_runtime/tmp").utf8().c_str(), NULL, NULL);
 			try
 			{
-				auto modManifest = nlohmann::json::parse(read_to_string(datapath.utf8() + "/plugins_runtime/tmp/manifest.json"));
+				auto modManifest = nlohmann::json::parse(read_to_string(datapath + L"/plugins_runtime/tmp/manifest.json"));
 				if (modManifest["manifest_version"] == 1)
 				{
-					write_file_text(datapath.utf8() + "/plugins_runtime/tmp/.plugin.path.meta", pystring::slice(path, datapath.length()));
-					fs::rename(datapath.utf8() + "/plugins_runtime/tmp", datapath.utf8() + "/plugins_runtime/" + (string)modManifest["name"]);
+					write_file_text(datapath + L"/plugins_runtime/tmp/.plugin.path.meta", pystring::slice(path, datapath.length()));
+					fs::rename(datapath + L"/plugins_runtime/tmp", datapath + L"/plugins_runtime/" + s2ws((string)modManifest["name"]));
 				}
 				else
 				{

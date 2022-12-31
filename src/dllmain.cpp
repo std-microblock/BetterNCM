@@ -217,6 +217,8 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 		if (!getenv("BETTERNCM_DISABLED_FLAG")) {
 			namespace fs = std::filesystem;
 
+			SetUnhandledExceptionFilter(BNUnhandledExceptionFilter);
+
 			// Pick data folder
 			if (getenv("BETTERNCM_PROFILE")) {
 				datapath = util::getEnvironment("BETTERNCM_PROFILE");
@@ -229,7 +231,6 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 					datapath = "C:\\betterncm";
 				}
 			}
-			SetUnhandledExceptionFilter(BNUnhandledExceptionFilter);
 			if (pystring::find(util::get_command_line(), "--type") == -1) {
 				AllocConsole();
 				freopen("CONOUT$", "w", stdout);
@@ -238,7 +239,7 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 #endif
 
 
-				
+
 
 				std::wcout << L"Data folder picked: " << datapath << "\n";
 
