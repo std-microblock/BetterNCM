@@ -43,7 +43,7 @@ void exec(std::wstring cmd, bool ele, bool showWindow = false)
 		info.cbSize = sizeof(info);
 		info.fMask = 0;
 		info.hwnd = 0;
-		info.lpVerb = ele?L"runas":L"open";
+		info.lpVerb = ele ? L"runas" : L"open";
 
 		info.lpFile = pArgs[0];
 
@@ -62,7 +62,7 @@ void exec(std::wstring cmd, bool ele, bool showWindow = false)
 		}
 		info.lpDirectory = NULL;
 		info.nShow = showWindow ? SW_SHOW : SW_HIDE;
-		
+
 		ShellExecuteExW(&info);
 	}
 

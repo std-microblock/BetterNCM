@@ -312,6 +312,29 @@ std::wstring wreplaceAll(std::wstring str, const std::wstring& from, const std::
 	return str;
 }
 
+void restartNCM()
+{
+	DWORD processId = GetCurrentProcessId();
+
+	WCHAR szFileName[MAX_PATH];
+	GetModuleFileNameW(NULL, szFileName, MAX_PATH);
+
+	STARTUPINFOW si;
+	PROCESS_INFORMATION pi;
+	ZeroMemory(&si, sizeof(si));
+	si.cb = sizeof(si);
+	ZeroMemory(&pi, sizeof(pi));
+	if (CreateProcessW(szFileName, NULL, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
+	{
+		TerminateProcess(GetCurrentProcess(), 0);
+		return;
+	}
+
+	return;
+}
+
+
+
 void alert(const wchar_t* item)
 {
 	MessageBoxW(NULL, item, L"BetterNCM", MB_OK | MB_ICONINFORMATION);
