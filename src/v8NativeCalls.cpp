@@ -279,6 +279,14 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 				return version;
 			}
 		);
+
+		DEFINE_API(
+			app.restart,
+			[]() {
+				util::restartNCM();
+		return true;
+			}
+		);
 	}
 	catch (std::exception e) {
 		if (!self)return -1;

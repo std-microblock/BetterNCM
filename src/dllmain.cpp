@@ -181,7 +181,7 @@ std::wstring PrintExceptionInfo(EXCEPTION_POINTERS* ExceptionInfo)
 LONG WINAPI BNUnhandledExceptionFilter(EXCEPTION_POINTERS* ExceptionInfo)
 {
 #define IGNORE_ERROR_EXIT(code) if(ExceptionInfo->ExceptionRecord->ExceptionCode==code){ TerminateProcess(GetCurrentProcess(), 0); }
-#define IGNORE_ERROR_RESTART(code) if(ExceptionInfo->ExceptionRecord->ExceptionCode==code){ restartNCM(); 
+#define IGNORE_ERROR_RESTART(code) if(ExceptionInfo->ExceptionRecord->ExceptionCode==code){ util::restartNCM(); 
 #define IGNORE_ERROR_CONTINUE(code) if(ExceptionInfo->ExceptionRecord->ExceptionCode==code){ return EXCEPTION_CONTINUE_SEARCH; }
 
 	IGNORE_ERROR_CONTINUE(0x80000003);
@@ -198,12 +198,12 @@ LONG WINAPI BNUnhandledExceptionFilter(EXCEPTION_POINTERS* ExceptionInfo)
 	}
 	if (result == IDRETRY)
 	{
-		restartNCM();
+		util::restartNCM();
 	}
 	if (result == IDIGNORE)
 	{
 		SetEnvironmentVariable(L"BETTERNCM_DISABLED_FLAG", L"1");
-		restartNCM();
+		util::restartNCM();
 	}
 	return EXCEPTION_EXECUTE_HANDLER;
 	}

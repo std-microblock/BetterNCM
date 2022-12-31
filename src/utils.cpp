@@ -309,7 +309,7 @@ std::wstring util::wreplaceAll(std::wstring str, const std::wstring& from, const
 	return str;
 }
 
-void restartNCM()
+void util::restartNCM()
 {
 	DWORD processId = GetCurrentProcessId();
 

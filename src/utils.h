@@ -38,6 +38,5 @@ namespace util {
 	std::wstring utf8_to_wstring(const std::string& utf8);
 	semver::version getNCMExecutableVersion();
 	std::wstring wreplaceAll(std::wstring str, const std::wstring& from, const std::wstring& to);
+	void restartNCM();
 }
-
-void restartNCM();
