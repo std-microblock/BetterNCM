@@ -36,41 +36,42 @@ void App::writeConfig(const string& key, const string& value) {
 	file << config;
 }
 
-void exec(string cmd, bool ele, bool showWindow = false)
+void exec(std::wstring cmd, bool ele, bool showWindow = false)
 {
-	STARTUPINFOW si = { 0 };
-	si.cb = sizeof(si);
-	PROCESS_INFORMATION pi = { 0 };
-
-	vector<string> result;
-	pystring::split(cmd, result, " ");
-
-	vector<string> args;
-	for (int x = 1; x < (int)result.size(); x++)
+	int nArg;
+	LPWSTR* pArgs = CommandLineToArgvW(cmd.c_str(), &nArg);
+	if (nArg > 0)
 	{
-		args.push_back(result[x]);
+		std::wstring param;
+		SHELLEXECUTEINFOW info;
+		ZeroMemory(&info, sizeof(info));
+		info.cbSize = sizeof(info);
+		info.fMask = 0;
+		info.hwnd = 0;
+		info.lpVerb = ele ? L"runas" : L"open";
+
+		info.lpFile = pArgs[0];
+
+		if (nArg >= 2)
+		{
+			for (int i = 1; i < nArg; ++i)
+			{
+				if (i > 1) param += L' ';
+				param += pArgs[i];
+			}
+			info.lpParameters = param.c_str();
+		}
+		else
+		{
+			info.lpParameters = NULL;
+		}
+		info.lpDirectory = NULL;
+		info.nShow = showWindow ? SW_SHOW : SW_HIDE;
+
+		ShellExecuteExW(&info);
 	}
-	auto file = s2ws(result[0]);
-	auto eargs = s2ws(pystring::join(" ", args));
-	SHELLEXECUTEINFO shExecInfo;
-	shExecInfo.lpFile = file.c_str();
-	shExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
-	shExecInfo.lpParameters = eargs.c_str();
-	shExecInfo.fMask = NULL;
-	shExecInfo.hwnd = NULL;
-	if (ele)
-		shExecInfo.lpVerb = L"runas";
-	else
-		shExecInfo.lpVerb = L"open";
 
-	shExecInfo.lpDirectory = NULL;
-	if (showWindow)
-		shExecInfo.nShow = SW_SHOW;
-	else
-		shExecInfo.nShow = SW_HIDE;
-	shExecInfo.hInstApp = NULL;
-
-	ShellExecuteEx(&shExecInfo);
+	LocalFree(pArgs);
 }
 
 #define checkApiKey                                                                                  \
@@ -261,14 +262,14 @@ std::thread* App::create_server(string apiKey)
 
 	svr->Post("/api/app/exec", [&](const httplib::Request& req, httplib::Response& res) {
 		checkApiKey;
-	auto cmd = req.body;
+	BNString cmd = req.body;
 	exec(cmd, false, req.has_param("_showWindow"));
 	res.status = 200;
 		});
 
 	svr->Post("/api/app/exec_ele", [&](const httplib::Request& req, httplib::Response& res) {
 		checkApiKey;
-	auto cmd = req.body;
+	BNString cmd = req.body;
 	exec(cmd, true, req.has_param("_showWindow"));
 	res.status = 200;
 		});
@@ -336,7 +337,9 @@ std::thread* App::create_server(string apiKey)
 	HWND ncmWin = FindWindow(L"OrpheusBrowserHost", NULL);
 	SetWindowDisplayAffinity(ncmWin, WDA_EXCLUDEFROMCAPTURE);
 	screenCapturePart(s2ws(datapath.utf8() + "/screenshot.bmp").c_str());
-	res.set_content("http://localhost:3248/local/screenshot.bmp", "text/plain");
+	char buf[1024];
+	_snprintf_s(buf, 1024 - 1, "http://localhost:%d/local/screenshot.bmp", server_port);
+	res.set_content(buf, "text/plain");
 	SetWindowDisplayAffinity(ncmWin, WDA_NONE);
 		});
 

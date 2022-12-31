@@ -52,7 +52,7 @@ void util::write_file_text(const BNString& path, const BNString& text, bool appe
 // https://stackoverflow.com/questions/4130180/how-to-use-vs-c-getenvironmentvariable-as-cleanly-as-possible
 BNString util::getEnvironment(const BNString& key) {
 	if (!_wgetenv(key.c_str()))return BNString("");
-	return ws2s(wstring(_wgetenv(key.c_str())));
+	return wstring(_wgetenv(key.c_str()));
 }
 
 BNString datapath = "\\betterncm";
@@ -61,8 +61,9 @@ BNString util::getNCMPath() {
 	wchar_t buffer[MAX_PATH];
 	GetModuleFileNameW(NULL, buffer, MAX_PATH);
 	std::wstring::size_type pos = std::wstring(buffer).find_last_of(L"\\/");
-
-	return std::wstring(buffer).substr(0, pos);
+	if (pos != std::wstring::npos)
+		buffer[pos] = L'\0';
+	return std::wstring(buffer);
 }
 
 BNString util::get_command_line() {
@@ -308,7 +309,30 @@ std::wstring util::wreplaceAll(std::wstring str, const std::wstring& from, const
 	return str;
 }
 
-void util::alert(const wchar_t* item)
+void restartNCM()
+{
+	DWORD processId = GetCurrentProcessId();
+
+	WCHAR szFileName[MAX_PATH];
+	GetModuleFileNameW(NULL, szFileName, MAX_PATH);
+
+	STARTUPINFOW si;
+	PROCESS_INFORMATION pi;
+	ZeroMemory(&si, sizeof(si));
+	si.cb = sizeof(si);
+	ZeroMemory(&pi, sizeof(pi));
+	if (CreateProcessW(szFileName, NULL, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
+	{
+		TerminateProcess(GetCurrentProcess(), 0);
+		return;
+	}
+
+	return;
+}
+
+
+
+void alert(const wchar_t* item)
 {
 	MessageBoxW(NULL, item, L"BetterNCM", MB_OK | MB_ICONINFORMATION);
 }

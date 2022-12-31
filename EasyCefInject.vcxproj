@@ -77,6 +77,7 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <ExternalIncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath); I:\qtbuild\qt-everywhere-src-5.15.2\qt-everywhere-src-5.15.2\qtbase\include</ExternalIncludePath>
+    <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -108,7 +109,7 @@ ping localhost -n 2 &gt; nul
 copy "$(TargetDir)BetterNCMII.dll" "C:\Program Files (x86)\Netease\CloudMusic\msimg32.dll" /y</Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>cd js-framework
+      <Command>cd /D $(SolutionDir)js-framework
 npm run build:dev</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
@@ -133,10 +134,8 @@ npm run build:dev</Command>
       <AdditionalDependencies>dwmapi.lib;libcef.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>taskkill /f /im cloudmusic.exe &gt; nul
-
-ping localhost -n 2
-copy "$(TargetDir)BetterNCMII.dll" "C:\Program Files (x86)\Netease\CloudMusic\msimg32.dll" /y</Command>
+      <Command>
+      </Command>
     </PostBuildEvent>
     <PreBuildEvent>
       <Command>cd js-framework
