@@ -215,9 +215,22 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 	{
 		g_hModule = hModule;
 		if (!getenv("BETTERNCM_DISABLED_FLAG")) {
+			namespace fs = std::filesystem;
 
+			// Pick data folder
+			if (getenv("BETTERNCM_PROFILE")) {
+				datapath = util::getEnvironment("BETTERNCM_PROFILE");
+			}
+			else {
+				if ((int)fs::status(util::getEnvironment("USERPROFILE") + L"\\betterncm").permissions() & (int)std::filesystem::perms::owner_write) {
+					datapath = util::getEnvironment("USERPROFILE") + L"\\betterncm";
+				}
+				else {
+					datapath = "C:\\betterncm";
+				}
+			}
 			SetUnhandledExceptionFilter(BNUnhandledExceptionFilter);
-			if (pystring::find(get_command_line(), "--type") == -1) {
+			if (pystring::find(util::get_command_line(), "--type") == -1) {
 				AllocConsole();
 				freopen("CONOUT$", "w", stdout);
 #ifndef _DEBUG
@@ -225,20 +238,7 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 #endif
 
 
-				namespace fs = std::filesystem;
-
-				// Pick data folder
-				if (getenv("BETTERNCM_PROFILE")) {
-					datapath = getEnvironment("BETTERNCM_PROFILE");
-				}
-				else {
-					if ((int)fs::status(getEnvironment("USERPROFILE") + L"\\betterncm").permissions() & (int)std::filesystem::perms::owner_write) {
-						datapath = getEnvironment("USERPROFILE") + L"\\betterncm";
-					}
-					else {
-						datapath = "C:\\betterncm";
-					}
-				}
+				
 
 				std::wcout << L"Data folder picked: " << datapath << "\n";
 
@@ -258,11 +258,14 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 					app = new App();
 				}
 				else {
-					alert(L"BetterNCM访问数据目录失败！可能需要以管理员身份运行或更改数据目录。\n\nBetterNCM将不会运行");
+					util::alert(L"BetterNCM访问数据目录失败！可能需要以管理员身份运行或更改数据目录。\n\nBetterNCM将不会运行");
 				}
 			}
+			else {
+				EasyCEFHooks::InstallHooks();
+			}
 
-	}
+		}
 
 
 
@@ -278,7 +281,7 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 		}
 
 		return Load();
-}
+	}
 	else if (dwReason == DLL_PROCESS_DETACH)
 	{
 		delete app;

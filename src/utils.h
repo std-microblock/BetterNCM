@@ -40,10 +40,4 @@ namespace util {
 	std::wstring wreplaceAll(std::wstring str, const std::wstring& from, const std::wstring& to);
 }
 
-std::string load_string_resource(LPCTSTR name);
-std::string wstring_to_utf8(const std::wstring& str);
-std::wstring utf8_to_wstring(const std::string& utf8);
-semver::version getNCMExecutableVersion();
-std::wstring wreplaceAll(std::wstring str, const std::wstring& from, const std::wstring& to);
-
 void restartNCM();

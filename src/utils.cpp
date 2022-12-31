@@ -332,7 +332,7 @@ void restartNCM()
 
 
 
-void alert(const wchar_t* item)
+void util::alert(const wchar_t* item)
 {
 	MessageBoxW(NULL, item, L"BetterNCM", MB_OK | MB_ICONINFORMATION);
 }

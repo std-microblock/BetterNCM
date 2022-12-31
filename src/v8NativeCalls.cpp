@@ -6,7 +6,7 @@
 #include<variant>
 #include "App.h"
 typedef cef_string_userfree_t cef_str_arg;
-
+extern BNString datapath;
 
 vector<string> apis;
 _cef_v8value_t* native_value;
