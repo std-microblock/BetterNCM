@@ -16,9 +16,6 @@ export async function initPluginManager() {
 	const settingsButton = (await BetterNCM.utils.waitForElement(
 		'a[href="#/m/setting/"]',
 	))!! as HTMLAnchorElement;
-	const lyricButton = (await BetterNCM.utils.waitForElement(
-		"div.cover.u-cover.u-cover-sm > a > span",
-	))!! as HTMLAnchorElement;
 	const betterNCMSettingsButton = settingsButton.cloneNode(
 		true,
 	) as HTMLAnchorElement;
@@ -57,7 +54,13 @@ export async function initPluginManager() {
 		mainPageView.removeAttribute("style");
 	}
 
-	lyricButton.addEventListener("click", hideSettings);
+	!(async ()=>{
+		const lyricButton = (await BetterNCM.utils.waitForElement(
+			"div.cover.u-cover.u-cover-sm > a > span",1000
+		))!! as HTMLAnchorElement;
+		lyricButton.addEventListener("click", hideSettings);
+	})();
+	
 	settingsButton.addEventListener("click", hideSettings);
 	betterNCMSettingsButton.addEventListener("click", () => {
 		if (settingsView.classList.contains("ncmm-show")) {

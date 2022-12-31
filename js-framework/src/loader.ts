@@ -7,7 +7,8 @@ export let loadedPlugins: typeof window.loadedPlugins = {};
 
 const SAFE_MODE_KEY = "betterncm.safemode";
 const LOAD_ERROR_KEY = "betterncm.loaderror";
-const CPP_SIDE_INJECT_DISABLE_KEY = "cc.microblock.betterncm.cpp_side_inject_feature_disabled";
+const CPP_SIDE_INJECT_DISABLE_KEY =
+	"cc.microblock.betterncm.cpp_side_inject_feature_disabled";
 
 /**
  * 禁用安全模式，将会在下一次重载生效
@@ -17,10 +18,7 @@ const CPP_SIDE_INJECT_DISABLE_KEY = "cc.microblock.betterncm.cpp_side_inject_fea
  * @see {@link enableSafeMode}
  */
 export async function disableSafeMode() {
-	await BetterNCM.app.writeConfig(
-		CPP_SIDE_INJECT_DISABLE_KEY,
-		"false",
-	);
+	await BetterNCM.app.writeConfig(CPP_SIDE_INJECT_DISABLE_KEY, "false");
 	localStorage.removeItem(SAFE_MODE_KEY);
 	localStorage.removeItem(LOAD_ERROR_KEY);
 }
@@ -35,10 +33,7 @@ export async function disableSafeMode() {
  * 供用户和插件作者排查加载错误
  */
 export async function enableSafeMode() {
-	await BetterNCM.app.writeConfig(
-		CPP_SIDE_INJECT_DISABLE_KEY,
-		"true",
-	);
+	await BetterNCM.app.writeConfig(CPP_SIDE_INJECT_DISABLE_KEY, "true");
 	localStorage.setItem(SAFE_MODE_KEY, "true");
 }
 
@@ -218,23 +213,24 @@ window.addEventListener("DOMContentLoaded", async () => {
 	document.head.appendChild(styleEl);
 
 	try {
-		await Promise.all([
-			loadPlugins(),
-			BetterNCM.utils.waitForElement("nav", 400),
-			initPluginManager(),
+		await Promise.race([
+			Promise.all([loadPlugins(), initPluginManager()]),
+			BetterNCM.utils.delay(2000),
 		]);
 	} catch (e) {
 		onLoadError(e);
 		return;
 	}
-
+	if ("loadingMask" in window) {
+		const anim = loadingMask.animate(
+			[{ opacity: 1 }, { opacity: 0, display: "none" }],
+			{
+				duration: 300,
+				fill: "forwards",
+				easing: "cubic-bezier(0.42,0,0.58,1)",
+			},
+		);
+		anim.commitStyles();
+	}
 	onPluginLoaded(loadedPlugins); // 更新插件管理器那边的插件列表
-
-	loadingMask
-		.animate([{ opacity: 1 }, { opacity: 0, display: "none" }], {
-			duration: 300,
-			fill: "forwards",
-			easing: "cubic-bezier(0.42,0,0.58,1)",
-		})
-		.commitStyles();
 });
