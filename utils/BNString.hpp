@@ -146,6 +146,9 @@ public:
 	static BNString fromGBK(std::string s) {
 		return BNString(gbk_to_wstring(s));
 	}
+	BNString() :std::wstring() {
+
+	}
 	BNString(std::string s) {
 		*this = utf8_to_wstring(s);
 	}

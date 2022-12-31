@@ -4,7 +4,7 @@
 #include "shellapi.h"
 #include <mutex>
 #include <shared_mutex>
-
+extern const string version;
 class App {
 	httplib::Server* httpServer = nullptr;
 	std::thread* server_thread;

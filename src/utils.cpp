@@ -4,20 +4,17 @@
 #include "utils.h"
 #include <assert.h>
 #pragma comment(lib, "version.lib")
+using namespace util;
 
 extern HMODULE g_hModule;
-BNString read_to_string(const BNString& path) {
-	std::ifstream file(path.gbk());
-	if (!file) {
-		throw new exception("Failed to open file");
-	}
-	string content = string((std::istreambuf_iterator<char>(file)),
-		std::istreambuf_iterator<char>());
+BNString util::read_to_string(const std::filesystem::path& path) {
+	std::wifstream file(path);
+	std::wstring content((std::istreambuf_iterator<wchar_t>(file)),
+		std::istreambuf_iterator<wchar_t>());
 	return content;
 }
-
 // https://stackoverflow.com/questions/4804298/how-to-convert-wstring-into-string   (modified)
-string ws2s(wstring const& str)
+string util::ws2s(wstring const& str)
 {
 	std::string strTo;
 	char* szTo = new char[str.length() + 1];
@@ -28,7 +25,7 @@ string ws2s(wstring const& str)
 	return strTo;
 }
 
-std::wstring s2ws(const std::string& s, bool isUtf8)
+std::wstring util::s2ws(const std::string& s, bool isUtf8)
 {
 	int len;
 	int slength = (int)s.length() + 1;
@@ -41,7 +38,7 @@ std::wstring s2ws(const std::string& s, bool isUtf8)
 }
 
 
-void write_file_text(const BNString& path, const BNString& text, bool append) {
+void util::write_file_text(const BNString& path, const BNString& text, bool append) {
 	std::wofstream file;
 	if (append)
 		file.open(path, std::ios_base::app);
@@ -53,14 +50,14 @@ void write_file_text(const BNString& path, const BNString& text, bool append) {
 }
 
 // https://stackoverflow.com/questions/4130180/how-to-use-vs-c-getenvironmentvariable-as-cleanly-as-possible
-BNString getEnvironment(const BNString& key) {
+BNString util::getEnvironment(const BNString& key) {
 	if (!_wgetenv(key.c_str()))return BNString("");
 	return wstring(_wgetenv(key.c_str()));
 }
 
 BNString datapath = "\\betterncm";
 
-BNString getNCMPath() {
+BNString util::getNCMPath() {
 	wchar_t buffer[MAX_PATH];
 	GetModuleFileNameW(NULL, buffer, MAX_PATH);
 	std::wstring::size_type pos = std::wstring(buffer).find_last_of(L"\\/");
@@ -69,15 +66,15 @@ BNString getNCMPath() {
 	return std::wstring(buffer);
 }
 
-string get_command_line() {
+BNString util::get_command_line() {
 	LPTSTR cmd = GetCommandLine();
 
-	return ws2s(wstring(cmd));
+	return wstring(cmd);
 }
 
 
 // https://stackoverflow.com/questions/9524393/how-to-capture-part-of-the-screen-and-save-it-to-a-bmp
-bool screenCapturePart(LPCWSTR fname) {
+bool util::screenCapturePart(LPCWSTR fname) {
 	HDC hdcSource = GetDC(NULL);
 	HDC hdcMemory = CreateCompatibleDC(hdcSource);
 
@@ -103,7 +100,7 @@ bool screenCapturePart(LPCWSTR fname) {
 	return false;
 }
 
-bool saveBitmap(LPCWSTR filename, HBITMAP bmp, HPALETTE pal)
+bool util::saveBitmap(LPCWSTR filename, HBITMAP bmp, HPALETTE pal)
 {
 	bool result = false;
 	PICTDESC pd;
@@ -160,7 +157,7 @@ bool saveBitmap(LPCWSTR filename, HBITMAP bmp, HPALETTE pal)
 	return result;
 }
 
-std::string load_string_resource(LPCTSTR name)
+std::string util::load_string_resource(LPCTSTR name)
 {
 	HRSRC hRes = FindResource(g_hModule, name, RT_RCDATA);
 	assert(hRes);
@@ -186,7 +183,7 @@ std::string load_string_resource(LPCTSTR name)
 	return ret;
 }
 
-std::string wstring_to_utf8(const std::wstring& str)
+std::string util::wstring_to_utf8(const std::wstring& str)
 {
 	std::string ret;
 	int len = WideCharToMultiByte(CP_UTF8, 0, str.c_str(), str.length(), NULL, 0, NULL, NULL);
@@ -199,7 +196,7 @@ std::string wstring_to_utf8(const std::wstring& str)
 }
 
 // https://stackoverflow.com/questions/7153935/how-to-convert-utf-8-stdstring-to-utf-16-stdwstring
-std::wstring utf8_to_wstring(const std::string& utf8)
+std::wstring util::utf8_to_wstring(const std::string& utf8)
 {
 	std::vector<unsigned long> unicode;
 	size_t i = 0;
@@ -271,7 +268,7 @@ std::wstring utf8_to_wstring(const std::string& utf8)
 	return utf16;
 }
 
-semver::version getNCMExecutableVersion() {
+semver::version util::getNCMExecutableVersion() {
 	DWORD  verHandle = 0;
 	UINT   size = 0;
 	LPBYTE lpBuffer = NULL;
@@ -303,7 +300,7 @@ semver::version getNCMExecutableVersion() {
 	}
 }
 
-std::wstring wreplaceAll(std::wstring str, const std::wstring& from, const std::wstring& to) {
+std::wstring util::wreplaceAll(std::wstring str, const std::wstring& from, const std::wstring& to) {
 	size_t start_pos = 0;
 	while ((start_pos = str.find(from, start_pos)) != std::wstring::npos) {
 		str.replace(start_pos, from.length(), to);
@@ -340,7 +337,7 @@ void alert(const wchar_t* item)
 	MessageBoxW(NULL, item, L"BetterNCM", MB_OK | MB_ICONINFORMATION);
 }
 
-void alert(const wstring* item)
+void util::alert(const wstring* item)
 {
 	MessageBoxW(NULL, item->c_str(), L"BetterNCM", MB_OK | MB_ICONINFORMATION);
 }

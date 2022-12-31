@@ -3,16 +3,21 @@
 #include <Windows.h>
 #include "dwmapi.h"
 #include "CommDlg.h"
+
 #define WIN32_LEAN_AND_MEAN
+
+using namespace util;
 
 namespace fs = std::filesystem;
 
-const auto version = "0.2.4";
+const string version = "0.2.5";
 
 extern BNString datapath;
 
 nlohmann::json config;
 std::mutex configMutex;
+
+
 
 string App::readConfig(const string& key, const string& def) {
 	std::lock_guard<std::mutex> lock(configMutex);
@@ -449,9 +454,17 @@ App::App()
 
 	cout << "BetterNCM v" << version << " running on NCM " << getNCMExecutableVersion() << endl;
 
+
 	std::lock_guard<std::mutex> lock(configMutex);
-	std::ifstream file("config.json");
-	file >> config;
+	if (fs::exists(datapath + L"\\config.json")) {
+		try {
+			config = nlohmann::json::parse(read_to_string(datapath + L"\\config.json"));
+		}
+		catch (exception e) {
+			std::wcout << L"[BetterNCM] 解析配置文件失败！将使用默认配置文件\n\n";
+		}
+	}
+
 
 	extractPlugins();
 
@@ -485,15 +498,15 @@ App::App()
 		}
 	};
 
-	EasyCEFHooks::onLoadStart = [=](_cef_browser_t* browser, _cef_frame_t* frame, auto transition_type)
+	EasyCEFHooks::onLoadStart = [=](_cef_browser_t* browser, _cef_frame_t* frame)
 	{
 		if (frame->is_main(frame) && frame->is_valid(frame))
 		{
 			wstring url = frame->get_url(frame)->str;
 
-			EasyCEFHooks::executeJavaScript(frame,
+			EasyCEFHooks::executeJavaScript(frame, 
 				R"(
-!(function fixNCMReloadPosition() {
+(location.pathname==="/pub/app.html")&&!(function fixNCMReloadPosition() {
 	let oChannelCall = channel.call;
 	channel.call = (name,...args) => {
 		if (name === "winhelper.setWindowPosition" && window.screenX !== 0) return; 

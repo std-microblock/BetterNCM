@@ -79,7 +79,7 @@ async function loadPlugins() {
 		const pluginPath = mainPlugin.pluginPath;
 
 		async function loadInject(filePath: string) {
-			const getFileCode = BetterNCM.fs.readFileText.bind(null, filePath);
+			const getFileCode = betterncm_native.fs.readFileText.bind(null, filePath);
 			const code = await getFileCode();
 			if (devMode) {
 				setInterval(async () => {
@@ -134,12 +134,12 @@ async function loadPlugins() {
 	const loadingPromises: Promise<void>[] = [];
 	window.loadedPlugins = loadedPlugins;
 
-	const pluginPaths = await BetterNCM.fs.readDir("./plugins_runtime");
+	const pluginPaths = await betterncm_native.fs.readDir("./plugins_runtime");
 
 	const loadPluginByPath = async (path: string, devMode: boolean) => {
 		try {
 			const manifest = JSON.parse(
-				await BetterNCM.fs.readFileText(`${path}/manifest.json`),
+				await betterncm_native.fs.readFileText(`${path}/manifest.json`),
 			);
 			const mainPlugin = new NCMPlugin(manifest, path);
 
@@ -162,8 +162,8 @@ async function loadPlugins() {
 
 	for (const path of pluginPaths) await loadPluginByPath(path, false);
 
-	if (await BetterNCM.fs.exists("./plugins_dev")) {
-		const devPluginPaths = await BetterNCM.fs.readDir("./plugins_dev");
+	if (await betterncm_native.fs.exists("./plugins_dev")) {
+		const devPluginPaths = await betterncm_native.fs.readDir("./plugins_dev");
 		for (const path of devPluginPaths) await loadPluginByPath(path, true);
 	}
 

@@ -26,7 +26,7 @@ string script;
 
 
 void message(string title, string text) {
-	MessageBox(NULL, s2ws(text).c_str(), s2ws(title).c_str(), 0);
+	MessageBox(NULL, util::s2ws(text).c_str(), util::s2ws(title).c_str(), 0);
 }
 
 
@@ -214,7 +214,6 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 	if (dwReason == DLL_PROCESS_ATTACH)
 	{
 		g_hModule = hModule;
-
 		if (!getenv("BETTERNCM_DISABLED_FLAG")) {
 
 			SetUnhandledExceptionFilter(BNUnhandledExceptionFilter);
@@ -246,7 +245,6 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 				if ((int)fs::status((wstring)datapath).permissions() & (int)std::filesystem::perms::owner_write) {
 					// Create data folder
 					fs::create_directories(datapath + L"/plugins");
-
 					// PluginMarket
 					HRSRC myResource = ::FindResource(hModule, MAKEINTRESOURCE(IDR_RCDATA1), RT_RCDATA);
 					unsigned int myResourceSize = ::SizeofResource(hModule, myResource);
@@ -265,7 +263,6 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 			}
 
 	}
-
 
 
 
