@@ -180,6 +180,7 @@ const PluginManager: React.FC = () => {
 															: "plugin-btn"
 														: "plugin-btn-disabled plugin-btn"
 												}
+												data-plugin-slug={key}
 												onClick={() => {
 													if (haveConfig) setSelectedPlugin(loadPlugin);
 												}}

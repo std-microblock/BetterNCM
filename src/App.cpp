@@ -451,8 +451,8 @@ App::App()
 			if (browser->is_popup(browser) || browser->get_host(browser)->has_dev_tools(cef_browser_host))
 			{
 				HWND hwnd = FindWindow(NULL, L"EasyCEFInject DevTools");
-				if(hwnd)
-				DestroyWindow(hwnd);
+				if (hwnd)
+					DestroyWindow(hwnd);
 			}
 			else
 			{
