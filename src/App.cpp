@@ -434,7 +434,7 @@ App::App()
 
 	server_thread = create_server(apiKey);
 
-	EasyCEFHooks::onKeyEvent = [](auto client, auto browser, auto event)
+	EasyCEFHooks::onKeyEvent = [](_cef_client_t* client, struct _cef_browser_t* browser, const struct _cef_key_event_t* event)
 	{
 		if (event->type == KEYEVENT_KEYUP &&
 #if _DEBUG
@@ -445,9 +445,14 @@ App::App()
 			)
 		{
 			auto cef_browser_host = browser->get_host(browser);
-			if (browser->get_host(browser)->has_dev_tools(cef_browser_host))
+			auto hwnd = browser->get_host(browser)->get_window_handle(cef_browser_host);
+			SetLayeredWindowAttributes(hwnd, NULL, NULL, NULL);
+
+			if (browser->is_popup(browser) || browser->get_host(browser)->has_dev_tools(cef_browser_host))
 			{
-				browser->get_host(browser)->close_dev_tools(cef_browser_host);
+				HWND hwnd = FindWindow(NULL, L"EasyCEFInject DevTools");
+				if(hwnd)
+				DestroyWindow(hwnd);
 			}
 			else
 			{
