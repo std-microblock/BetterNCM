@@ -36,44 +36,6 @@ void App::writeConfig(const string& key, const string& value) {
 	file << config;
 }
 
-void exec(std::wstring cmd, bool ele, bool showWindow = false)
-{
-	int nArg;
-	LPWSTR* pArgs = CommandLineToArgvW(cmd.c_str(), &nArg);
-	if (nArg > 0)
-	{
-		std::wstring param;
-		SHELLEXECUTEINFOW info;
-		ZeroMemory(&info, sizeof(info));
-		info.cbSize = sizeof(info);
-		info.fMask = 0;
-		info.hwnd = 0;
-		info.lpVerb = ele ? L"runas" : L"open";
-
-		info.lpFile = pArgs[0];
-
-		if (nArg >= 2)
-		{
-			for (int i = 1; i < nArg; ++i)
-			{
-				if (i > 1) param += L' ';
-				param += pArgs[i];
-			}
-			info.lpParameters = param.c_str();
-		}
-		else
-		{
-			info.lpParameters = NULL;
-		}
-		info.lpDirectory = NULL;
-		info.nShow = showWindow ? SW_SHOW : SW_HIDE;
-
-		ShellExecuteExW(&info);
-	}
-
-	LocalFree(pArgs);
-}
-
 #define checkApiKey                                                                                  \
 	if (!req.has_header("BETTERNCM_API_KEY") || req.get_header_value("BETTERNCM_API_KEY") != apiKey) \
 	{                                                                                                \

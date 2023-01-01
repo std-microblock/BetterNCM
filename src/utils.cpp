@@ -2,6 +2,8 @@
 #include <ole2.h>
 #include <olectl.h>
 #include "utils.h"
+#include <tlhelp32.h>
+#include <shellapi.h>
 #include <assert.h>
 #pragma comment(lib, "version.lib")
 using namespace util;
@@ -311,19 +313,53 @@ std::wstring util::wreplaceAll(std::wstring str, const std::wstring& from, const
 
 void util::restartNCM()
 {
-	DWORD processId = GetCurrentProcessId();
+	// Get the ID of the current process
+	DWORD dwCurrentProcessId = GetCurrentProcessId();
 
-	WCHAR szFileName[MAX_PATH];
-	GetModuleFileNameW(NULL, szFileName, MAX_PATH);
+	// Get a snapshot of all the processes in the system
+	HANDLE hSnapshot = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+	if (hSnapshot == INVALID_HANDLE_VALUE)
+	{
+		return;
+	}
+	vector<DWORD> pidlist;
+	// Set up the process entry structure
+	PROCESSENTRY32W processEntry;
+	processEntry.dwSize = sizeof(PROCESSENTRY32W);
 
+	// Iterate through the processes in the snapshot
+	if (Process32FirstW(hSnapshot, &processEntry))
+	{
+		do
+		{
+			if (wcscmp(processEntry.szExeFile, L"cloudmusic.exe") == 0)
+			{
+
+				pidlist.push_back(processEntry.th32ProcessID);
+			}
+		} while (Process32NextW(hSnapshot, &processEntry));
+	}
+
+	// Close the snapshot handle
+	CloseHandle(hSnapshot);
+
+	WCHAR szProcessName[MAX_PATH];
+	GetModuleFileNameW(NULL, szProcessName, MAX_PATH);
 	STARTUPINFOW si;
 	PROCESS_INFORMATION pi;
 	ZeroMemory(&si, sizeof(si));
 	si.cb = sizeof(si);
 	ZeroMemory(&pi, sizeof(pi));
-	if (CreateProcessW(szFileName, NULL, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
+	string cmd = "cmd /c echo";
+	for (const auto& pid : pidlist) {
+		cmd += " & taskkill /f /pid ";
+		cmd += to_string(pid);
+	}
+
+	if (CreateProcessW(szProcessName, NULL, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
 	{
-		TerminateProcess(GetCurrentProcess(), 0);
+
+		exec(s2ws(cmd), false);
 		return;
 	}
 
@@ -340,4 +376,43 @@ void util::alert(const wchar_t* item)
 void util::alert(const wstring* item)
 {
 	MessageBoxW(NULL, item->c_str(), L"BetterNCM", MB_OK | MB_ICONINFORMATION);
+}
+
+
+void util::exec(std::wstring cmd, bool ele, bool showWindow)
+{
+	int nArg;
+	LPWSTR* pArgs = CommandLineToArgvW(cmd.c_str(), &nArg);
+	if (nArg > 0)
+	{
+		std::wstring param;
+		SHELLEXECUTEINFOW info;
+		ZeroMemory(&info, sizeof(info));
+		info.cbSize = sizeof(info);
+		info.fMask = 0;
+		info.hwnd = 0;
+		info.lpVerb = ele ? L"runas" : L"open";
+
+		info.lpFile = pArgs[0];
+
+		if (nArg >= 2)
+		{
+			for (int i = 1; i < nArg; ++i)
+			{
+				if (i > 1) param += L' ';
+				param += pArgs[i];
+			}
+			info.lpParameters = param.c_str();
+		}
+		else
+		{
+			info.lpParameters = NULL;
+		}
+		info.lpDirectory = NULL;
+		info.nShow = showWindow ? SW_SHOW : SW_HIDE;
+
+		ShellExecuteExW(&info);
+	}
+
+	LocalFree(pArgs);
 }
