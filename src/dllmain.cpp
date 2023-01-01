@@ -275,10 +275,6 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 			}
 			else {
 
-#ifdef _DEBUG
-				AllocConsole();
-				freopen("CONOUT$", "w", stdout);
-#endif
 				EasyCEFHooks::InstallHooks();
 			}
 

@@ -670,7 +670,14 @@ App::App()
 
 	EasyCEFHooks::onAddCommandLine = [&](string arg)
 	{
-		return pystring::index(arg, "disable-gpu") == -1;
+		bool remove = false;
+		remove = remove || pystring::index(arg, "disable-gpu") != -1;
+
+		if (readConfig("cc.microblock.betterncm.disable-logging", "true") == "true") {
+			remove = remove || pystring::index(arg, "log-file") != -1;
+		}
+
+		return remove;
 	};
 
 	EasyCEFHooks::InstallHooks();
