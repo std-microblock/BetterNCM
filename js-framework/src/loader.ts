@@ -56,6 +56,10 @@ export const isSafeMode = () => localStorage.getItem(SAFE_MODE_KEY) === "true";
 
 export const getLoadError = () => localStorage.getItem(LOAD_ERROR_KEY) || "";
 
+const generateSlugFromName = (name:string):string => {
+	return name.replace(/[^a-zA-Z0-9 ]/g, '').replace(/ /g, '-');
+};
+
 async function loadPlugins() {
 	if (isSafeMode()) {
 		window.loadedPlugins = loadedPlugins;
@@ -73,7 +77,10 @@ async function loadPlugins() {
 		const manifest = mainPlugin.manifest;
 		const pluginPath = mainPlugin.pluginPath;
 
+		manifest.slug=manifest.slug ?? generateSlugFromName(manifest.name);
+
 		async function loadInject(filePath: string) {
+			if(!manifest.slug) return;
 			const getFileCode = betterncm_native.fs.readFileText.bind(null, filePath);
 			const code = await getFileCode();
 			if (devMode) {
@@ -83,9 +90,10 @@ async function loadPlugins() {
 			}
 
 			if (filePath.endsWith(".js")) {
+				
 				const plugin = new NCMInjectPlugin(mainPlugin, filePath);
 				const loadingPromise = new AsyncFunction("plugin", code).call(
-					loadedPlugins[manifest.name],
+					loadedPlugins[manifest.slug],
 					plugin,
 				);
 				await loadingPromise;
@@ -107,7 +115,7 @@ async function loadPlugins() {
 					);
 				}
 				plugin.finished = true;
-				loadedPlugins[manifest.name].injects.push(plugin);
+				loadedPlugins[manifest.slug].injects.push(plugin);
 			}
 		}
 
@@ -137,13 +145,14 @@ async function loadPlugins() {
 				await betterncm_native.fs.readFileText(`${path}/manifest.json`),
 			);
 			const mainPlugin = new NCMPlugin(manifest, path);
+			manifest.slug=manifest.slug ?? generateSlugFromName(manifest.name);
 
-			if (!(manifest.name in loadedPlugins)) {
-				loadedPlugins[manifest.name] = mainPlugin;
+			if (!(manifest.slug in loadedPlugins)) {
+				loadedPlugins[manifest.slug] = mainPlugin;
 				loadingPromises.push(loadPlugin(mainPlugin, devMode));
 			} else {
 				console.warn(
-					manifest.name,
+					manifest.slug,
 					"duplicated, the plugin at",
 					path,
 					"wont be loaded.",

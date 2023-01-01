@@ -21,6 +21,7 @@ export interface PluginManifest {
 	manifest_version: number;
 	name: string;
 	version: string;
+	slug?: string;
 	injects: { [pageType: string]: InjectFile[] };
 	hijacks: {
 		[versionRange: string]: {
@@ -133,7 +134,7 @@ export class NCMInjectPlugin extends EventTarget {
 	getConfig<T>(key: string, defaultValue?: T): T | undefined {
 		try {
 			const config = JSON.parse(
-				localStorage.getItem(`config.betterncm.${this.manifest.name}`) || "{}",
+				localStorage.getItem(`config.betterncm.${this.manifest.slug}`) || "{}",
 			);
 			if (config[key] !== undefined) return config[key];
 		} catch {}
@@ -141,13 +142,13 @@ export class NCMInjectPlugin extends EventTarget {
 	}
 	setConfig<T>(key: string, value: T) {
 		let config = JSON.parse(
-			localStorage.getItem(`config.betterncm.${this.manifest.name}`) || "{}",
+			localStorage.getItem(`config.betterncm.${this.manifest.slug}`) || "{}",
 		);
 		if (!config || typeof config !== "object") {
 			config = Object.create(null);
 		}
 		config[key] = value;
-		localStorage[`config.betterncm.${this.manifest.name}`] =
+		localStorage[`config.betterncm.${this.manifest.slug}`] =
 			JSON.stringify(config);
 	}
 	_getConfigElement() {

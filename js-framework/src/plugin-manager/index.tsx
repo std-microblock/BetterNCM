@@ -175,7 +175,7 @@ const PluginManager: React.FC = () => {
 											<div
 												className={
 													haveConfig
-														? selectedPlugin?.manifest.name === key
+														? selectedPlugin?.manifest.slug === key
 															? "plugin-btn selected"
 															: "plugin-btn"
 														: "plugin-btn-disabled plugin-btn"

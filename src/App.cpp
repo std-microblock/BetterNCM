@@ -470,7 +470,7 @@ App::App()
 			CefString str = "ignore-certificate-errors";
 			command_line->append_switch(command_line, str.GetStruct());
 		}
-		if (readConfig("single-process", "true") == "true") {
+		if (readConfig("cc.microblock.betterncm.single-process", "false") == "true") {
 			CefString str = "single-process";
 			command_line->append_switch(command_line, str.GetStruct());
 		}
