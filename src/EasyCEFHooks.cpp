@@ -85,7 +85,6 @@ struct _cef_load_handler_t* CEF_CALLBACK hook_cef_load_handler(struct _cef_clien
 	if (load_handler) {
 		cef_client = self;
 		load_handler->on_load_error = hook_cef_on_load_error;
-		if (origin_cef_on_load_start != load_handler->on_load_start) util::alert("ineq");
 		origin_cef_on_load_start = load_handler->on_load_start;
 		load_handler->on_load_start = hook_cef_on_load_start;
 	}
