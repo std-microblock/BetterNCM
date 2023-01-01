@@ -37,6 +37,7 @@ export class NCMPlugin extends EventTarget {
 	injects: NCMInjectPlugin[] = [];
 	manifest: PluginManifest;
 	finished: boolean = false;
+	#haveConfigEle: boolean|null = null;
 	constructor(manifest: PluginManifest, pluginPath: string) {
 		super();
 		this.manifest = manifest;
@@ -53,12 +54,12 @@ export class NCMPlugin extends EventTarget {
 		});
 	}
 	haveConfigElement() {
-		return (
-			this.injects.reduce<HTMLElement | null>(
-				(previous, plugin) => previous ?? plugin._getConfigElement(),
-				null,
-			) !== null
-		);
+		if(this.#haveConfigEle==null)
+		this.#haveConfigEle=this.injects.reduce<HTMLElement | null>(
+			(previous, plugin) => previous ?? plugin._getConfigElement(),
+			null,
+		) !== null;
+		return this.#haveConfigEle;
 	}
 }
 
