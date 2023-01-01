@@ -159,6 +159,8 @@ HMODULE  g_hModule = nullptr;
 
 extern BNString datapath;
 
+BNString process_type = "undetected";
+
 std::wstring PrintExceptionInfo(EXCEPTION_POINTERS* ExceptionInfo)
 {
 	std::wostringstream Stream;
@@ -180,15 +182,21 @@ std::wstring PrintExceptionInfo(EXCEPTION_POINTERS* ExceptionInfo)
 
 LONG WINAPI BNUnhandledExceptionFilter(EXCEPTION_POINTERS* ExceptionInfo)
 {
-#define IGNORE_ERROR_EXIT(code) if(ExceptionInfo->ExceptionRecord->ExceptionCode==code){ util::killNCM(); }
-#define IGNORE_ERROR_RESTART(code) if(ExceptionInfo->ExceptionRecord->ExceptionCode==code){ util::restartNCM(); 
-#define IGNORE_ERROR_CONTINUE(code) if(ExceptionInfo->ExceptionRecord->ExceptionCode==code){ return EXCEPTION_CONTINUE_SEARCH; }
+	HWND ncmWin = FindWindow(L"OrpheusBrowserHost", NULL);
 
-	IGNORE_ERROR_CONTINUE(0x80000003);
+#define IGNORE_ERROR_EXIT(code) if(ExceptionInfo->ExceptionRecord->ExceptionCode==code){ util::killNCM(); return EXCEPTION_EXECUTE_HANDLER;}
+#define IGNORE_ERROR_RESTART(code) if(ExceptionInfo->ExceptionRecord->ExceptionCode==code){ util::restartNCM(); return EXCEPTION_EXECUTE_HANDLER; }
+#define IGNORE_ERROR_PASS_TO_NCM(code) if(ExceptionInfo->ExceptionRecord->ExceptionCode==code){ return EXCEPTION_CONTINUE_SEARCH; }
+#define IGNORE_ERROR_AUTO(code) if(ExceptionInfo->ExceptionRecord->ExceptionCode==code){ if(ncmWin) util::restartNCM(); else util::killNCM(); return EXCEPTION_EXECUTE_HANDLER;}
+	IGNORE_ERROR_AUTO(0xc0000005);
+	IGNORE_ERROR_AUTO(0xe0000008);
+
+	IGNORE_ERROR_PASS_TO_NCM(0x80000003);
 
 	int result = MessageBoxW(NULL,
 		(L"很抱歉，网易云音乐崩溃了！\n\n" +
 			PrintExceptionInfo(ExceptionInfo) +
+			L"In Process: " + process_type + L"\n" +
 			L"\n这有可能是由于插件引起的崩溃，要重启网易云音乐吗？\n\n点击 中止 以直接结束网易云\n点击 重试 以直接重启网易云\n点击 忽略 以禁用插件并重启网易云").c_str(),
 		L"BetterNCM 网易云音乐崩溃", MB_ABORTRETRYIGNORE | MB_ICONERROR);
 
@@ -206,7 +214,7 @@ LONG WINAPI BNUnhandledExceptionFilter(EXCEPTION_POINTERS* ExceptionInfo)
 		util::restartNCM();
 	}
 	return EXCEPTION_EXECUTE_HANDLER;
-	}
+}
 
 
 BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
@@ -215,6 +223,9 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 	{
 		g_hModule = hModule;
 		if (!getenv("BETTERNCM_DISABLED_FLAG")) {
+			if (util::get_command_line().includes(L"--type=renderer"))process_type = "renderer";
+			else if (util::get_command_line().includes(L"--type=gpu-process"))process_type = "gpu-process";
+			else process_type = "main";
 			namespace fs = std::filesystem;
 
 			SetUnhandledExceptionFilter(BNUnhandledExceptionFilter);
@@ -231,7 +242,7 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 					datapath = "C:\\betterncm";
 				}
 			}
-			if (pystring::find(util::get_command_line(), "--type") == -1) {
+			if (util::get_command_line().find(L"--type=") == -1) {
 				AllocConsole();
 				freopen("CONOUT$", "w", stdout);
 #ifndef _DEBUG
@@ -290,7 +301,13 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 	}
 	else if (dwReason == DLL_PROCESS_DETACH)
 	{
-		delete app;
+		if (app)
+			delete app;
+
+		if (!getenv("BETTERNCM_DISABLED_FLAG")) {
+			EasyCEFHooks::UninstallHook();
+		}
+
 		for (INT i = 0; i < sizeof(m_dwReturn) / sizeof(DWORD); i++)
 		{
 			TlsFree(m_dwReturn[i]);

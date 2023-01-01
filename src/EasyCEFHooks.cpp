@@ -67,8 +67,8 @@ void CEF_CALLBACK hook_cef_on_load_start(struct _cef_load_handler_t* self,
 	struct _cef_browser_t* browser,
 	struct _cef_frame_t* frame,
 	cef_transition_type_t transition_type) {
-	CAST_TO(origin_cef_on_load_start, hook_cef_on_load_start)(self, browser, frame, transition_type);
 	EasyCEFHooks::onLoadStart(browser, frame);
+	CAST_TO(origin_cef_on_load_start, hook_cef_on_load_start)(self, browser, frame, transition_type);
 }
 
 void CEF_CALLBACK hook_cef_on_load_error(struct _cef_load_handler_t* self,
@@ -85,6 +85,7 @@ struct _cef_load_handler_t* CEF_CALLBACK hook_cef_load_handler(struct _cef_clien
 	if (load_handler) {
 		cef_client = self;
 		load_handler->on_load_error = hook_cef_on_load_error;
+		if (origin_cef_on_load_start != load_handler->on_load_start) util::alert("ineq");
 		origin_cef_on_load_start = load_handler->on_load_start;
 		load_handler->on_load_start = hook_cef_on_load_start;
 	}

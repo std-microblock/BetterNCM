@@ -678,7 +678,6 @@ App::~App()
 	server_thread->detach();
 	delete server_thread;
 	httpServer = nullptr;
-	EasyCEFHooks::UninstallHook();
 
 	if (fs::exists(datapath.utf8() + "/plugins_runtime"))
 		fs::remove_all(datapath.utf8() + "/plugins_runtime");

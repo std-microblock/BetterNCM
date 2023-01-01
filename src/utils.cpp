@@ -8,6 +8,8 @@
 #pragma comment(lib, "version.lib")
 using namespace util;
 
+
+
 extern HMODULE g_hModule;
 BNString util::read_to_string(const std::filesystem::path& path) {
 	std::wifstream file(path);
