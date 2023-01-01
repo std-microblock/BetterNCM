@@ -25,7 +25,7 @@ std::function<void(struct _cef_browser_t* browser, struct _cef_frame_t* frame)> 
 std::function<void(_cef_client_t*, struct _cef_browser_t*, const struct _cef_key_event_t*)> EasyCEFHooks::onKeyEvent = [](auto client, auto browser, auto key) {};
 std::function<bool(string)> EasyCEFHooks::onAddCommandLine = [](string arg) { return true;  };
 std::function<std::function<wstring(wstring)>(string)> EasyCEFHooks::onHijackRequest = [](string url) { return nullptr; };
-std::function<void(struct _cef_command_line_t* command_line)> onCommandLine = [](struct _cef_command_line_t* command_line) {};
+std::function<void(struct _cef_command_line_t* command_line)> EasyCEFHooks::onCommandLine = [](struct _cef_command_line_t* command_line) {};
 
 
 
