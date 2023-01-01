@@ -445,8 +445,6 @@ App::App()
 			)
 		{
 			auto cef_browser_host = browser->get_host(browser);
-			auto hwnd = browser->get_host(browser)->get_window_handle(cef_browser_host);
-			SetLayeredWindowAttributes(hwnd, NULL, NULL, NULL);
 
 			if (browser->is_popup(browser) || browser->get_host(browser)->has_dev_tools(cef_browser_host))
 			{
@@ -486,11 +484,17 @@ App::App()
 	{
 		if (frame->is_main(frame) && frame->is_valid(frame))
 		{
+			auto cef_browser_host = browser->get_host(browser);
+			auto hwnd = browser->get_host(browser)->get_window_handle(cef_browser_host);
+			SetLayeredWindowAttributes(hwnd, NULL, NULL, NULL);
+
 			wstring url = frame->get_url(frame)->str;
 			EasyCEFHooks::executeJavaScript(frame,
 				R"(
 (location.pathname==="/pub/app.html")&&!(function fixNCMSideBarDisappear() {
-	document.head.appendChild(dom('style', { innerHTML:"#x-g-mn>.g-sd{display: block !important}" }));
+	setTimeout(()=>{
+		document.head.appendChild(dom('style', { innerHTML:"#x-g-mn>.g-sd{display: block !important}" }));
+	},1000)
 })();
 )", "betterncm://betterncm/fix_side_bar_disappear.js");
 			EasyCEFHooks::executeJavaScript(frame,
