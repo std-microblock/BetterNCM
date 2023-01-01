@@ -482,7 +482,12 @@ App::App()
 		if (frame->is_main(frame) && frame->is_valid(frame))
 		{
 			wstring url = frame->get_url(frame)->str;
-
+			EasyCEFHooks::executeJavaScript(frame,
+				R"(
+(location.pathname==="/pub/app.html")&&!(function fixNCMSideBarDisappear() {
+	document.head.appendChild(dom('style', { innerHTML:"#x-g-mn>.g-sd{display: block !important}" }));
+})();
+)", "betterncm://betterncm/fix_side_bar_disappear.js");
 			EasyCEFHooks::executeJavaScript(frame,
 				R"(
 (location.pathname==="/pub/app.html")&&!(function fixNCMReloadPosition() {
