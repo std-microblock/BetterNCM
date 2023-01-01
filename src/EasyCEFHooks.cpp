@@ -43,8 +43,10 @@ void process_context(cef_v8context_t* context);
 
 cef_v8context_t* hook_cef_v8context_get_current_context() {
 	cef_v8context_t* context = CAST_TO(origin_cef_v8context_get_current_context, hook_cef_v8context_get_current_context)();
-
-	process_context(context);
+	auto frame = context->get_frame(context);
+	if (frame->is_main(frame)) {
+		process_context(frame->get_v8context(frame));
+	}
 
 	return context;
 }
@@ -140,10 +142,10 @@ void CEF_CALLBACK hook_on_before_command_line_processing(
 			CefString str = "ignore-certificate-errors";
 			command_line->append_switch(command_line, str.GetStruct());
 		}
-		//{
-		//	CefString str = "single-process";
-		//	command_line->append_switch(command_line, str.GetStruct());
-		//}
+		{
+			CefString str = "single-process";
+			command_line->append_switch(command_line, str.GetStruct());
+		}
 
 		origin_command_line_append_switch = command_line->append_switch;
 		command_line->append_switch = hook_command_line_append_switch;

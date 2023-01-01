@@ -311,8 +311,7 @@ std::wstring util::wreplaceAll(std::wstring str, const std::wstring& from, const
 	return str;
 }
 
-void util::restartNCM()
-{
+void util::killNCM() {
 	// Get the ID of the current process
 	DWORD dwCurrentProcessId = GetCurrentProcessId();
 
@@ -343,6 +342,18 @@ void util::restartNCM()
 	// Close the snapshot handle
 	CloseHandle(hSnapshot);
 
+	string cmd = "cmd /c echo";
+	for (const auto& pid : pidlist) {
+		cmd += " & taskkill /f /pid ";
+		cmd += to_string(pid);
+	}
+	exec(s2ws(cmd), false);
+}
+
+void util::restartNCM()
+{
+
+
 	WCHAR szProcessName[MAX_PATH];
 	GetModuleFileNameW(NULL, szProcessName, MAX_PATH);
 	STARTUPINFOW si;
@@ -350,18 +361,9 @@ void util::restartNCM()
 	ZeroMemory(&si, sizeof(si));
 	si.cb = sizeof(si);
 	ZeroMemory(&pi, sizeof(pi));
-	string cmd = "cmd /c echo";
-	for (const auto& pid : pidlist) {
-		cmd += " & taskkill /f /pid ";
-		cmd += to_string(pid);
-	}
 
-	if (CreateProcessW(szProcessName, NULL, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi))
-	{
-
-		exec(s2ws(cmd), false);
-		return;
-	}
+	killNCM();
+	CreateProcessW(szProcessName, NULL, NULL, NULL, FALSE, 0, NULL, NULL, &si, &pi);
 
 	return;
 }

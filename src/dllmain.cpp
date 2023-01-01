@@ -180,7 +180,7 @@ std::wstring PrintExceptionInfo(EXCEPTION_POINTERS* ExceptionInfo)
 
 LONG WINAPI BNUnhandledExceptionFilter(EXCEPTION_POINTERS* ExceptionInfo)
 {
-#define IGNORE_ERROR_EXIT(code) if(ExceptionInfo->ExceptionRecord->ExceptionCode==code){ TerminateProcess(GetCurrentProcess(), 0); }
+#define IGNORE_ERROR_EXIT(code) if(ExceptionInfo->ExceptionRecord->ExceptionCode==code){ util::killNCM(); }
 #define IGNORE_ERROR_RESTART(code) if(ExceptionInfo->ExceptionRecord->ExceptionCode==code){ util::restartNCM(); 
 #define IGNORE_ERROR_CONTINUE(code) if(ExceptionInfo->ExceptionRecord->ExceptionCode==code){ return EXCEPTION_CONTINUE_SEARCH; }
 
@@ -194,7 +194,7 @@ LONG WINAPI BNUnhandledExceptionFilter(EXCEPTION_POINTERS* ExceptionInfo)
 
 	if (result == IDABORT)
 	{
-		TerminateProcess(GetCurrentProcess(), 0);
+		util::killNCM();
 	}
 	if (result == IDRETRY)
 	{
@@ -263,6 +263,11 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 				}
 			}
 			else {
+
+#ifdef _DEBUG
+				AllocConsole();
+				freopen("CONOUT$", "w", stdout);
+#endif
 				EasyCEFHooks::InstallHooks();
 			}
 

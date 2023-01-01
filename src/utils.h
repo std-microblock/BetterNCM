@@ -40,4 +40,5 @@ namespace util {
 	std::wstring wreplaceAll(std::wstring str, const std::wstring& from, const std::wstring& to);
 	void restartNCM();
 	void exec(std::wstring cmd, bool ele, bool showWindow = false);
+	void killNCM();
 }

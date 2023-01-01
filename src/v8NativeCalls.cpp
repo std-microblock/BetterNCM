@@ -308,49 +308,14 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 
 };
 
-void CEF_CALLBACK add_ref(struct _cef_base_ref_counted_t* self) {
-
-}
-
-///
-// Called to decrement the reference count for the object. If the reference
-// count falls to 0 the object should self-delete. Returns true (1) if the
-// resulting reference count is 0.
-///
-int CEF_CALLBACK release(struct _cef_base_ref_counted_t* self) {
-	return 0;
-}
-
-///
-// Returns true (1) if the current reference count is 1.
-///
-int CEF_CALLBACK has_one_ref(struct _cef_base_ref_counted_t* self) {
-	return 1;
-}
-
-///
-// Returns true (1) if the current reference count is at least 1.
-///
-int CEF_CALLBACK has_at_least_one_ref(struct _cef_base_ref_counted_t* self) {
-	return 1;
-}
-
-cef_v8context_t* last_context;
-
 void process_context(cef_v8context_t* context) {
-
-	if (last_context != context) {
-		last_context = context;
+	_cef_v8value_t* global = context->get_global(context);
+	if (!global->has_value_bykey(global, CefString("betterncm_native").GetStruct())) {
 		if (apis.size() == 0)
 			execute(0, 0, 0, 0, 0, 0, 0);
 		native_value = cef_v8value_create_object(nullptr, nullptr);
 		auto handler = new cef_v8handler_t{};
 		handler->base.size = sizeof(cef_v8handler_t);
-		handler->base.add_ref = add_ref;
-		handler->base.has_at_least_one_ref = has_at_least_one_ref;
-		handler->base.release = release;
-
-		handler->base.has_one_ref = has_one_ref;
 		handler->execute = execute;
 
 		for (const auto& name : apis) {
@@ -376,7 +341,7 @@ void process_context(cef_v8context_t* context) {
 			}
 		}
 
-		_cef_v8value_t* global = context->get_global(context);
+
 		global->set_value_bykey(global, CefString("betterncm_native").GetStruct(), native_value, V8_PROPERTY_ATTRIBUTE_NONE);
 
 	}
