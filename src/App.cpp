@@ -682,7 +682,7 @@ App::App()
 			remove = remove || pystring::index(arg, "log-file") != -1;
 		}
 
-		return remove;
+		return !remove;
 	};
 
 	EasyCEFHooks::InstallHooks();
