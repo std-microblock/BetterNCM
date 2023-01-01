@@ -22,5 +22,6 @@ namespace EasyCEFHooks
 	extern std::function<void(struct _cef_browser_t* browser, struct _cef_frame_t* frame)> onLoadStart;
 	extern std::function<bool(string)> onAddCommandLine;
 	extern std::function<std::function<wstring(wstring)>(string)> onHijackRequest;
+	extern std::function<void(struct _cef_command_line_t* command_line)> onCommandLine;
 };
 

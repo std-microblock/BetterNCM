@@ -460,6 +460,23 @@ App::App()
 		}
 	};
 
+	EasyCEFHooks::onCommandLine = [&](struct _cef_command_line_t* command_line) {
+
+		{
+			CefString str = "disable-web-security";
+			command_line->append_switch(command_line, str.GetStruct());
+		}
+		{
+			CefString str = "ignore-certificate-errors";
+			command_line->append_switch(command_line, str.GetStruct());
+		}
+		if (readConfig("single-process", "true") == "true") {
+			CefString str = "single-process";
+			command_line->append_switch(command_line, str.GetStruct());
+		}
+
+	};
+
 	EasyCEFHooks::onLoadStart = [=](_cef_browser_t* browser, _cef_frame_t* frame)
 	{
 		if (frame->is_main(frame) && frame->is_valid(frame))

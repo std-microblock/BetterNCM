@@ -25,7 +25,7 @@ std::function<void(struct _cef_browser_t* browser, struct _cef_frame_t* frame)> 
 std::function<void(_cef_client_t*, struct _cef_browser_t*, const struct _cef_key_event_t*)> EasyCEFHooks::onKeyEvent = [](auto client, auto browser, auto key) {};
 std::function<bool(string)> EasyCEFHooks::onAddCommandLine = [](string arg) { return true;  };
 std::function<std::function<wstring(wstring)>(string)> EasyCEFHooks::onHijackRequest = [](string url) { return nullptr; };
-
+std::function<void(struct _cef_command_line_t* command_line)> onCommandLine = [](struct _cef_command_line_t* command_line) {};
 
 
 
@@ -67,19 +67,8 @@ void CEF_CALLBACK hook_cef_on_load_start(struct _cef_load_handler_t* self,
 	struct _cef_browser_t* browser,
 	struct _cef_frame_t* frame,
 	cef_transition_type_t transition_type) {
-
-
-	auto cef_browser_host = browser->get_host(browser);
-	auto hwnd = browser->get_host(browser)->get_window_handle(cef_browser_host);
-	SetLayeredWindowAttributes(hwnd, NULL, NULL, NULL);
-
-
-
 	CAST_TO(origin_cef_on_load_start, hook_cef_on_load_start)(self, browser, frame, transition_type);
 	EasyCEFHooks::onLoadStart(browser, frame);
-
-	//cef_v8context_t* context = CAST_TO(origin_cef_v8context_get_current_context, hook_cef_v8context_get_current_context)();
-	//v8NativeCalls::process_context(context);
 }
 
 void CEF_CALLBACK hook_cef_on_load_error(struct _cef_load_handler_t* self,
@@ -133,23 +122,10 @@ void CEF_CALLBACK hook_on_before_command_line_processing(
 	struct _cef_app_t* self,
 	const cef_string_t* process_type,
 	struct _cef_command_line_t* command_line) {
-
-		{
-			CefString str = "disable-web-security";
-			command_line->append_switch(command_line, str.GetStruct());
-		}
-		{
-			CefString str = "ignore-certificate-errors";
-			command_line->append_switch(command_line, str.GetStruct());
-		}
-		{
-			CefString str = "single-process";
-			command_line->append_switch(command_line, str.GetStruct());
-		}
-
-		origin_command_line_append_switch = command_line->append_switch;
-		command_line->append_switch = hook_command_line_append_switch;
-		CAST_TO(origin_on_before_command_line_processing, hook_on_before_command_line_processing)(self, process_type, command_line);
+	EasyCEFHooks::onCommandLine(command_line);
+	origin_command_line_append_switch = command_line->append_switch;
+	command_line->append_switch = hook_command_line_append_switch;
+	CAST_TO(origin_on_before_command_line_processing, hook_on_before_command_line_processing)(self, process_type, command_line);
 }
 
 
