@@ -382,7 +382,7 @@ std::thread* App::create_server(string apiKey)
 
 		});
 
-	svr->set_mount_point("/local", datapath);
+	svr->set_mount_point("/local", datapath.utf8());
 
 
 

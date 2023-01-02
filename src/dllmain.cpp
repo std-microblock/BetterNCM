@@ -235,7 +235,7 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 				datapath = util::getEnvironment("BETTERNCM_PROFILE");
 			}
 			else {
-				if ((int)fs::status(util::getEnvironment("USERPROFILE") + L"\\betterncm").permissions() & (int)std::filesystem::perms::owner_write) {
+				if ((int)fs::status(util::getEnvironment("USERPROFILE") + L"\\betterncm").permissions() & (int)std::filesystem::perms::owner_write && fs::exists(util::getEnvironment("USERPROFILE") + L"\\betterncm")) {
 					datapath = util::getEnvironment("USERPROFILE") + L"\\betterncm";
 				}
 				else {
