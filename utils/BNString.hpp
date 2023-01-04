@@ -1,9 +1,14 @@
 #pragma once
+
+#include <locale>
+#include <codecvt>
 #include <string>
-#include <Windows.h>
 #include <vector>
 #include <stdexcept>
+
+#include <Windows.h>
 #include <oleauto.h>
+
 
 class BNString :public std::wstring {
 private:
@@ -37,7 +42,7 @@ private:
 	}
 
 	// https://stackoverflow.com/questions/8298081/convert-utf-8-to-ansi-in-c/35272822#35272822
-	static string utf8_string_to_asni_string(string s)
+	static std::string utf8_string_to_asni_string(const std::string s)
 	{
 		BSTR    bstrWide;
 		char* pszAnsi;
@@ -55,7 +60,7 @@ private:
 		WideCharToMultiByte(CP_ACP, 0, bstrWide, -1, pszAnsi, nLength, NULL, NULL);
 		SysFreeString(bstrWide);
 
-		string r(pszAnsi);
+		std::string r(pszAnsi);
 		delete[] pszAnsi;
 		return r;
 	}
@@ -143,19 +148,20 @@ private:
 	}
 
 public:
-	static BNString fromGBK(std::string s) {
+	static BNString fromGBK(const std::string s) {
 		return BNString(gbk_to_wstring(s));
 	}
+	
 	BNString() :std::wstring() {
 
 	}
-	BNString(std::string s) {
+	BNString(const std::string s) {
 		*this = utf8_to_wstring(s);
 	}
 	BNString(const char* s) {
 		*this = BNString(std::string(s));
 	}
-	BNString(std::wstring s) :std::wstring(s) {
+	BNString(const std::wstring s) :std::wstring(s) {
 
 	}
 
@@ -167,22 +173,22 @@ public:
 		return *this;
 	}
 
-	inline const string toUtf8String() const {
+	inline const std::string toUtf8String() const {
 		return wstring_to_utf8(this);
 	}
-	inline const string utf8() const {
+	inline const std::string utf8() const {
 		return this->toUtf8String();
 	}
-	inline const string toANSIString() const {
+	inline const std::string toANSIString() const {
 		return utf8_string_to_asni_string(wstring_to_utf8(this));
 	}
-	inline const string ansi() const {
+	inline const std::string ansi() const {
 		return this->toANSIString();
 	}
-	inline const string toGBKString() const {
+	inline const std::string toGBKString() const {
 		return utf8_string_to_gbk_string(this->toUtf8String());
 	}
-	inline const string gbk() const {
+	inline const std::string gbk() const {
 		return this->toGBKString();
 	}
 
