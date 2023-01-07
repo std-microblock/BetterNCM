@@ -16,9 +16,24 @@ namespace util {
 	BNString get_command_line();
 
 
+	class ScreenCapturePart
+	{
+		public:
+		ScreenCapturePart();
+		~ScreenCapturePart();
+		char* getData();
+		DWORD getDataSize();
 
-	bool screenCapturePart(LPCWSTR fname);
-	bool saveBitmap(LPCWSTR filename, HBITMAP bmp, HPALETTE pal);
+		private:
+		HDC hdcSource;
+		HDC hdcMemory;
+		HBITMAP hBitmap;
+		HBITMAP hBitmapOld;
+		DWORD dwSizeofDIB;
+		char* lpbitmap = nullptr;
+		char* allData = nullptr;
+	};
+
 
 	// https://stackoverflow.com/questions/1394053/how-to-write-a-generic-alert-message-using-win32
 	void alert(const wchar_t* item);
