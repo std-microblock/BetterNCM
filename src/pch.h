@@ -28,6 +28,5 @@
 #include "neargye/semver.hpp"
 #include "kubazip/zip/zip.h"
 
-using std::string, std::vector, std::wstring, std::to_string, std::cout, std::endl, std::exception, std::ofstream, std::error_code, std::map;
 #endif //PCH_H
 

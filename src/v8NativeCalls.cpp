@@ -8,18 +8,18 @@
 typedef cef_string_userfree_t cef_str_arg;
 extern BNString datapath;
 
-vector<string> apis;
+std::vector<std::string> apis;
 _cef_v8value_t* native_value;
 
 
 
-cef_v8value_t* create(const string& val) {
+cef_v8value_t* create(const std::string& val) {
 	CefString s;
 	s.FromString(val);
 	return cef_v8value_create_string(s.GetStruct());
 }
 
-cef_v8value_t* create(const wstring& val) {
+cef_v8value_t* create(const std::wstring& val) {
 	CefString s;
 	s.FromWString(val);
 	return cef_v8value_create_string(s.GetStruct());
@@ -53,7 +53,7 @@ cef_v8value_t* create(cef_v8value_t* val) {
 
 
 template<typename T>
-cef_v8value_t* create(vector<T> val) {
+cef_v8value_t* create(std::vector<T> val) {
 	cef_v8value_t* arr = cef_v8value_create_array(val.size());
 	for (const auto& item : val)
 		arr->set_value_byindex(arr, &item - &val[0], create(item));
@@ -69,23 +69,23 @@ cef_v8value_t* check_params_call(std::function <R(Args...)> fn,
 	int cnt = 0;
 
 	if (argumentsCount < num_args)
-		throw string("Too few arguments. Expected " +
-			to_string(num_args) + " arguments, received " +
-			to_string(argumentsCount) + " arguments.");
+		throw std::string("Too few arguments. Expected " +
+			std::to_string(num_args) + " arguments, received " +
+			std::to_string(argumentsCount) + " arguments.");
 	if (argumentsCount > num_args)
-		throw string("Too many arguments. Expected " +
-			to_string(num_args) + " arguments, received " +
-			to_string(argumentsCount) + " arguments.");
+		throw std::string("Too many arguments. Expected " +
+			std::to_string(num_args) + " arguments, received " +
+			std::to_string(argumentsCount) + " arguments.");
 
-	auto get_type = [&](size_t rtype, int i)->std::variant<int, double, bool, unsigned int, cef_str_arg, string, BNString> {
+	auto get_type = [&](size_t rtype, int i)->std::variant<int, double, bool, unsigned int, cef_str_arg, std::string, BNString> {
 
 
 #define CHECK_PARAM_AND_GET(type,checkFn,getFn) CHECK_PARAM(type,checkFn) {return arguments[i]->getFn(arguments[i]);}
 
 #define CHECK_PARAM(type,checkFn) \
 		if (rtype == typeid(type).hash_code())  \
-			if (!(arguments[i]->checkFn(arguments[i]))) throw string("Invalid argument " +\
-														to_string(i) + ". Expected an " + #type + \
+			if (!(arguments[i]->checkFn(arguments[i]))) throw std::string("Invalid argument " +\
+														std::to_string(i) + ". Expected an " + #type + \
 														" but received a different type.");\
 			else \
 
@@ -93,7 +93,7 @@ cef_v8value_t* check_params_call(std::function <R(Args...)> fn,
 		if (rtype == typeid(cef_v8value_t).hash_code())
 			return arguments[i];
 
-		CHECK_PARAM(string, is_string) {
+		CHECK_PARAM(std::string, is_string) {
 			CefString str;
 			str.AttachToUserFree(arguments[i]->get_string_value(arguments[i]));
 			return str.ToString();
@@ -130,14 +130,14 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 	struct _cef_v8value_t** retval,
 	cef_string_t* exception) {
 	CefString name_cefS = name;
-	string nameS = name_cefS.ToString();
+	std::string nameS = name_cefS.ToString();
 #define DEFINE_API(name,func) if(self==0)apis.push_back(#name);else if(#name==nameS){ *retval = check_params_call(std::function(func), argumentsCount, arguments); return 1;}
 	try {
 
 		DEFINE_API(
 			test.m.i.c.r.o.b.l.o.c.k,
 			[]() {
-				return wstring(L"🍊🍊🍊");
+				return std::wstring(L"🍊🍊🍊");
 			}
 		);
 
@@ -157,9 +157,9 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 					path = datapath + L"/" + path;
 				}
 
-		vector<string> paths;
+		std::vector<std::string> paths;
 
-		for (const auto& entry : fs::directory_iterator((wstring)path))
+		for (const auto& entry : fs::directory_iterator((std::wstring)path))
 			paths.push_back(BNString(entry.path().wstring()).utf8());
 
 		return paths;
@@ -174,7 +174,7 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 					path = datapath + L"/" + path;
 				}
 
-		vector<string> paths;
+		std::vector<std::string> paths;
 
 		std::ifstream t(path);
 		std::stringstream buffer;
@@ -207,7 +207,7 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 		if (dest[1] != ':') {
 			dest = datapath + L"/" + dest;
 		}
-		fs::rename((wstring)path, (wstring)dest);
+		fs::rename((std::wstring)path, (std::wstring)dest);
 		return true;
 			}
 		);
@@ -219,7 +219,7 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 					fs::create_directories(datapath + L"/" + path);
 				}
 				else {
-					fs::create_directories((wstring)path);
+					fs::create_directories((std::wstring)path);
 				}
 		return true;
 			}
@@ -231,7 +231,7 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 				if (path[1] != ':') {
 					path = datapath + L"/" + path;
 				}
-		return fs::exists((wstring)path);
+		return fs::exists((std::wstring)path);
 			}
 		);
 
@@ -254,7 +254,7 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 					path = datapath + L"/" + path;
 				}
 
-		fs::remove_all((wstring)path);
+		fs::remove_all((std::wstring)path);
 		return true;
 			}
 		);
@@ -319,7 +319,7 @@ void process_context(cef_v8context_t* context) {
 		handler->execute = execute;
 
 		for (const auto& name : apis) {
-			vector<string> v;
+			std::vector<std::string> v;
 			pystring::split(name, v, ".");
 
 			_cef_v8value_t* val = native_value;

@@ -18,7 +18,7 @@ BNString util::read_to_string(const std::filesystem::path& path) {
 	return content;
 }
 // https://stackoverflow.com/questions/4804298/how-to-convert-wstring-into-string   (modified)
-string util::ws2s(wstring const& str)
+std::string util::ws2s(std::wstring const& str)
 {
 	std::string strTo;
 	char* szTo = new char[str.length() + 1];
@@ -56,7 +56,7 @@ void util::write_file_text(const BNString& path, const BNString& text, bool appe
 // https://stackoverflow.com/questions/4130180/how-to-use-vs-c-getenvironmentvariable-as-cleanly-as-possible
 BNString util::getEnvironment(const BNString& key) {
 	if (!_wgetenv(key.c_str()))return BNString("");
-	return wstring(_wgetenv(key.c_str()));
+	return std::wstring(_wgetenv(key.c_str()));
 }
 
 BNString datapath = "\\betterncm";
@@ -73,7 +73,7 @@ BNString util::getNCMPath() {
 BNString util::get_command_line() {
 	LPTSTR cmd = GetCommandLine();
 
-	return wstring(cmd);
+	return std::wstring(cmd);
 }
 
 
@@ -323,7 +323,7 @@ void util::killNCM() {
 	{
 		return;
 	}
-	vector<DWORD> pidlist;
+	std::vector<DWORD> pidlist;
 	// Set up the process entry structure
 	PROCESSENTRY32W processEntry;
 	processEntry.dwSize = sizeof(PROCESSENTRY32W);
@@ -344,10 +344,10 @@ void util::killNCM() {
 	// Close the snapshot handle
 	CloseHandle(hSnapshot);
 
-	string cmd = "cmd /c echo";
+	std::string cmd = "cmd /c echo";
 	for (const auto& pid : pidlist) {
 		cmd += " & taskkill /f /pid ";
-		cmd += to_string(pid);
+		cmd += std::to_string(pid);
 	}
 	exec(s2ws(cmd), false);
 }
@@ -377,7 +377,7 @@ void util::alert(const wchar_t* item)
 	MessageBoxW(NULL, item, L"BetterNCM", MB_OK | MB_ICONINFORMATION);
 }
 
-void util::alert(const wstring* item)
+void util::alert(const std::wstring* item)
 {
 	MessageBoxW(NULL, item->c_str(), L"BetterNCM", MB_OK | MB_ICONINFORMATION);
 }
