@@ -45,3 +45,7 @@ src/framework.css
 src/framework.css.map
 js-framework/node_modules/
 js-framework/package-lock.json
+
+# VS
+*.vcxproj.filters
+*.vcxproj.user
