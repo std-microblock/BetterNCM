@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include "pch.h"
-#include "include/capi/cef_base_capi.h"
-#include "include/capi/cef_v8_capi.h"
+#include "3rd/libcef/include/capi/cef_base_capi.h"
+#include "3rd/libcef/include/capi/cef_v8_capi.h"
 #include "EasyCEFHooks.h"
 #include<variant>
 #include "App.h"
