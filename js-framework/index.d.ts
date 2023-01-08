@@ -108,10 +108,9 @@ declare module "betterncm-api/app" {
         function getBetterNCMVersion(): Promise<string>;
         /**
          * 全屏截图
-         * @returns 截图的网络地址
-         * @todo 修改为返回 Blob
+         * @returns 截图的 Blob 数据
          */
-        function takeBackgroundScreenshot(): Promise<string>;
+        function takeBackgroundScreenshot(): Promise<Blob>;
         /**
          * 获取网易云窗口位置
          * @returns 位置

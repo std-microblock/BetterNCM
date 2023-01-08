@@ -298,10 +298,8 @@ std::thread* App::create_server(const std::string& apiKey)
 		checkApiKey;
 	HWND ncmWin = FindWindow(L"OrpheusBrowserHost", NULL);
 	SetWindowDisplayAffinity(ncmWin, WDA_EXCLUDEFROMCAPTURE);
-	screenCapturePart(s2ws(datapath.utf8() + "/screenshot.bmp").c_str());
-	char buf[1024];
-	_snprintf_s(buf, 1024 - 1, "http://localhost:%d/local/screenshot.bmp", server_port);
-	res.set_content(buf, "text/plain");
+	ScreenCapturePart screenCapturePart;
+	res.set_content(screenCapturePart.getData(), screenCapturePart.getDataSize(), "application/octet-stream");
 	SetWindowDisplayAffinity(ncmWin, WDA_NONE);
 		});
 

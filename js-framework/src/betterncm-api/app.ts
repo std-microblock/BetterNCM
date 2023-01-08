@@ -35,12 +35,11 @@ export namespace app {
 
 	/**
 	 * 全屏截图
-	 * @returns 截图的网络地址
-	 * @todo 修改为返回 Blob
+	 * @returns 截图的 Blob 数据
 	 */
-	export async function takeBackgroundScreenshot(): Promise<string> {
+	export async function takeBackgroundScreenshot(): Promise<Blob> {
 		const r = await betterncmFetch("/app/bg_screenshot");
-		return await r.text();
+		return await r.blob();
 	}
 
 	/**

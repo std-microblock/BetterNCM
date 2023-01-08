@@ -77,10 +77,9 @@ BNString util::get_command_line() {
 }
 
 
-// https://stackoverflow.com/questions/9524393/how-to-capture-part-of-the-screen-and-save-it-to-a-bmp
-bool util::screenCapturePart(LPCWSTR fname) {
-	HDC hdcSource = GetDC(NULL);
-	HDC hdcMemory = CreateCompatibleDC(hdcSource);
+util::ScreenCapturePart::ScreenCapturePart() {
+	this->hdcSource = GetDC(NULL);
+	this->hdcMemory = CreateCompatibleDC(hdcSource);
 
 	int capX = GetDeviceCaps(hdcSource, HORZRES);
 	int capY = GetDeviceCaps(hdcSource, VERTRES);
@@ -90,76 +89,66 @@ bool util::screenCapturePart(LPCWSTR fname) {
 	int w = GetSystemMetrics(SM_CXVIRTUALSCREEN);
 	int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 
-	HBITMAP hBitmap = CreateCompatibleBitmap(hdcSource, w, h);
-	HBITMAP hBitmapOld = (HBITMAP)SelectObject(hdcMemory, hBitmap);
+	this->hBitmap = CreateCompatibleBitmap(hdcSource, w, h);
+	this->hBitmapOld = (HBITMAP) SelectObject(hdcMemory, this->hBitmap);
 
 	BitBlt(hdcMemory, 0, 0, w, h, hdcSource, x, y, SRCCOPY);
-	hBitmap = (HBITMAP)SelectObject(hdcMemory, hBitmapOld);
+	this->hBitmap = (HBITMAP) SelectObject(hdcMemory, this->hBitmapOld);
 
-	DeleteDC(hdcSource);
-	DeleteDC(hdcMemory);
+	BITMAPINFOHEADER bmiHeader {};
+	bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+	bmiHeader.biWidth = w;
+	bmiHeader.biHeight = h;
+	bmiHeader.biPlanes = 1;
+	bmiHeader.biBitCount = 24;
+	bmiHeader.biCompression = BI_RGB;
+	bmiHeader.biSizeImage = 0;
+	bmiHeader.biXPelsPerMeter = 0;
+	bmiHeader.biYPelsPerMeter = 0;
+	bmiHeader.biClrUsed = 0;
+	bmiHeader.biClrImportant = 0;
 
-	HPALETTE hpal = NULL;
-	if (saveBitmap(fname, hBitmap, hpal)) return true;
-	return false;
+	DWORD dwBmpSize = ((w * bmiHeader.biBitCount + 31) / 32) * 4 * h;
+	this->dwSizeofDIB = dwBmpSize + sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
+
+	BITMAPFILEHEADER bmfHeader {};
+	bmfHeader.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
+	bmfHeader.bfSize = this->dwSizeofDIB;
+	bmfHeader.bfType = 0x4D42;
+
+	this->lpbitmap = new char[dwBmpSize];
+	ZeroMemory(lpbitmap, dwBmpSize);
+	GetDIBits(hdcMemory, this->hBitmap, 0, h, lpbitmap, (BITMAPINFO*) &bmiHeader, DIB_RGB_COLORS);
+
+	this->allData = new char[this->dwSizeofDIB];
+	ZeroMemory(allData, this->dwSizeofDIB);
+	memcpy(allData, &bmfHeader, sizeof(BITMAPFILEHEADER));
+	memcpy(allData + sizeof(BITMAPFILEHEADER), &bmiHeader, sizeof(BITMAPINFOHEADER));
+	memcpy(allData + sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER), lpbitmap, dwBmpSize);
 }
 
-bool util::saveBitmap(LPCWSTR filename, HBITMAP bmp, HPALETTE pal)
+util::ScreenCapturePart::~ScreenCapturePart()
 {
-	bool result = false;
-	PICTDESC pd;
-
-	pd.cbSizeofstruct = sizeof(PICTDESC);
-	pd.picType = PICTYPE_BITMAP;
-	pd.bmp.hbitmap = bmp;
-	pd.bmp.hpal = pal;
-
-	LPPICTURE picture;
-	HRESULT res = OleCreatePictureIndirect(&pd, IID_IPicture, false,
-		reinterpret_cast<void**>(&picture));
-
-	if (!SUCCEEDED(res))
-		return false;
-
-	LPSTREAM stream;
-	res = CreateStreamOnHGlobal(0, true, &stream);
-
-	if (!SUCCEEDED(res))
-	{
-		picture->Release();
-		return false;
-	}
-
-	LONG bytes_streamed;
-	res = picture->SaveAsFile(stream, true, &bytes_streamed);
-
-	HANDLE file = CreateFile(filename, GENERIC_WRITE, FILE_SHARE_READ, 0,
-		CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
-
-	if (!SUCCEEDED(res) || !file)
-	{
-		stream->Release();
-		picture->Release();
-		return false;
-	}
-
-	HGLOBAL mem = 0;
-	GetHGlobalFromStream(stream, &mem);
-	LPVOID data = GlobalLock(mem);
-
-	DWORD bytes_written;
-
-	result = !!WriteFile(file, data, bytes_streamed, &bytes_written, 0);
-	result &= (bytes_written == static_cast<DWORD>(bytes_streamed));
-
-	GlobalUnlock(mem);
-	CloseHandle(file);
-
-	stream->Release();
-	picture->Release();
-
-	return result;
+	ReleaseDC(NULL, this->hdcSource);
+	DeleteDC(this->hdcMemory);
+	DeleteObject(this->hBitmap);
+	DeleteObject(this->hBitmapOld);
+	delete[] this->allData;
+	delete[] this->lpbitmap;
+	this->allData = nullptr;
+	this->lpbitmap = nullptr;
 }
+
+char* util::ScreenCapturePart::getData()
+{
+	return this->allData;
+}
+
+DWORD util::ScreenCapturePart::getDataSize()
+{
+	return this->dwSizeofDIB;
+}
+
 
 std::string util::load_string_resource(LPCTSTR name)
 {
