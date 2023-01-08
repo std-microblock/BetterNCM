@@ -29,7 +29,7 @@ jobs:
 
     - name: Install NPM packages
       working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: cd ./js-framework ; npm i
+      run: cd ./src/js-framework ; npm i
 
     - name: Build
       working-directory: ${{env.GITHUB_WORKSPACE}}
