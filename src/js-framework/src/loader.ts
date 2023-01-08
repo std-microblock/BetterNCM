@@ -52,13 +52,79 @@ export class PluginLoadError extends Error {
 	}
 }
 
+export class DependencyResolveError extends Error {
+	constructor(message?: string, options?: ErrorOptions) {
+		super(message, options);
+	}
+
+	override toString(): string {
+		return `插件依赖解析出错: ${this}`;
+	}
+}
+
 export const isSafeMode = () => localStorage.getItem(SAFE_MODE_KEY) === "true";
 
 export const getLoadError = () => localStorage.getItem(LOAD_ERROR_KEY) || "";
 
-const generateSlugFromName = (name:string):string => {
-	return name.replace(/[^a-zA-Z0-9 ]/g, '').replace(/ /g, '-');
-};
+function sortPlugins(plugins: NCMPlugin[]) {
+	class Graph {
+		adjacencyList = {};
+		constructor() {}
+		addVertex(vertex: string) {
+			if (!this.adjacencyList[vertex]) {
+				this.adjacencyList[vertex] = [];
+			}
+		}
+		addEdge(v1: string, v2: string) {
+			this.adjacencyList[v1].push(v2);
+		}
+	}
+
+	const graph = new Graph();
+	for (const plugin of plugins) graph.addVertex(plugin.manifest.slug);
+	for (const plugin of plugins) {
+		if (plugin.manifest.loadBefore)
+			plugin.manifest.loadBefore.forEach((dep) =>
+				graph.addEdge(dep, plugin.manifest.slug),
+			);
+		if (plugin.manifest.loadAfter)
+			plugin.manifest.loadAfter.forEach((dep) =>
+				graph.addEdge(plugin.manifest.slug, dep),
+			);
+	}
+
+	function dfsTopSortHelper(
+		v: string,
+		n: number,
+		visited: { [x: string]: boolean },
+		topNums: { [x: string]: number },
+	) {
+		visited[v] = true;
+		if (!(v in graph.adjacencyList))
+			throw new DependencyResolveError(`找不到插件 ${v}`);
+		const neighbors = graph.adjacencyList[v];
+		for (const neighbor of neighbors) {
+			if (!visited[neighbor]) {
+				n = dfsTopSortHelper(neighbor, n, visited, topNums);
+			}
+		}
+		topNums[v] = n;
+		return n - 1;
+	}
+
+	const vertices = Object.keys(graph.adjacencyList);
+	const visited = {};
+	const topNums = {};
+	let n = vertices.length - 1;
+	for (const v of vertices) {
+		if (!visited[v]) {
+			n = dfsTopSortHelper(v, n, visited, topNums);
+		}
+	}
+	return Object.keys(topNums).map((slug) =>
+		plugins.find((plugin) => plugin.manifest.slug === slug),
+	);
+}
 
 async function loadPlugins() {
 	if (isSafeMode()) {
@@ -73,14 +139,13 @@ async function loadPlugins() {
 	};
 	const pageName = pageMap[location.pathname];
 
-	async function loadPlugin(mainPlugin: NCMPlugin, devMode = false) {
+	async function loadPlugin(mainPlugin: NCMPlugin) {
+		const devMode = mainPlugin.devMode;
 		const manifest = mainPlugin.manifest;
 		const pluginPath = mainPlugin.pluginPath;
 
-		manifest.slug=manifest.slug ?? generateSlugFromName(manifest.name);
-
 		async function loadInject(filePath: string) {
-			if(!manifest.slug) return;
+			if (!manifest.slug) return;
 			const getFileCode = betterncm_native.fs.readFileText.bind(null, filePath);
 			const code = await getFileCode();
 			if (devMode) {
@@ -90,7 +155,6 @@ async function loadPlugins() {
 			}
 
 			if (filePath.endsWith(".js")) {
-				
 				const plugin = new NCMInjectPlugin(mainPlugin, filePath);
 				const loadingPromise = new AsyncFunction("plugin", code).call(
 					loadedPlugins[manifest.slug],
@@ -134,42 +198,54 @@ async function loadPlugins() {
 		mainPlugin.finished = true;
 	}
 
-	const loadingPromises: Promise<void>[] = [];
 	window.loadedPlugins = loadedPlugins;
 
 	const pluginPaths = await betterncm_native.fs.readDir("./plugins_runtime");
 
+	let plugins: NCMPlugin[] = [];
+
 	const loadPluginByPath = async (path: string, devMode: boolean) => {
 		try {
 			const manifest = JSON.parse(
-				await betterncm_native.fs.readFileText(`${path}/manifest.json`),
+				betterncm_native.fs.readFileText(`${path}/manifest.json`),
 			);
-			const mainPlugin = new NCMPlugin(manifest, path);
-			manifest.slug=manifest.slug ?? generateSlugFromName(manifest.name);
 
-			if (!(manifest.slug in loadedPlugins)) {
-				loadedPlugins[manifest.slug] = mainPlugin;
-				loadingPromises.push(loadPlugin(mainPlugin, devMode));
-			} else {
-				console.warn(
-					manifest.slug,
-					"duplicated, the plugin at",
-					path,
-					"wont be loaded.",
-				);
-			}
+			manifest.slug =
+				manifest.slug ??
+				manifest.name.replace(/[^a-zA-Z0-9 ]/g, "").replace(/ /g, "-");
+
+			const mainPlugin = new NCMPlugin(manifest, path, devMode);
+			plugins.push(mainPlugin);
 		} catch (e) {
 			if (e instanceof SyntaxError) console.error("Failed to load plugin:", e);
 			else throw e;
 		}
 	};
 
-	for (const path of pluginPaths) await loadPluginByPath(path, false);
+	plugins = sortPlugins(plugins) as NCMPlugin[];
 
-	if (await betterncm_native.fs.exists("./plugins_dev")) {
-		const devPluginPaths = await betterncm_native.fs.readDir("./plugins_dev");
-		for (const path of devPluginPaths) await loadPluginByPath(path, true);
+	for (const path of pluginPaths) loadPluginByPath(path, false);
+
+	if (betterncm_native.fs.exists("./plugins_dev")) {
+		const devPluginPaths = betterncm_native.fs.readDir("./plugins_dev");
+		for (const path of devPluginPaths) loadPluginByPath(path, true);
 	}
+
+	const loadingPromises: (Promise<void> | undefined)[] = plugins.map(
+		(plugin) => {
+			if (!(plugin.manifest.slug in loadedPlugins)) {
+				loadedPlugins[plugin.manifest.slug] = plugin;
+				return loadPlugin(plugin);
+			} else {
+				console.warn(
+					plugin.manifest.slug,
+					"duplicated, the plugin at",
+					plugin.pluginPath,
+					"wont be loaded.",
+				);
+			}
+		},
+	);
 
 	await Promise.all(loadingPromises);
 	for (const name in loadedPlugins) {

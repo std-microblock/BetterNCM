@@ -21,7 +21,9 @@ export interface PluginManifest {
 	manifest_version: number;
 	name: string;
 	version: string;
-	slug?: string;
+	slug: string;
+	loadAfter?: string[];
+	loadBefore?: string[];
 	injects: { [pageType: string]: InjectFile[] };
 	hijacks: {
 		[versionRange: string]: {
@@ -37,9 +39,11 @@ export class NCMPlugin extends EventTarget {
 	injects: NCMInjectPlugin[] = [];
 	manifest: PluginManifest;
 	finished: boolean = false;
-	#haveConfigEle: boolean|null = null;
-	constructor(manifest: PluginManifest, pluginPath: string) {
+	#haveConfigEle: boolean | null = null;
+	devMode: boolean = false;
+	constructor(manifest: PluginManifest, pluginPath: string, devMode: boolean) {
 		super();
+		this.devMode = devMode;
 		this.manifest = manifest;
 		this.pluginPath = pluginPath;
 		this.addEventListener("load", (evt: CustomEvent) => {
@@ -54,11 +58,12 @@ export class NCMPlugin extends EventTarget {
 		});
 	}
 	haveConfigElement() {
-		if(this.#haveConfigEle==null)
-		this.#haveConfigEle=this.injects.reduce<HTMLElement | null>(
-			(previous, plugin) => previous ?? plugin._getConfigElement(),
-			null,
-		) !== null;
+		if (this.#haveConfigEle == null)
+			this.#haveConfigEle =
+				this.injects.reduce<HTMLElement | null>(
+					(previous, plugin) => previous ?? plugin._getConfigElement(),
+					null,
+				) !== null;
 		return this.#haveConfigEle;
 	}
 }
