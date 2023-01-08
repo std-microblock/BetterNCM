@@ -4,7 +4,7 @@
 #include <Windows.h>
 #include "App.h"
 #include "resource.h"
-#include "utils.h"
+#include "utils/utils.h"
 #include <stdlib.h>
 
 #pragma comment(linker, "/EXPORT:vSetDdrawflag=_AheadLib_vSetDdrawflag,@1")

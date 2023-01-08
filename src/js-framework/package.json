@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build:dev": "esbuild ./src/index.ts --bundle --sourcemap --external:./node_modules/* --target=chrome91 --outfile=../src/framework.js",
-    "build": "esbuild ./src/index.ts --minify --bundle --sourcemap --external:./node_modules/* --target=chrome91 --outfile=../src/framework.js",
+    "build:dev": "esbuild ./src/index.ts --bundle --sourcemap --external:./node_modules/* --target=chrome91 --outfile=../framework.js",
+    "build": "esbuild ./src/index.ts --minify --bundle --sourcemap --external:./node_modules/* --target=chrome91 --outfile=../framework.js",
     "gentypes": "tsc --outfile index.d.ts --module none",
     "test": "echo \"Error: no test specified\" && exit 1"
   },

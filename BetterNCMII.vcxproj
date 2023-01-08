@@ -73,11 +73,17 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <PublicIncludeDirectories>$(PublicIncludeDirectories)</PublicIncludeDirectories>
+    <AllProjectIncludesArePublic>true</AllProjectIncludesArePublic>
+    <AllProjectBMIsArePublic>true</AllProjectBMIsArePublic>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
     <ExternalIncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath); I:\qtbuild\qt-everywhere-src-5.15.2\qt-everywhere-src-5.15.2\qtbase\include</ExternalIncludePath>
     <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
+    <PublicIncludeDirectories>$(PublicIncludeDirectories)</PublicIncludeDirectories>
+    <AllProjectIncludesArePublic>true</AllProjectIncludesArePublic>
+    <AllProjectBMIsArePublic>true</AllProjectBMIsArePublic>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -95,12 +101,13 @@
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <PreprocessToFile>false</PreprocessToFile>
+      <AdditionalIncludeDirectories>src;src\3rd\libcef;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>libcef.lib;dwmapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>src/3rd/libcef/libcef.lib;dwmapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
     </Link>
     <PostBuildEvent>
@@ -109,7 +116,7 @@ ping localhost -n 2 &gt; nul
 copy "$(TargetDir)BetterNCMII.dll" "C:\Program Files (x86)\Netease\CloudMusic\msimg32.dll" /y</Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>cd /D $(SolutionDir)js-framework
+      <Command>cd /D $(SolutionDir)/src/js-framework
 npm run build:dev</Command>
     </PreBuildEvent>
   </ItemDefinitionGroup>
@@ -124,6 +131,7 @@ npm run build:dev</Command>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>src;src\3rd\libcef;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -131,14 +139,14 @@ npm run build:dev</Command>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>dwmapi.lib;libcef.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dwmapi.lib;src/3rd/libcef/libcef.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>
       </Command>
     </PostBuildEvent>
     <PreBuildEvent>
-      <Command>cd js-framework
+      <Command>cd src/js-framework
 npm run build</Command>
     </PreBuildEvent>
     <CustomBuildStep>
@@ -185,15 +193,15 @@ npm run build</Command>
     <ClInclude Include="src\framework.h" />
     <ClInclude Include="src\pch.h" />
     <ClInclude Include="src\resource.h" />
-    <ClInclude Include="src\utils.h" />
-    <ClInclude Include="utils\BNString.hpp" />
+    <ClInclude Include="src\utils\BNString.hpp" />
+    <ClInclude Include="src\utils\utils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\App.cpp" />
     <ClCompile Include="src\dllmain.cpp" />
     <ClCompile Include="src\EasyCEFHooks.cpp" />
     <ClCompile Include="src\pch.cpp" />
-    <ClCompile Include="src\utils.cpp" />
+    <ClCompile Include="src\utils\utils.cpp" />
     <ClCompile Include="src\v8NativeCalls.cpp" />
   </ItemGroup>
   <ItemGroup>

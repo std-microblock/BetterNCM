@@ -1,7 +1,7 @@
+#include "utils.h"
 #include "pch.h"
 #include <ole2.h>
 #include <olectl.h>
-#include "utils.h"
 #include <tlhelp32.h>
 #include <shellapi.h>
 #include <assert.h>

@@ -1,14 +1,14 @@
 #pragma once
 #include "detours/detours.h"
-#include "include/cef_v8.h"
-#include "include/cef_app.h"
-#include "include/cef_browser.h"
+#include "3rd/libcef/include/cef_v8.h"
+#include "3rd/libcef/include/cef_app.h"
+#include "3rd/libcef/include/cef_browser.h"
 #include "pystring/pystring.h"
-#include "include/capi/cef_client_capi.h"
-#include "include/capi/cef_app_capi.h"
-#include "include/internal/cef_export.h"
-#include "include/capi/cef_v8_capi.h"
-#include "utils.h"
+#include "3rd/libcef/include/capi/cef_client_capi.h"
+#include "3rd/libcef/include/capi/cef_app_capi.h"
+#include "3rd/libcef/include/internal/cef_export.h"
+#include "3rd/libcef/include/capi/cef_v8_capi.h"
+#include "utils/utils.h"
 #include "shellapi.h"
 #include <string>
 #define CAST_TO(target,to) reinterpret_cast<decltype(&to)>(target)
