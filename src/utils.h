@@ -7,8 +7,8 @@
 
 namespace util {
 	BNString read_to_string(const std::filesystem::path& path);
-	string ws2s(const wstring& str);
-	std::wstring s2ws(const string& s, bool isUtf8 = true);
+	std::string ws2s(const std::wstring& str);
+	std::wstring s2ws(const std::string& s, bool isUtf8 = true);
 	void write_file_text(const BNString& path, const BNString& text, bool append = false);
 	BNString getEnvironment(const BNString& key);
 	BNString getNCMPath();
@@ -22,7 +22,7 @@ namespace util {
 
 	// https://stackoverflow.com/questions/1394053/how-to-write-a-generic-alert-message-using-win32
 	void alert(const wchar_t* item);
-	void alert(const wstring* item);
+	void alert(const std::wstring* item);
 	template<typename T>
 	void alert(T item)
 	{

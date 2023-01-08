@@ -4,18 +4,18 @@
 #include "shellapi.h"
 #include <mutex>
 #include <shared_mutex>
-extern const string version;
+extern const std::string version;
 class App {
 	httplib::Server* httpServer = nullptr;
 	std::thread* server_thread;
 	int server_port;
-	std::thread* create_server(string apiKey);
+	std::thread* create_server(const std::string& apiKey);
 	void extractPlugins();
-	string readConfig(const string& key, const string& def);
-	void writeConfig(const string& key, const string& val);
+	std::string readConfig(const std::string& key, const std::string& def);
+	void writeConfig(const std::string& key, const std::string& val);
 
 	std::shared_timed_mutex succeeded_hijacks_lock;
-	vector<string> succeeded_hijacks;
+	std::vector<std::string> succeeded_hijacks;
 public:
 	App();
 	~App();

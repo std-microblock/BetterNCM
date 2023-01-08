@@ -23,8 +23,8 @@ PVOID origin_get_headers = NULL;
 
 std::function<void(struct _cef_browser_t* browser, struct _cef_frame_t* frame)> EasyCEFHooks::onLoadStart = [](auto browser, auto frame) {};
 std::function<void(_cef_client_t*, struct _cef_browser_t*, const struct _cef_key_event_t*)> EasyCEFHooks::onKeyEvent = [](auto client, auto browser, auto key) {};
-std::function<bool(string)> EasyCEFHooks::onAddCommandLine = [](string arg) { return true;  };
-std::function<std::function<wstring(wstring)>(string)> EasyCEFHooks::onHijackRequest = [](string url) { return nullptr; };
+std::function<bool(std::string)> EasyCEFHooks::onAddCommandLine = [](std::string arg) { return true;  };
+std::function<std::function<std::wstring(std::wstring)>(std::string)> EasyCEFHooks::onHijackRequest = [](std::string url) { return nullptr; };
 std::function<void(struct _cef_command_line_t* command_line)> EasyCEFHooks::onCommandLine = [](struct _cef_command_line_t* command_line) {};
 
 
@@ -153,22 +153,22 @@ class CefRequestMITMProcess {
 	const static int bytesPerTime = 65535;
 
 public:
-	string url;
-	vector<char> data;
+	std::string url;
+	std::vector<char> data;
 	int datasize = 0;
 	int dataPointer = 0;
-	void fillData(wstring s) {
+	void fillData(const std::wstring& s) {
 		fillData(util::wstring_to_utf8(s));
 	};
-	void fillData(string s) {
+	void fillData(const std::string& s) {
 		data = std::vector<char>(s.begin(), s.end());
 	};
 	void fillData(_cef_resource_handler_t* self, _cef_callback_t* callback);
-	wstring getDataStr() {
+	std::wstring getDataStr() {
 		try {
-			return util::utf8_to_wstring(string(data.begin(), data.end()));
+			return util::utf8_to_wstring(std::string(data.begin(), data.end()));
 		}
-		catch (exception e) {
+		catch (std::exception& e) {
 			util::alert(e.what());
 			return L"";
 		}
@@ -204,7 +204,7 @@ public:
 	}
 };
 
-map<_cef_resource_handler_t*, CefRequestMITMProcess> urlMap;
+std::map<_cef_resource_handler_t*, CefRequestMITMProcess> urlMap;
 
 int CEF_CALLBACK hook_scheme_handler_read(struct _cef_resource_handler_t* self,
 	void* data_out,
@@ -218,7 +218,7 @@ int CEF_CALLBACK hook_scheme_handler_read(struct _cef_resource_handler_t* self,
 	auto processor = EasyCEFHooks::onHijackRequest(urlMap[self].url);
 
 	if (processor) {
-		cout << urlMap[self].url << " hijacked" << endl;
+		std::cout << urlMap[self].url << " hijacked" << std::endl;
 		urlMap[self].fillData(self, callback);
 		urlMap[self].fillData(util::wstring_to_utf8(processor(urlMap[self].getDataStr())));
 		if (urlMap[self].sendData(data_out, bytes_to_read, bytes_read))return 1;
@@ -329,7 +329,7 @@ bool EasyCEFHooks::UninstallHook()
 	return true;
 }
 
-void EasyCEFHooks::executeJavaScript(_cef_frame_t* frame, string script, string url) {
+void EasyCEFHooks::executeJavaScript(_cef_frame_t* frame, const std::string& script, const std::string& url) {
 	CefString exec_script = script;
 	CefString purl = url;
 	frame->execute_java_script(frame, exec_script.GetStruct(), purl.GetStruct(), 0);

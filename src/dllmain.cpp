@@ -22,10 +22,10 @@
 #define ALCFAST EXTERNC EXPORT NAKED void __fastcall
 #define ALCDECL EXTERNC NAKED void __cdecl
 
-string script;
+std::string script;
 
 
-void message(string title, string text) {
+void message(const std::string& title, const std::string& text) {
 	MessageBox(NULL, util::s2ws(text).c_str(), util::s2ws(title).c_str(), 0);
 }
 
@@ -254,7 +254,7 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 
 				std::wcout << L"Data folder picked: " << datapath << "\n";
 
-				if ((int)fs::status((wstring)datapath).permissions() & (int)std::filesystem::perms::owner_write) {
+				if ((int)fs::status((std::wstring)datapath).permissions() & (int)std::filesystem::perms::owner_write) {
 					// Create data folder
 					fs::create_directories(datapath + L"/plugins");
 					// PluginMarket
