@@ -3,6 +3,7 @@
 #include <Windows.h>
 #include "dwmapi.h"
 #include "CommDlg.h"
+#include <NativePlugin.h>
 
 #define WIN32_LEAN_AND_MEAN
 
@@ -335,23 +336,6 @@ std::thread* App::create_server(const std::string& apiKey)
 		});
 
 
-	svr->Get("/api/app/get_win_position", [&](const httplib::Request& req, httplib::Response& res) {
-		HWND ncmWin = FindWindow(L"OrpheusBrowserHost", NULL);
-	int x = 0, y = 0;
-	RECT rect = { NULL };
-
-	int xo = GetSystemMetrics(SM_XVIRTUALSCREEN);
-	int yo = GetSystemMetrics(SM_YVIRTUALSCREEN);
-
-	if (GetWindowRect(ncmWin, &rect)) {
-		x = rect.left;
-		y = rect.top;
-	}
-
-	res.set_content((std::string("{\"x\":")) + std::to_string(x - xo) + ",\"y\":" + std::to_string(y - yo) + "}", "application/json");
-
-		});
-
 	svr->Get("/api/app/open_file_dialog", [&](const httplib::Request& req, httplib::Response& res) {
 		checkApiKey;
 	TCHAR szBuffer[MAX_PATH] = { 0 };
@@ -409,28 +393,40 @@ std::string random_string(std::string::size_type length)
 	return s;
 }
 
-App::App()
-{
 
+
+App::App(std::vector<std::shared_ptr<Plugin>>* plugins)
+{
+	this->plugins = plugins;
 	std::cout << "BetterNCM v" << version << " running on NCM " << getNCMExecutableVersion() << std::endl;
 
 
-	std::lock_guard<std::mutex> lock(configMutex);
-	if (fs::exists(datapath + L"\\config.json")) {
-		try {
-			config = nlohmann::json::parse(read_to_string(datapath + L"\\config.json"));
-		}
-		catch (std::exception e) {
-			std::wcout << L"[BetterNCM] 解析配置文件失败！将使用默认配置文件\n\n";
+	{
+		std::lock_guard<std::mutex> lock(configMutex);
+		if (fs::exists(datapath + L"\\config.json")) {
+			try {
+				config = nlohmann::json::parse(read_to_string(datapath + L"\\config.json"));
+			}
+			catch (std::exception e) {
+				std::wcout << L"[BetterNCM] 解析配置文件失败！将使用默认配置文件\n\n";
+			}
 		}
 	}
 
 
 	extractPlugins();
 
+	if (readConfig("cc.microblock.betterncm.single-process", "false") == "true")
+		for (const auto& plugin : *plugins) {
+			plugin->loadNativePluginDll();
+		}
+
 	auto apiKey = random_string(64);
 
 	server_thread = create_server(apiKey);
+
+
+
 
 	EasyCEFHooks::onKeyEvent = [](_cef_client_t* client, struct _cef_browser_t* browser, const struct _cef_key_event_t* event)
 	{
@@ -682,6 +678,7 @@ App::App()
 
 		if (readConfig("cc.microblock.betterncm.disable-logging", "true") == "true") {
 			remove = remove || pystring::index(arg, "log-file") != -1;
+
 		}
 
 		return !remove;
@@ -729,7 +726,7 @@ void App::extractPlugins()
 					throw new std::exception("Unsupported manifest version.");
 				}
 			}
-			catch (std::exception &e)
+			catch (std::exception& e)
 			{
 				write_file_text(datapath.utf8() + "/log.log", BNString::fromGBK(std::string("\nPlugin Loading Error: ") + (e.what())), true);
 				fs::remove_all(datapath.utf8() + "/plugins_runtime/tmp");

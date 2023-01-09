@@ -6,6 +6,7 @@
 #include "resource.h"
 #include "utils/utils.h"
 #include <stdlib.h>
+#include <NativePlugin.h>
 
 #pragma comment(linker, "/EXPORT:vSetDdrawflag=_AheadLib_vSetDdrawflag,@1")
 #pragma comment(linker, "/EXPORT:AlphaBlend=_AheadLib_AlphaBlend,@2") 
@@ -228,7 +229,7 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 			else process_type = "main";
 			namespace fs = std::filesystem;
 
-			SetUnhandledExceptionFilter(BNUnhandledExceptionFilter);
+			//SetUnhandledExceptionFilter(BNUnhandledExceptionFilter);
 
 			// Pick data folder
 			if (getenv("BETTERNCM_PROFILE")) {
@@ -242,7 +243,39 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 					datapath = "C:\\betterncm";
 				}
 			}
-			if (util::get_command_line().find(L"--type=") == -1) {
+
+			// Load plugins
+
+			std::vector<std::shared_ptr<Plugin>>* plugins = new std::vector<std::shared_ptr<Plugin>>();
+
+			auto loadPluginNative = [&](const std::string& path)
+			{
+				std::vector<nlohmann::json> satisfied_hijacks;
+				if (fs::exists(path))
+					for (const auto& file : fs::directory_iterator(path))
+					{
+						try
+						{
+							if (fs::exists(file.path().string() + "/manifest.json"))
+							{
+								auto json = nlohmann::json::parse(util::read_to_string(file.path().string() + "/manifest.json"));
+								PluginManifest manifest;
+								json.get_to(manifest);
+								plugins->push_back(std::make_shared < Plugin >(manifest, file.path()));
+							}
+						}
+						catch (std::exception& e)
+						{
+							util::write_file_text(datapath.utf8() + "/log.log", std::string("\n[" + file.path().string() + "]Plugin Native load Error: ") + (e.what()), true);
+						}
+					}
+			};
+
+			loadPluginNative(datapath.utf8() + "/plugins_runtime");
+			loadPluginNative(datapath.utf8() + "/plugins_dev");
+
+
+			if (process_type == L"main") {
 				AllocConsole();
 				freopen("CONOUT$", "w", stdout);
 #ifndef _DEBUG
@@ -267,15 +300,17 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 					f.close();
 
 					// Inject NCM
-					app = new App();
+					app = new App(plugins);
 				}
 				else {
 					util::alert(L"BetterNCM访问数据目录失败！可能需要以管理员身份运行或更改数据目录。\n\nBetterNCM将不会运行");
 				}
 			}
 			else {
-
 				EasyCEFHooks::InstallHooks();
+				for (const auto& plugin : *plugins) {
+					plugin->loadNativePluginDll();
+				}
 			}
 
 		}

@@ -5,8 +5,10 @@
 #include "EasyCEFHooks.h"
 #include<variant>
 #include "App.h"
+#include <NativePlugin.h>
 typedef cef_string_userfree_t cef_str_arg;
 extern BNString datapath;
+extern std::map<std::string, std::shared_ptr<PluginNativeAPI>> plugin_native_apis;
 
 std::vector<std::string> apis;
 _cef_v8value_t* native_value;
@@ -66,7 +68,6 @@ cef_v8value_t* check_params_call(std::function <R(Args...)> fn,
 	struct _cef_v8value_t* const* arguments) {
 	constexpr size_t num_args = std::tuple_size<std::tuple<Args...>>::value;
 
-	int cnt = 0;
 
 	if (argumentsCount < num_args)
 		throw std::string("Too few arguments. Expected " +
@@ -77,7 +78,7 @@ cef_v8value_t* check_params_call(std::function <R(Args...)> fn,
 			std::to_string(num_args) + " arguments, received " +
 			std::to_string(argumentsCount) + " arguments.");
 
-	auto get_type = [&](size_t rtype, int i)->std::variant<int, double, bool, unsigned int, cef_str_arg, std::string, BNString> {
+	auto get_type = [&](size_t rtype, int i)->std::variant<int, double, bool, unsigned int, cef_str_arg, std::string, BNString, cef_v8value_t*> {
 
 
 #define CHECK_PARAM_AND_GET(type,checkFn,getFn) CHECK_PARAM(type,checkFn) {return arguments[i]->getFn(arguments[i]);}
@@ -89,8 +90,7 @@ cef_v8value_t* check_params_call(std::function <R(Args...)> fn,
 														" but received a different type.");\
 			else \
 
-
-		if (rtype == typeid(cef_v8value_t).hash_code())
+		if (rtype == typeid(cef_v8value_t*).hash_code())
 			return arguments[i];
 
 		CHECK_PARAM(std::string, is_string) {
@@ -115,7 +115,8 @@ cef_v8value_t* check_params_call(std::function <R(Args...)> fn,
 	};
 
 
-	std::tuple < Args... > args = std::make_tuple((std::get<Args>(get_type(typeid(Args).hash_code(), cnt++)))...);
+	int cnt = 0;
+	std::tuple < Args... > args = std::tuple{ std::get<Args>(get_type(typeid(Args).hash_code(), cnt++))... };
 
 	return create(std::apply(fn, args));
 }
@@ -136,8 +137,8 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 
 		DEFINE_API(
 			test.m.i.c.r.o.b.l.o.c.k,
-			[]() {
-				return std::wstring(L"🍊🍊🍊");
+			[](int a, double b) {
+				return std::wstring(L"🍊🍊🍊") + std::to_wstring(a + b);
 			}
 		);
 
@@ -287,8 +288,55 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 		return true;
 			}
 		);
+
+		DEFINE_API(
+			native_plugin.getRegisteredAPIs,
+			[]() {
+				std::vector<std::string> apiName(plugin_native_apis.size());
+		std::transform(plugin_native_apis.begin(), plugin_native_apis.end(), apiName.begin(), [](const auto& kv) { return kv.first; });
+
+		return apiName;
+			}
+		);
+
+		DEFINE_API(
+			native_plugin.call,
+			[](std::string id, cef_v8value_t* callArgs)->std::string {
+				const auto& apiPair = plugin_native_apis.find(id);
+		if (apiPair == plugin_native_apis.end()) {
+			throw "Invalid api id";
+		}
+		else {
+			auto& api = apiPair->second;
+
+			if (!callArgs->is_array(callArgs))throw "The second argument should be an array.";
+			if (callArgs->get_array_length(callArgs) != api->argsNum) throw "Wrong args count.";
+
+			void* args[100] = {};
+			int nArg = 0;
+
+			for (int argNum = 0; argNum < api->argsNum; argNum++) {
+				auto argType = *(api->args + argNum);
+				using t = BetterNCMNativePlugin::NativeAPIType;
+				auto argVal = callArgs->get_value_byindex(callArgs, argNum);
+				if (argType == t::Int)args[nArg++] = new int(argVal->get_int_value(argVal));
+				else if (argType == t::Boolean)args[nArg++] = new bool(argVal->get_bool_value(argVal));
+				else if (argType == t::Double)args[nArg++] = new double(argVal->get_double_value(argVal));
+				else if (argType == t::String) {
+					CefString s;
+					s.AttachToUserFree(argVal->get_string_value(argVal));
+					auto str = (s.ToString().c_str());
+					args[nArg++] = &str;
+				}
+				else if (argType == t::V8Value)args[nArg++] = &argVal;
+				else throw "Unsupported argument value!";
+			}
+			return std::string(api->function(args));
+		}
+			});
+
 	}
-	catch (std::exception e) {
+	catch (std::exception& e) {
 		if (!self)return -1;
 
 		auto s = (new CefString(BNString::fromGBK(e.what())));
@@ -296,7 +344,15 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 		*exception = *str;
 		return 1;
 	}
-	catch (std::string e) {
+	catch (const char* e) {
+		if (!self)return -1;
+
+		auto s = (new CefString(e));
+		const cef_string_t* str = s->GetStruct();
+		*exception = *str;
+		return 1;
+	}
+	catch (std::string& e) {
 		if (!self)return -1;
 
 		auto s = (new CefString(e));
