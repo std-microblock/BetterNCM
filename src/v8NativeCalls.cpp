@@ -323,10 +323,12 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 				else if (argType == t::Boolean)args[nArg++] = new bool(argVal->get_bool_value(argVal));
 				else if (argType == t::Double)args[nArg++] = new double(argVal->get_double_value(argVal));
 				else if (argType == t::String) {
-					CefString s;
-					s.AttachToUserFree(argVal->get_string_value(argVal));
-					auto str = (s.ToString().c_str());
-					args[nArg++] = &str;
+					CefString* s = new CefString();
+					s->AttachToUserFree(argVal->get_string_value(argVal));
+					auto str = (s->ToString());
+					char* cstr = new char[str.length() + 1];
+					strcpy_s(cstr, str.length() + 1, str.c_str());
+					args[nArg++] = cstr;
 				}
 				else if (argType == t::V8Value)args[nArg++] = &argVal;
 				else throw "Unsupported argument value!";

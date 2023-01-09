@@ -33,7 +33,7 @@ std::string App::readConfig(const std::string& key, const std::string& def) {
 void App::writeConfig(const std::string& key, const std::string& value) {
 	std::lock_guard<std::mutex> lock(configMutex);
 	config[key] = value;
-	std::ofstream file("config.json");
+	std::ofstream file(datapath + L"\\config.json");
 	file << config;
 }
 
