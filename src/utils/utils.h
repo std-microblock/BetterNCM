@@ -18,13 +18,13 @@ namespace util {
 
 	class ScreenCapturePart
 	{
-		public:
+	public:
 		ScreenCapturePart();
 		~ScreenCapturePart();
 		char* getData();
 		DWORD getDataSize();
 
-		private:
+	private:
 		HDC hdcSource;
 		HDC hdcMemory;
 		HBITMAP hBitmap;
@@ -56,4 +56,5 @@ namespace util {
 	void restartNCM();
 	void exec(std::wstring cmd, bool ele, bool showWindow = false);
 	void killNCM();
+	void watchDir(const BNString& directory, std::function<bool(BNString, BNString)>);
 }

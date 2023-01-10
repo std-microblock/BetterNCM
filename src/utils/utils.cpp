@@ -90,12 +90,12 @@ util::ScreenCapturePart::ScreenCapturePart() {
 	int h = GetSystemMetrics(SM_CYVIRTUALSCREEN);
 
 	this->hBitmap = CreateCompatibleBitmap(hdcSource, w, h);
-	this->hBitmapOld = (HBITMAP) SelectObject(hdcMemory, this->hBitmap);
+	this->hBitmapOld = (HBITMAP)SelectObject(hdcMemory, this->hBitmap);
 
 	BitBlt(hdcMemory, 0, 0, w, h, hdcSource, x, y, SRCCOPY);
-	this->hBitmap = (HBITMAP) SelectObject(hdcMemory, this->hBitmapOld);
+	this->hBitmap = (HBITMAP)SelectObject(hdcMemory, this->hBitmapOld);
 
-	BITMAPINFOHEADER bmiHeader {};
+	BITMAPINFOHEADER bmiHeader{};
 	bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
 	bmiHeader.biWidth = w;
 	bmiHeader.biHeight = h;
@@ -111,14 +111,14 @@ util::ScreenCapturePart::ScreenCapturePart() {
 	DWORD dwBmpSize = ((w * bmiHeader.biBitCount + 31) / 32) * 4 * h;
 	this->dwSizeofDIB = dwBmpSize + sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
 
-	BITMAPFILEHEADER bmfHeader {};
+	BITMAPFILEHEADER bmfHeader{};
 	bmfHeader.bfOffBits = sizeof(BITMAPFILEHEADER) + sizeof(BITMAPINFOHEADER);
 	bmfHeader.bfSize = this->dwSizeofDIB;
 	bmfHeader.bfType = 0x4D42;
 
 	this->lpbitmap = new char[dwBmpSize];
 	ZeroMemory(lpbitmap, dwBmpSize);
-	GetDIBits(hdcMemory, this->hBitmap, 0, h, lpbitmap, (BITMAPINFO*) &bmiHeader, DIB_RGB_COLORS);
+	GetDIBits(hdcMemory, this->hBitmap, 0, h, lpbitmap, (BITMAPINFO*)&bmiHeader, DIB_RGB_COLORS);
 
 	this->allData = new char[this->dwSizeofDIB];
 	ZeroMemory(allData, this->dwSizeofDIB);
@@ -340,6 +340,71 @@ void util::killNCM() {
 	}
 	exec(s2ws(cmd), false);
 }
+
+void util::watchDir(const BNString& directory, std::function<bool(BNString, BNString)> callback)
+{
+	HANDLE hDirectory = CreateFileW(directory.c_str(),
+		FILE_LIST_DIRECTORY,
+		FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+		NULL,
+		OPEN_EXISTING,
+		FILE_FLAG_BACKUP_SEMANTICS | FILE_FLAG_OVERLAPPED,
+		NULL);
+
+	if (hDirectory == INVALID_HANDLE_VALUE) {
+		std::wcerr << L"Error opening directory: " << GetLastError() << std::endl;
+		return;
+	}
+
+	OVERLAPPED overlapped = { 0 };
+	HANDLE hEvent = CreateEventW(NULL, TRUE, FALSE, NULL);
+	overlapped.hEvent = hEvent;
+
+	char buffer[4096];
+
+	while (true) {
+		if (ReadDirectoryChangesW(hDirectory,
+			buffer,
+			sizeof(buffer),
+			TRUE,
+			FILE_NOTIFY_CHANGE_FILE_NAME | FILE_NOTIFY_CHANGE_DIR_NAME | FILE_NOTIFY_CHANGE_ATTRIBUTES |
+			FILE_NOTIFY_CHANGE_SIZE | FILE_NOTIFY_CHANGE_LAST_WRITE | FILE_NOTIFY_CHANGE_LAST_ACCESS |
+			FILE_NOTIFY_CHANGE_CREATION | FILE_NOTIFY_CHANGE_SECURITY,
+			NULL,
+			&overlapped,
+			NULL)) {
+			WaitForSingleObject(hEvent, INFINITE);
+
+			DWORD dwBytes;
+			if (!GetOverlappedResult(hDirectory, &overlapped, &dwBytes, FALSE)) {
+				std::wcerr << L"Error getting overlapped result: " << GetLastError() << std::endl;
+				break;
+			}
+
+			PFILE_NOTIFY_INFORMATION pNotify = (PFILE_NOTIFY_INFORMATION)buffer;
+			while (pNotify != NULL) {
+				std::wstring fileName(pNotify->FileName, pNotify->FileNameLength / sizeof(WCHAR));
+				if (!callback(directory, fileName))goto close;
+				if (pNotify->NextEntryOffset == 0) {
+					pNotify = NULL;
+				}
+				else {
+					pNotify = (PFILE_NOTIFY_INFORMATION)(((LPBYTE)pNotify) + pNotify->NextEntryOffset);
+				}
+			}
+
+			ResetEvent(hEvent);
+		}
+		else {
+			std::wcerr << L"Error reading directory changes: " << GetLastError() << std::endl;
+			break;
+		}
+	}
+close:
+	CloseHandle(hDirectory);
+	CloseHandle(hEvent);
+}
+
 
 void util::restartNCM()
 {

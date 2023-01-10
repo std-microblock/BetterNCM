@@ -144,15 +144,17 @@ async function loadPlugins() {
 		const manifest = mainPlugin.manifest;
 		const pluginPath = mainPlugin.pluginPath;
 
+		if (devMode)
+				betterncm_native.fs.watchDirectory(pluginPath, (dir, path) => {
+					const RELOAD_EXTS = [".js", "manifest.json", ".dll"];
+					if (RELOAD_EXTS.findIndex((ext) => path.endsWith(ext)) !== -1)
+						BetterNCM.reload();
+				});
+
 		async function loadInject(filePath: string) {
 			if (!manifest.slug) return;
-			const getFileCode = betterncm_native.fs.readFileText.bind(null, filePath);
-			const code = await getFileCode();
-			// if (devMode) {
-			// 	setInterval(async () => {
-			// 		if (code !== (await getFileCode())) BetterNCM.reload();
-			// 	}, 500);
-			// }
+			const code = betterncm_native.fs.readFileText(filePath);
+			
 
 			if (filePath.endsWith(".js")) {
 				const plugin = new NCMInjectPlugin(mainPlugin, filePath);

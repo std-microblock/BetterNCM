@@ -96,12 +96,10 @@ namespace BetterNCMNativePlugin {
 				auto ctx = func->context.load();
 
 				func->valid = ctx->is_valid(ctx);
-
 				if (!func->valid) {
 					func->busy = false;
 					return;
 				}
-
 				func->updateContext();
 
 				ctx->enter(ctx);

@@ -13,52 +13,48 @@ extern std::map<std::string, std::shared_ptr<PluginNativeAPI>> plugin_native_api
 std::vector<std::string> apis;
 _cef_v8value_t* native_value;
 
-
-
-cef_v8value_t* create(const std::string& val) {
+cef_v8value_t* create_v8value(const std::string& val) {
 	CefString s;
 	s.FromString(val);
 	return cef_v8value_create_string(s.GetStruct());
 }
 
-cef_v8value_t* create(const std::wstring& val) {
+cef_v8value_t* create_v8value(const std::wstring& val) {
 	CefString s;
 	s.FromWString(val);
 	return cef_v8value_create_string(s.GetStruct());
 }
 
-cef_v8value_t* create(int val) {
+cef_v8value_t* create_v8value(int val) {
 	return cef_v8value_create_int(val);
 }
 
 
-cef_v8value_t* create(unsigned int val) {
+cef_v8value_t* create_v8value(unsigned int val) {
 	return cef_v8value_create_uint(val);
 }
 
-cef_v8value_t* create(double val) {
+cef_v8value_t* create_v8value(double val) {
 	return cef_v8value_create_double(val);
 }
 
-cef_v8value_t* create(bool val) {
+cef_v8value_t* create_v8value(bool val) {
 	return cef_v8value_create_bool(val);
 }
 
-cef_v8value_t* create() {
+cef_v8value_t* create_v8value() {
 	return cef_v8value_create_undefined();
 }
 
-cef_v8value_t* create(cef_v8value_t* val) {
+cef_v8value_t* create_v8value(cef_v8value_t* val) {
 	return val;
 }
 
-
-
 template<typename T>
-cef_v8value_t* create(std::vector<T> val) {
+cef_v8value_t* create_v8value(std::vector<T> val) {
 	cef_v8value_t* arr = cef_v8value_create_array(val.size());
 	for (const auto& item : val)
-		arr->set_value_byindex(arr, &item - &val[0], create(item));
+		arr->set_value_byindex(arr, &item - &val[0], create_v8value(item));
 	return arr;
 }
 
@@ -117,8 +113,7 @@ cef_v8value_t* check_params_call(std::function <R(Args...)> fn,
 
 	int cnt = 0;
 	std::tuple < Args... > args = std::tuple{ std::get<Args>(get_type(typeid(Args).hash_code(), cnt++))... };
-
-	return create(std::apply(fn, args));
+	return create_v8value(std::apply(fn, args));
 }
 
 
@@ -130,6 +125,8 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 	struct _cef_v8value_t* const* arguments,
 	struct _cef_v8value_t** retval,
 	cef_string_t* exception) {
+	using JSFunction = BetterNCMNativePlugin::extensions::JSFunction;
+
 	CefString name_cefS = name;
 	std::string nameS = name_cefS.ToString();
 #define DEFINE_API(name,func) if(self==0)apis.push_back(#name);else if(#name==nameS){ *retval = check_params_call(std::function(func), argumentsCount, arguments); return 1;}
@@ -181,6 +178,43 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 		std::stringstream buffer;
 		buffer << t.rdbuf();
 		return buffer.str();
+			}
+		);
+
+		DEFINE_API(
+			fs.readFileTextAsync,
+			[](BNString path, cef_v8value_t* callback) {
+				if (path[1] != ':') {
+					path = datapath + L"/" + path;
+				}
+
+		auto* fn = new JSFunction(callback, cef_v8context_get_current_context());
+		new std::thread([=]() {
+			std::vector<std::string> paths;
+		std::ifstream t(path);
+		std::stringstream buffer;
+		buffer << t.rdbuf();
+		(*fn)(buffer.str());
+			});
+		return create_v8value();
+			}
+		);
+
+		DEFINE_API(
+			fs.watchDirectory,
+			[&](BNString path, cef_v8value_t* callback) {
+				if (path[1] != ':') {
+					path = datapath + L"/" + path;
+				}
+		auto* fn = new JSFunction(callback);
+		auto thread = new std::thread([=]() {
+			util::watchDir(path, [&](BNString dir, BNString path) {
+		(*fn)(dir, path);
+		if (!fn->isValid())return false;
+		return true;
+				});
+			});
+		return create_v8value();
 			}
 		);
 
@@ -334,8 +368,8 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 				auto ret = api->function(args);
 
 				if (ret)
-					return create(std::string(ret));
-				return create();
+					return create_v8value(std::string(ret));
+				return create_v8value();
 			}
 		};
 		DEFINE_API(
