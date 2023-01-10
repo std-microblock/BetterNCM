@@ -5,7 +5,7 @@
 #include <vector>
 #include <memory>
 #include "3rd/libcef/include/capi/cef_v8_capi.h"
-
+#include <atomic>
 typedef struct _cef_task_post_exec cef_task_post_exec_t;
 
 void CEF_CALLBACK exec(struct _cef_task_t* self);
