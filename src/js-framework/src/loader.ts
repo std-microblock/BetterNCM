@@ -146,7 +146,7 @@ async function loadPlugins() {
 
 		if (devMode)
 				betterncm_native.fs.watchDirectory(pluginPath, (dir, path) => {
-					const RELOAD_EXTS = [".js", "manifest.json", ".dll"];
+					const RELOAD_EXTS = [".js", "manifest.json"];
 					if (RELOAD_EXTS.findIndex((ext) => path.endsWith(ext)) !== -1)
 						BetterNCM.reload();
 				});
