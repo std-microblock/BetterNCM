@@ -6,8 +6,8 @@ namespace BetterNCMNativePlugin {
 		Int, // *int
 		Boolean, // *bool
 		Double, // *double
-		String, // **char
-		V8Value // **cef_v8value_t
+		String, // *char
+		V8Value // *cef_v8value_t
 	};
 
 	struct PluginAPI {

@@ -299,43 +299,45 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 			}
 		);
 
+		auto native_call = [](std::string id, cef_v8value_t* callArgs)->std::string {
+			const auto& apiPair = plugin_native_apis.find(id);
+			if (apiPair == plugin_native_apis.end()) {
+				throw "Invalid api id";
+			}
+			else {
+				auto& api = apiPair->second;
+
+				if (!callArgs->is_array(callArgs))throw "The second argument should be an array.";
+				if (callArgs->get_array_length(callArgs) != api->argsNum) throw "Wrong args count.";
+
+				void* args[100] = {};
+
+				for (int argNum = 0; argNum < api->argsNum; argNum++) {
+					auto argType = *(api->args + argNum);
+					using t = BetterNCMNativePlugin::NativeAPIType;
+					auto argVal = callArgs->get_value_byindex(callArgs, argNum);
+					if (argType == t::Int)args[argNum] = new int(argVal->get_int_value(argVal));
+					else if (argType == t::Boolean)args[argNum] = new bool(argVal->get_bool_value(argVal));
+					else if (argType == t::Double)args[argNum] = new double(argVal->get_double_value(argVal));
+					else if (argType == t::String) {
+						CefString* s = new CefString();
+						s->AttachToUserFree(argVal->get_string_value(argVal));
+						auto str = (s->ToString());
+						char* cstr = new char[str.length() + 1];
+						strcpy_s(cstr, str.length() + 1, str.c_str());
+						args[argNum] = cstr;
+					}
+					else if (argType == t::V8Value)args[argNum] = argVal;
+					else throw "Unsupported argument value!";
+				}
+				auto ret = std::string(api->function(args));
+
+				return ret;
+			}
+		};
 		DEFINE_API(
 			native_plugin.call,
-			[](std::string id, cef_v8value_t* callArgs)->std::string {
-				const auto& apiPair = plugin_native_apis.find(id);
-		if (apiPair == plugin_native_apis.end()) {
-			throw "Invalid api id";
-		}
-		else {
-			auto& api = apiPair->second;
-
-			if (!callArgs->is_array(callArgs))throw "The second argument should be an array.";
-			if (callArgs->get_array_length(callArgs) != api->argsNum) throw "Wrong args count.";
-
-			void* args[100] = {};
-			int nArg = 0;
-
-			for (int argNum = 0; argNum < api->argsNum; argNum++) {
-				auto argType = *(api->args + argNum);
-				using t = BetterNCMNativePlugin::NativeAPIType;
-				auto argVal = callArgs->get_value_byindex(callArgs, argNum);
-				if (argType == t::Int)args[nArg++] = new int(argVal->get_int_value(argVal));
-				else if (argType == t::Boolean)args[nArg++] = new bool(argVal->get_bool_value(argVal));
-				else if (argType == t::Double)args[nArg++] = new double(argVal->get_double_value(argVal));
-				else if (argType == t::String) {
-					CefString* s = new CefString();
-					s->AttachToUserFree(argVal->get_string_value(argVal));
-					auto str = (s->ToString());
-					char* cstr = new char[str.length() + 1];
-					strcpy_s(cstr, str.length() + 1, str.c_str());
-					args[nArg++] = cstr;
-				}
-				else if (argType == t::V8Value)args[nArg++] = &argVal;
-				else throw "Unsupported argument value!";
-			}
-			return std::string(api->function(args));
-		}
-			});
+			native_call);
 
 	}
 	catch (std::exception& e) {
