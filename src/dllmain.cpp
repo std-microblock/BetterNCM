@@ -229,19 +229,14 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 			else process_type = "main";
 			namespace fs = std::filesystem;
 
-			//SetUnhandledExceptionFilter(BNUnhandledExceptionFilter);
+			SetUnhandledExceptionFilter(BNUnhandledExceptionFilter);
 
 			// Pick data folder
 			if (getenv("BETTERNCM_PROFILE")) {
 				datapath = util::getEnvironment("BETTERNCM_PROFILE");
 			}
 			else {
-				if ((int)fs::status(util::getEnvironment("USERPROFILE") + L"\\betterncm").permissions() & (int)std::filesystem::perms::owner_write && fs::exists(util::getEnvironment("USERPROFILE") + L"\\betterncm")) {
-					datapath = util::getEnvironment("USERPROFILE") + L"\\betterncm";
-				}
-				else {
-					datapath = "C:\\betterncm";
-				}
+				datapath = "C:\\betterncm"; // 不再向前兼容
 			}
 
 			// Load plugins
