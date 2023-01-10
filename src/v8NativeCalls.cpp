@@ -299,7 +299,7 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 			}
 		);
 
-		auto native_call = [](std::string id, cef_v8value_t* callArgs)->std::string {
+		auto native_call = [](std::string id, cef_v8value_t* callArgs) {
 			const auto& apiPair = plugin_native_apis.find(id);
 			if (apiPair == plugin_native_apis.end()) {
 				throw "Invalid api id";
@@ -330,9 +330,12 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 					else if (argType == t::V8Value)args[argNum] = argVal;
 					else throw "Unsupported argument value!";
 				}
-				auto ret = std::string(api->function(args));
 
-				return ret;
+				auto ret = api->function(args);
+
+				if (ret)
+					return create(std::string(ret));
+				return create();
 			}
 		};
 		DEFINE_API(
