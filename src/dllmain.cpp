@@ -245,7 +245,6 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 
 			auto loadPluginNative = [&](const std::string& path)
 			{
-				std::vector<nlohmann::json> satisfied_hijacks;
 				if (fs::exists(path))
 					for (const auto& file : fs::directory_iterator(path))
 					{
@@ -301,7 +300,7 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 					util::alert(L"BetterNCM访问数据目录失败！可能需要以管理员身份运行或更改数据目录。\n\nBetterNCM将不会运行");
 				}
 			}
-			else {
+			else if(process_type==L"renderer"){
 				EasyCEFHooks::InstallHooks();
 				for (const auto& plugin : *plugins) {
 					plugin->loadNativePluginDll();
