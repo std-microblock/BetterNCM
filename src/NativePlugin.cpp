@@ -104,8 +104,14 @@ void PluginsLoader::extractPackedPlugins()
 {
 	util::write_file_text(datapath + L"/PLUGIN_EXTRACTING_LOCK.lock", "");
 
-	if (fs::exists(datapath + L"/plugins_runtime"))
-		fs::remove_all(datapath + L"/plugins_runtime");
+
+	if (fs::exists(datapath + L"/plugins_runtime")) {
+		for (auto file : fs::directory_iterator(datapath + L"/plugins_runtime")) {
+			std::error_code ec;
+			fs::rename(file, "del", ec);
+			if (ec.value() == 0) fs::remove_all(file.path().parent_path() / "del");
+		}
+	}
 
 	fs::create_directories(datapath + L"/plugins_runtime");
 
@@ -127,6 +133,11 @@ void PluginsLoader::extractPackedPlugins()
 				{
 					util::write_file_text(datapath + L"/plugins_runtime/tmp/.plugin.path.meta", pystring::slice(path, datapath.length()));
 					auto realPath = datapath + L"/plugins_runtime/" + BNString(manifest.slug);
+
+					std::error_code ec;
+					if (fs::exists(realPath) && manifest.native_plugin[0] == '\0')
+						fs::remove_all(realPath, ec);
+
 					fs::rename(datapath + L"/plugins_runtime/tmp", realPath);
 				}
 				else
