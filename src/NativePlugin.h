@@ -6,6 +6,7 @@
 
 #define NATIVE_PLUGIN_CPP_EXTENSIONS
 #include <BetterNCMNativePlugin.h>
+#include <utils/BNString.hpp>
 
 struct PluginNativeAPI {
 	BetterNCMNativePlugin::NativeAPIType* args;
@@ -34,12 +35,25 @@ struct PluginManifest {
 void from_json(const nlohmann::json& j, PluginManifest& p);
 
 class Plugin {
+	HMODULE hNativeDll;
 public:
 	Plugin(PluginManifest manifest,
 		std::filesystem::path runtime_path);
+	~Plugin();
 	PluginManifest manifest;
 	std::filesystem::path runtime_path;
-	void loadNativePluginDll() const;
+	void loadNativePluginDll();
+};
+
+class PluginsLoader {
+	static void loadInPath(std::wstring path);
+public:
+	static void loadAll();
+	static void unloadAll();
+	static void loadDev();
+	static void loadRuntime();
+	static void extractPackedPlugins();
+	static std::vector<Plugin> plugins;
 };
 
 typedef int (*BetterNCMPluginMainFunc)(BetterNCMNativePlugin::PluginAPI*);

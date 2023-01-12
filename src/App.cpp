@@ -265,7 +265,8 @@ std::thread* App::create_server(const std::string& apiKey)
 
 	svr->Get("/api/app/reload_plugin", [&](const httplib::Request& req, httplib::Response& res) {
 		checkApiKey;
-	extractPlugins();
+	PluginsLoader::unloadAll();
+	PluginsLoader::extractPackedPlugins();
 	res.status = 200;
 		});
 
@@ -395,30 +396,32 @@ std::string random_string(std::string::size_type length)
 
 
 
-App::App(std::vector<std::shared_ptr<Plugin>>* plugins)
+void App::parseConfig()
 {
-	this->plugins = plugins;
-	std::cout << "BetterNCM v" << version << " running on NCM " << getNCMExecutableVersion() << std::endl;
-
-
-	{
-		std::lock_guard<std::mutex> lock(configMutex);
-		if (fs::exists(datapath + L"\\config.json")) {
-			try {
-				config = nlohmann::json::parse(read_to_string(datapath + L"\\config.json"));
-			}
-			catch (std::exception e) {
-				std::wcout << L"[BetterNCM] 解析配置文件失败！将使用默认配置文件\n\n";
-			}
+	std::lock_guard<std::mutex> lock(configMutex);
+	if (fs::exists(datapath + L"\\config.json")) {
+		try {
+			config = nlohmann::json::parse(read_to_string(datapath + L"\\config.json"));
+		}
+		catch (std::exception e) {
+			std::wcout << L"[BetterNCM] 解析配置文件失败！将使用默认配置文件\n\n";
 		}
 	}
+}
+
+App::App()
+{
+
+	std::cout << "BetterNCM v" << version << " running on NCM " << getNCMExecutableVersion() << std::endl;
+
+	parseConfig();
 
 
-	extractPlugins();
-
+	PluginsLoader::extractPackedPlugins();
+	PluginsLoader::loadAll();
 	if (readConfig("cc.microblock.betterncm.single-process", "false") == "true")
-		for (const auto& plugin : *plugins) {
-			plugin->loadNativePluginDll();
+		for (auto& plugin : PluginsLoader::plugins) {
+			plugin.loadNativePluginDll();
 		}
 
 	auto apiKey = random_string(64);
@@ -697,40 +700,4 @@ App::~App()
 
 	if (fs::exists(datapath.utf8() + "/plugins_runtime"))
 		fs::remove_all(datapath.utf8() + "/plugins_runtime");
-}
-
-void App::extractPlugins()
-{
-	std::error_code ec;
-	if (fs::exists(datapath + L"/plugins_runtime"))
-		fs::remove_all(datapath + L"/plugins_runtime", ec);
-
-	fs::create_directories(datapath + L"/plugins_runtime");
-
-	for (auto file : fs::directory_iterator(datapath + L"/plugins"))
-	{
-		BNString path = file.path().wstring();
-		if (path.endsWith(L".plugin"))
-		{
-			zip_extract(path.utf8().c_str(), BNString(datapath + L"/plugins_runtime/tmp").utf8().c_str(), NULL, NULL);
-			try
-			{
-				auto modManifest = nlohmann::json::parse(read_to_string(datapath + L"/plugins_runtime/tmp/manifest.json"));
-				if (modManifest["manifest_version"] == 1)
-				{
-					write_file_text(datapath + L"/plugins_runtime/tmp/.plugin.path.meta", pystring::slice(path, datapath.length()));
-					fs::rename(datapath + L"/plugins_runtime/tmp", datapath + L"/plugins_runtime/" + s2ws((std::string)modManifest["name"]));
-				}
-				else
-				{
-					throw new std::exception("Unsupported manifest version.");
-				}
-			}
-			catch (std::exception& e)
-			{
-				write_file_text(datapath.utf8() + "/log.log", BNString::fromGBK(std::string("\nPlugin Loading Error: ") + (e.what())), true);
-				fs::remove_all(datapath.utf8() + "/plugins_runtime/tmp");
-			}
-		}
-	}
 }

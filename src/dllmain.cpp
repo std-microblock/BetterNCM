@@ -239,35 +239,6 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 				datapath = "C:\\betterncm"; // 不再向前兼容
 			}
 
-			// Load plugins
-
-			std::vector<std::shared_ptr<Plugin>>* plugins = new std::vector<std::shared_ptr<Plugin>>();
-
-			auto loadPluginNative = [&](const std::string& path)
-			{
-				if (fs::exists(path))
-					for (const auto& file : fs::directory_iterator(path))
-					{
-						try
-						{
-							if (fs::exists(file.path().string() + "/manifest.json"))
-							{
-								auto json = nlohmann::json::parse(util::read_to_string(file.path().string() + "/manifest.json"));
-								PluginManifest manifest;
-								json.get_to(manifest);
-								plugins->push_back(std::make_shared < Plugin >(manifest, file.path()));
-							}
-						}
-						catch (std::exception& e)
-						{
-							util::write_file_text(datapath.utf8() + "/log.log", std::string("\n[" + file.path().string() + "]Plugin Native load Error: ") + (e.what()), true);
-						}
-					}
-			};
-
-			loadPluginNative(datapath.utf8() + "/plugins_runtime");
-			loadPluginNative(datapath.utf8() + "/plugins_dev");
-
 
 			if (process_type == L"main") {
 				AllocConsole();
@@ -275,9 +246,6 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 #ifndef _DEBUG
 				ShowWindow(GetConsoleWindow(), SW_HIDE);
 #endif
-
-
-
 
 				std::wcout << L"Data folder picked: " << datapath << "\n";
 
@@ -294,16 +262,25 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 					f.close();
 
 					// Inject NCM
-					app = new App(plugins);
+					app = new App();
 				}
 				else {
 					util::alert(L"BetterNCM访问数据目录失败！可能需要以管理员身份运行或更改数据目录。\n\nBetterNCM将不会运行");
 				}
 			}
-			else if(process_type==L"renderer"){
+			else if (process_type == L"renderer") {
 				EasyCEFHooks::InstallHooks();
-				for (const auto& plugin : *plugins) {
-					plugin->loadNativePluginDll();
+
+				while (std::filesystem::exists(datapath + L"/PLUGIN_EXTRACTING_LOCK.lock"))
+					std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+				while (!std::filesystem::exists(datapath + L"/plugins_runtime"))
+					std::this_thread::sleep_for(std::chrono::milliseconds(100));
+
+				PluginsLoader::loadAll();
+
+				for (auto& plugin : PluginsLoader::plugins) {
+					plugin.loadNativePluginDll();
 				}
 			}
 
