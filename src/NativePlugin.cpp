@@ -114,6 +114,11 @@ void PluginsLoader::extractPackedPlugins()
 
 				if (manifest.native_plugin[0] == '\0')
 					fs::remove_all(file.path());
+				else {
+					std::error_code ec;
+					fs::remove(file.path() / manifest.native_plugin, ec);
+					if (ec.value() == 0)fs::remove_all(file.path());
+				}
 			}
 			catch (std::exception& e) {
 				fs::remove_all(file.path());
