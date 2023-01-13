@@ -226,6 +226,7 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 		if (!getenv("BETTERNCM_DISABLED_FLAG")) {
 			if (util::get_command_line().includes(L"--type=renderer"))process_type = "renderer";
 			else if (util::get_command_line().includes(L"--type=gpu-process"))process_type = "gpu-process";
+			else if (util::get_command_line().includes(L"--type=utility"))process_type = "utility";
 			else process_type = "main";
 			namespace fs = std::filesystem;
 
