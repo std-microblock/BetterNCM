@@ -107,9 +107,17 @@ void PluginsLoader::extractPackedPlugins()
 
 	if (fs::exists(datapath + L"/plugins_runtime")) {
 		for (auto file : fs::directory_iterator(datapath + L"/plugins_runtime")) {
-			std::error_code ec;
-			fs::rename(file, "del", ec);
-			if (ec.value() == 0) fs::remove_all(file.path().parent_path() / "del");
+			try {
+				PluginManifest manifest;
+				auto modManifest = nlohmann::json::parse(util::read_to_string(file.path() / "manifest.json"));
+				modManifest.get_to(manifest);
+
+				if (manifest.native_plugin[0] == '\0')
+					fs::remove_all(file.path());
+			}
+			catch (std::exception& e) {
+				fs::remove_all(file.path());
+			}
 		}
 	}
 
@@ -120,11 +128,13 @@ void PluginsLoader::extractPackedPlugins()
 		BNString path = file.path().wstring();
 		if (path.endsWith(L".plugin"))
 		{
-			int result = zip_extract(path.utf8().c_str(), BNString(datapath + L"/plugins_runtime/tmp").utf8().c_str(), NULL, NULL);
-			if (result != 0)throw GetLastError();
+
 
 			try
 			{
+				int result = zip_extract(path.utf8().c_str(), BNString(datapath + L"/plugins_runtime/tmp").utf8().c_str(), NULL, NULL);
+				if (result != 0)throw GetLastError();
+
 				PluginManifest manifest;
 				auto modManifest = nlohmann::json::parse(util::read_to_string(datapath + L"/plugins_runtime/tmp/manifest.json"));
 				modManifest.get_to(manifest);

@@ -265,7 +265,6 @@ std::thread* App::create_server(const std::string& apiKey)
 
 	svr->Get("/api/app/reload_plugin", [&](const httplib::Request& req, httplib::Response& res) {
 		checkApiKey;
-	PluginsLoader::unloadAll();
 	PluginsLoader::extractPackedPlugins();
 	res.status = 200;
 		});
