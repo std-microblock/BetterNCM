@@ -89,6 +89,30 @@ std::thread* App::create_server(const std::string& apiKey)
 	res.set_content(buffer.str(), "text/plain");
 		});
 
+	svr->Get("/api/fs/read_file", [&](const httplib::Request& req, httplib::Response& res) {
+		checkApiKey;
+	using namespace std;
+	namespace fs = std::filesystem;
+
+	BNString path = req.get_param_value("path");
+
+	if (path[1] != ':') {
+		path = datapath + L"/" + path;
+	}
+
+	std::ifstream file(path, ios::binary);
+	file.seekg(0, file.end);
+	int size = file.tellg();
+	char* buffer = new char[size];
+	file.seekg(0, file.beg);
+
+	file.read(buffer, size);
+	file.close();
+
+	res.set_content(buffer, size, "text/plain");
+	delete[] buffer;
+		});
+
 	svr->Get("/api/fs/unzip_file", [&](const httplib::Request& req, httplib::Response& res) {
 		checkApiKey;
 	using namespace std;
@@ -456,8 +480,8 @@ App::App()
 				windowInfo.SetAsPopup(NULL, "EasyCEFInject DevTools");
 				cef_browser_host->show_dev_tools(cef_browser_host, &windowInfo, client, &settings, &point);
 			}
-		}
-	};
+			}
+		};
 
 	EasyCEFHooks::onCommandLine = [&](struct _cef_command_line_t* command_line) {
 
@@ -687,7 +711,7 @@ App::App()
 	};
 
 	EasyCEFHooks::InstallHooks();
-}
+	}
 App::~App()
 {
 	HANDLE hThread = server_thread->native_handle();

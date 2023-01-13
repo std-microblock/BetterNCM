@@ -27,6 +27,16 @@ export namespace fs {
 	}
 
 	/**
+	 * 读取文件
+	 * @param filePath 需要读取的文件路径
+	 * @returns blob
+	 */
+		 export async function readFile(filePath: string): Promise<string> {
+			const r = await betterncmFetch(`/fs/read_file?path=${e(filePath)}`);
+			return await r.blob();
+		}
+
+	/**
 	 * 解压指定的 ZIP 压缩文件到一个指定的文件夹中
 	 * @param zipPath 需要解压的 ZIP 压缩文件路径
 	 * @param unzipDest 需要解压到的文件夹路径，如果不存在则会创建，如果解压时有文件存在则会被覆盖
