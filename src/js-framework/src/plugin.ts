@@ -22,6 +22,8 @@ export interface PluginManifest {
 	name: string;
 	version: string;
 	slug: string;
+	/** 是否禁用自带的开发重载功能，适用于那些需要自制热重载的插件开发者们，默认不禁用 */
+	noDevReload?: boolean;
 	loadAfter?: string[];
 	loadBefore?: string[];
 	injects: { [pageType: string]: InjectFile[] };
@@ -125,7 +127,6 @@ export class NCMInjectPlugin extends EventTarget {
 	onConfig(fn: (toolsBox: any) => HTMLElement) {
 		this.addEventListener("config", (evt: CustomEvent) => {
 			this.configViewElement = fn.call(this, evt.detail);
-			console.log(this.configViewElement);
 		});
 	}
 	onAllPluginsLoaded(

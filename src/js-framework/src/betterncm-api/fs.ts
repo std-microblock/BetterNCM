@@ -56,7 +56,6 @@ export namespace fs {
 		return await r.text();
 	}
 
-
 	/**
 	 * 解压指定的 ZIP 压缩文件到一个指定的文件夹中
 	 * @param zipPath 需要解压的 ZIP 压缩文件路径

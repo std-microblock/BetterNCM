@@ -20,6 +20,28 @@ export namespace utils {
 	}
 
 	/**
+	 * 将指定的函数做防抖处理
+	 * @param callback 需要被调用的回调函数
+	 * @param waitTime 需要等待多长时间，单位毫秒
+	 * @returns 包装后的防抖函数
+	 */
+	export function debounce<T extends Function>(
+		callback: T,
+		waitTime: number,
+	): T {
+		let timer = 0;
+		return function debounceClosure() {
+			const self = this;
+			// rome-ignore lint/style/noArguments: 防抖函数
+			const args = arguments;
+			if (timer) {
+				clearTimeout(timer);
+			}
+			timer = setTimeout(callback.bind(self, args), waitTime);
+		} as unknown as T;
+	}
+
+	/**
 	 * 重复调用某函数，直到其返回任意真值，并返回该真值。
 	 * @param func 函数
 	 * @param interval 重复调用时间间隔

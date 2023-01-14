@@ -37,7 +37,7 @@ export namespace ncm {
 	}
 
 	export function openUrl(url: string) {
-		channel.call('os.navigateExternal', () => {}, [url]);
+		channel.call("os.navigateExternal", () => {}, [url]);
 	}
 
 	export function getNCMPackageVersion(): string {
