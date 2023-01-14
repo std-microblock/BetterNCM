@@ -125,16 +125,18 @@ std::thread* App::create_server(const std::string& apiKey)
 	auto ext = fs::path((wstring)file_path).extension().string();
 	auto mountPoint = "/mounted_file/" + util::random_string(48) + ext;
 	svr->Get(mountPoint, [=](const httplib::Request& req, httplib::Response& res) {
-
-		res.set_content_provider(
-			util::guessMimeType(ext),
-			[&](size_t offset, httplib::DataSink& sink) {
-				std::ifstream input_fd(file_path, std::ios::binary);
-	char data[SIZE_PER_TIME] = {};
-
+		std::ifstream input_fd(file_path, std::ios::binary);
 	input_fd.seekg(0, std::ios::end);
 	auto file_size = input_fd.tellg();
 	input_fd.seekg(offset, std::ios::beg);
+
+	res.set_content_provider(
+		util::guessMimeType(ext),
+		[&](size_t offset, httplib::DataSink& sink) {
+
+			char data[SIZE_PER_TIME] = {};
+
+
 	if (offset < file_size) {
 		if (file_size - input_fd.tellg() >= SIZE_PER_TIME)
 		{
@@ -155,7 +157,7 @@ std::thread* App::create_server(const std::string& apiKey)
 	input_fd.close();
 
 	return true;
-			});
+		}, file_size);
 
 		});
 

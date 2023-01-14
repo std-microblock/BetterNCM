@@ -170,16 +170,16 @@ DWORD util::ScreenCapturePart::getDataSize()
 }
 
 std::map<std::string, std::string> mimeTypes = {
-	{".html", "text/html"},
-	{".txt", "text/plain"},
-	{".jpg", "image/jpeg"},
-	{".jpeg", "image/jpeg"},
-	{".png", "image/png"},
-	{".gif", "image/gif"},
-	{".css", "text/css"},
-	{".js", "application/javascript"},
-	{".flac", "audio/flac"},
-	{".mp3", "audio/mpeg"}
+{".html", "text/html"},
+{".txt", "text/plain"},
+{".jpg", "image/jpeg"},
+{".jpeg", "image/jpeg"},
+{".png", "image/png"},
+{".gif", "image/gif"},
+{".css", "text/css"},
+{".js", "application/javascript"},
+{".flac", "audio/flac"},
+{".mp3", "audio/mpeg"}
 };
 
 std::string util::guessMimeType(std::string fileExtension) {
