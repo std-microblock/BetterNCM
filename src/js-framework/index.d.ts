@@ -5,6 +5,13 @@ declare module "betterncm-api/utils" {
         function waitForElement<K extends keyof SVGElementTagNameMap>(selector: K, interval?: number): Promise<SVGElementTagNameMap[K] | null>;
         function waitForElement<E extends Element = Element>(selector: string, interval?: number): Promise<E | null>;
         /**
+         * 将指定的函数做防抖处理
+         * @param callback 需要被调用的回调函数
+         * @param waitTime 需要等待多长时间，单位毫秒
+         * @returns 包装后的防抖函数
+         */
+        function debounce<T extends Function>(callback: T, waitTime: number): T;
+        /**
          * 重复调用某函数，直到其返回任意真值，并返回该真值。
          * @param func 函数
          * @param interval 重复调用时间间隔
@@ -284,6 +291,8 @@ declare module "plugin" {
         name: string;
         version: string;
         slug: string;
+        /** 是否禁用自带的开发重载功能，适用于那些需要自制热重载的插件开发者们，默认不禁用 */
+        noDevReload?: boolean;
         loadAfter?: string[];
         loadBefore?: string[];
         injects: {

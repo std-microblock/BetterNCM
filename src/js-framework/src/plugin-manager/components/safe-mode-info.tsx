@@ -30,7 +30,7 @@ export const SafeModeInfo: React.FC = () => {
 						<>
 							<p>加载错误记录：</p>
 							<code>
-								<pre>{loadError}</pre>
+								<pre style={{ whiteSpace: "pre-wrap" }}>{loadError}</pre>
 							</code>
 						</>
 					)}

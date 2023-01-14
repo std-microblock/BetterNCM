@@ -4,14 +4,15 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "build:dev": "esbuild ./src/index.ts --bundle --sourcemap --external:./node_modules/* --target=chrome91 --outfile=../framework.js",
+    "build:dev": "esbuild ./src/index.ts --bundle --sourcemap=inline --external:./node_modules/* --target=chrome91 --outfile=../framework.js",
     "build": "esbuild ./src/index.ts --minify --bundle --sourcemap --external:./node_modules/* --target=chrome91 --outfile=../framework.js",
-    "gentypes": "tsc --outfile index.d.ts --module none",
+    "gentypes": "tsc --outfile index.d.ts --module none && rome format --write ./index.d.ts",
+    "fmt": "rome format --write ./src ./index.d.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "BetterNCM Team",
-  "license": "GPL-3",
+  "license": "GPL-3.0",
   "devDependencies": {
     "@types/react": "^18.0.26",
     "@types/react-dom": "^18.0.9",
@@ -19,5 +20,8 @@
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "typescript": "^4.9.4"
+  },
+  "dependencies": {
+    "rome": "^11.0.0"
   }
 }

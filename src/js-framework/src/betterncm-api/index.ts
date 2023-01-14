@@ -18,7 +18,7 @@ declare const loadingMask: HTMLDivElement;
  * 包含加载动画的重载
  */
 function reload(): void {
-	if(!('loadingMask' in window)){
+	if (!("loadingMask" in window)) {
 		document.location.reload();
 		return;
 	}

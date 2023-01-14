@@ -17,8 +17,24 @@ declare global {
 	const ReactDOM: typeof import("react-dom");
 	// rome-ignore lint/suspicious/noExplicitAny: 云村自带的应用配置属性，因为量比较大所以不做类型限定了
 	const APP_CONF: any;
-	// rome-ignore lint/suspicious/noExplicitAny: <explanation>
-	const betterncm_native: any;
+	export namespace betterncm_native {
+		export namespace fs {
+			export function watchDirectory(
+				watchDirPath: string,
+				callback: (dirPath: string, filename: string) => void,
+			): void;
+
+			export function readFileText(filePath: string): string;
+
+			export function readDir(filePath: string): string[];
+
+			export function exists(filePath: string): boolean;
+		}
+
+		export namespace app {
+			export function version(): string;
+		}
+	}
 	interface Window {
 		React: typeof import("react");
 		ReactDOM: typeof import("react-dom");
