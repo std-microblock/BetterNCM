@@ -23,7 +23,10 @@ void from_json(const nlohmann::json& j, PluginManifest& p) {
 	auto getSlugName = [](std::string name) {
 		if (name.empty()) return name;
 		std::replace(name.begin(), name.end(), ' ', '-');
-		name.erase(std::remove_if(name.begin(), name.end(), [](char c) { return !isalnum(c) && c != '-'; }), name.end());
+		try {
+			name.erase(std::remove_if(name.begin(), name.end(), [](char c) { return !isalnum(c) && c != '-'; }), name.end());
+		}
+		catch (std::exception& e) {}
 		return name;
 	};
 
