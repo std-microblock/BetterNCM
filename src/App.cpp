@@ -123,6 +123,7 @@ std::thread* App::create_server(const std::string& apiKey)
 
 	auto ext = fs::path((wstring)file_path).extension().string();
 	auto mountPoint = "/mounted_file/" + util::random_string(48) + ext;
+	auto port = this->server_port;
 	svr->Get(mountPoint, [=](const httplib::Request& req, httplib::Response& res) {
 		const size_t DATA_CHUNK_SIZE = 65536;
 	std::filebuf* pbuf;
@@ -157,7 +158,7 @@ std::thread* App::create_server(const std::string& apiKey)
 		});
 		});
 
-	res.set_content("http://localhost:" + std::to_string(this->server_port) + mountPoint, "text/plain");
+	res.set_content("http://localhost:" + std::to_string(port) + mountPoint, "text/plain");
 		});
 
 	svr->Get("/api/fs/mount_dir", [&](const httplib::Request& req, httplib::Response& res) {
