@@ -62,41 +62,41 @@ export const HeaderComponent: React.FC<{
 	}, [latestVersion]);
 
 	const onUpdateButtonClicked = React.useCallback(async () => {
-			if (latestVersion && latestVersion.version !== currentVersion) {
-				const ncmpath = await BetterNCM.app.getNCMPath();
-				const datapath = await BetterNCM.app.getDataPath();
-				const dllpath = `${datapath}\\betterncm.dll`;
-				if (await BetterNCM.fs.exists("./betterncm.dll"))
-					await BetterNCM.fs.remove("./betterncm.dll");
+		if (latestVersion && latestVersion.version !== currentVersion) {
+			const ncmpath = await BetterNCM.app.getNCMPath();
+			const datapath = await BetterNCM.app.getDataPath();
+			const dllpath = `${datapath}\\betterncm.dll`;
+			if (await BetterNCM.fs.exists("./betterncm.dll"))
+				await BetterNCM.fs.remove("./betterncm.dll");
 
-				await BetterNCM.fs.writeFile(
-					"./betterncm.dll",
-					await (await fetch(latestVersion?.file)).blob(),
-				);
+			await BetterNCM.fs.writeFile(
+				"./betterncm.dll",
+				await (await fetch(latestVersion?.file)).blob(),
+			);
 
-				if (!ncmpath.toLowerCase().includes("system")) {
-					BetterNCM.app.exec(
-						['cmd /c @echo off',
-						'echo BetterNCM Updating...',
-						'cd /d C:/',
-						'cd C:/',
+			if (!ncmpath.toLowerCase().includes("system")) {
+				BetterNCM.app.exec(
+					[
+						"cmd /c @echo off",
+						"echo BetterNCM Updating...",
+						"cd /d C:/",
+						"cd C:/",
 						`cd /d ${ncmpath[0]}:/`,
 						`cd "${ncmpath}"`,
-						'taskkill /f /im cloudmusic.exe>nul',
-						'taskkill /f /im cloudmusicn.exe>nul',
-						'ping 127.0.0.1>nul & del msimg32.dll',
+						"taskkill /f /im cloudmusic.exe>nul",
+						"taskkill /f /im cloudmusicn.exe>nul",
+						"ping 127.0.0.1>nul & del msimg32.dll",
 						`move "${dllpath}" .\\msimg32.dll`,
-						'start cloudmusic.exe'].join(" & "),
-						true,
-					);
-				}
-			} else if (latestVersion) {
-				// 重新检测新版本
-				setLatestVersion(null);
+						"start cloudmusic.exe",
+					].join(" & "),
+					true,
+				);
 			}
-		},
-		[latestVersion],
-	);
+		} else if (latestVersion) {
+			// 重新检测新版本
+			setLatestVersion(null);
+		}
+	}, [latestVersion]);
 
 	return (
 		<section className="bncm-mgr-header">
@@ -110,7 +110,9 @@ export const HeaderComponent: React.FC<{
 			<div>
 				<h1>
 					BetterNCM{" "}
-					<span style={{ fontSize: "smaller", opacity: "0.8" }}>{betterncm_native.app.version()}</span>
+					<span style={{ fontSize: "smaller", opacity: "0.8" }}>
+						{betterncm_native.app.version()}
+					</span>
 				</h1>
 				<div className="bncm-mgr-btns">
 					<Button

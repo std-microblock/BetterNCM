@@ -5,9 +5,15 @@
         "./src/**/*.tsx"
     ],
     "compilerOptions": {
-        "typeRoots": ["./node_modules/@types/", "./src/types/"],
+        "typeRoots": [
+            "./node_modules/@types/",
+            "./src/types/"
+        ],
         "target": "ESNext",
-        "lib": ["ESNext", "DOM"],
+        "lib": [
+            "ESNext",
+            "DOM"
+        ],
         "moduleResolution": "node",
         "declaration": true,
         "emitDeclarationOnly": true,

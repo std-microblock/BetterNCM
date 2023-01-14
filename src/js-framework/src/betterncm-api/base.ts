@@ -1,4 +1,3 @@
-
 export const betterncmFetch = (
 	relPath: string,
 	option?: RequestInit & {
