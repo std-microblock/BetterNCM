@@ -11,6 +11,7 @@ import { app } from "./app";
 import { ncm } from "./ncm";
 import { tests } from "./tests";
 import { utils } from "./utils";
+import { betterncmFetch } from "./base.ts"
 
 declare const loadingMask: HTMLDivElement;
 /**
@@ -40,6 +41,7 @@ const BetterNCM = {
 	utils,
 	tests,
 	reload,
+	betterncmFetch
 };
 
 export { fs, app, ncm, utils, tests, reload };

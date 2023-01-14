@@ -43,6 +43,7 @@ void App::writeConfig(const std::string& key, const std::string& value) {
 		res.status = 401;                                                                            \
 		return;                                                                                      \
 	}
+const unsigned int SIZE_PER_TIME = 1000000;
 
 std::thread* App::create_server(const std::string& apiKey)
 {
@@ -94,24 +95,91 @@ std::thread* App::create_server(const std::string& apiKey)
 	using namespace std;
 	namespace fs = std::filesystem;
 
-	BNString path = req.get_param_value("path");
+	BNString file_path = req.get_param_value("path");
 
-	if (path[1] != ':') {
-		path = datapath + L"/" + path;
+	if (file_path[1] != ':') {
+		file_path = datapath + L"/" + file_path;
 	}
 
-	std::ifstream file(path, ios::binary);
-	file.seekg(0, file.end);
-	int size = file.tellg();
-	char* buffer = new char[size];
-	file.seekg(0, file.beg);
+	std::ifstream file(file_path, std::ios::binary);
 
-	file.read(buffer, size);
-	file.close();
+	res.set_header("Content-Type", "application/octet-stream");
 
-	res.set_content(buffer, size, "text/plain");
-	delete[] buffer;
+	res.body.assign(std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>());
+
 		});
+
+	svr->Get("/api/fs/mount_file", [&](const httplib::Request& req, httplib::Response& res) {
+		checkApiKey;
+	using namespace std;
+	namespace fs = std::filesystem;
+
+
+
+	BNString file_path = req.get_param_value("path");
+
+	if (file_path[1] != ':') {
+		file_path = datapath + L"/" + file_path;
+	}
+
+	auto ext = fs::path((wstring)file_path).extension().string();
+	auto mountPoint = "/mounted_file/" + util::random_string(48) + ext;
+	svr->Get(mountPoint, [=](const httplib::Request& req, httplib::Response& res) {
+		const size_t DATA_CHUNK_SIZE = 65536;
+	std::filebuf* pbuf;
+	std::ifstream* filestr = new std::ifstream();
+	long size;
+
+	filestr->open(file_path, std::ios::binary);
+	pbuf = filestr->rdbuf();
+	size = pbuf->pubseekoff(0, std::ios::end, std::ios::in);
+
+
+
+
+	res.set_header("Content-Disposition", "inline;");
+	res.set_content_provider(
+		size, util::guessMimeType(ext),
+		[pbuf](size_t offset, size_t length, httplib::DataSink& sink) {
+
+			char* data = new char[DATA_CHUNK_SIZE + 2];
+	const auto d = data;
+	auto out_len = min(static_cast<size_t>(length), DATA_CHUNK_SIZE);
+
+	pbuf->pubseekpos(offset);
+	pbuf->sgetn(data, out_len);
+
+	auto ret = sink.write(&d[0], out_len);
+	delete data;
+	return true;
+		}, [filestr](bool s) {
+			filestr->close();
+		delete filestr;
+		});
+		});
+
+	res.set_content("http://localhost:" + std::to_string(this->server_port) + mountPoint, "text/plain");
+		});
+
+	svr->Get("/api/fs/mount_dir", [&](const httplib::Request& req, httplib::Response& res) {
+		checkApiKey;
+	using namespace std;
+	namespace fs = std::filesystem;
+
+	const size_t SIZE_PER_TIME = 10000;
+
+	BNString file_path = req.get_param_value("path");
+
+	if (file_path[1] != ':') {
+		file_path = datapath + L"/" + file_path;
+	}
+
+	auto mountPoint = "/mounted_dir/" + util::random_string(48);
+	svr->set_mount_point(mountPoint, file_path);
+	res.set_content("http://localhost:" + std::to_string(this->server_port) + mountPoint, "text/plain");
+		});
+
+
 
 	svr->Get("/api/fs/unzip_file", [&](const httplib::Request& req, httplib::Response& res) {
 		checkApiKey;
@@ -397,25 +465,7 @@ std::thread* App::create_server(const std::string& apiKey)
 	return server_thread;
 }
 
-// https://stackoverflow.com/questions/440133/how-do-i-create-a-random-alpha-numeric-string-in-c
-std::string random_string(std::string::size_type length)
-{
-	static auto& chrs = "0123456789"
-		"abcdefghijklmnopqrstuvwxyz"
-		"ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-	thread_local static std::mt19937 rg{ std::random_device{}() };
-	thread_local static std::uniform_int_distribution<std::string::size_type> pick(0, sizeof(chrs) - 2);
-
-	std::string s;
-
-	s.reserve(length);
-
-	while (length--)
-		s += chrs[pick(rg)];
-
-	return s;
-}
 
 
 
@@ -480,8 +530,8 @@ App::App()
 				windowInfo.SetAsPopup(NULL, "EasyCEFInject DevTools");
 				cef_browser_host->show_dev_tools(cef_browser_host, &windowInfo, client, &settings, &point);
 			}
-			}
-		};
+		}
+	};
 
 	EasyCEFHooks::onCommandLine = [&](struct _cef_command_line_t* command_line) {
 
@@ -711,7 +761,7 @@ App::App()
 	};
 
 	EasyCEFHooks::InstallHooks();
-	}
+}
 App::~App()
 {
 	HANDLE hThread = server_thread->native_handle();

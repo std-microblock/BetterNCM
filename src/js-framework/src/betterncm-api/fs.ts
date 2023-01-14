@@ -37,6 +37,26 @@ export namespace fs {
 	}
 
 	/**
+	 * 挂载路径
+	 * @param filePath 需要挂载的文件夹路径
+	 * @returns 挂载到的 http 地址
+	 */
+	export async function mountDir(filePath: string): Promise<string> {
+		const r = await betterncmFetch(`/fs/mount_dir?path=${e(filePath)}`);
+		return await r.text();
+	}
+
+	/**
+	 * 挂载路径
+	 * @param filePath 需要挂载的文件路径
+	 * @returns 挂载到的 http 地址
+	 */
+	 export async function mountFile(filePath: string): Promise<string> {
+		const r = await betterncmFetch(`/fs/mount_file?path=${e(filePath)}`);
+		return await r.text();
+	}
+
+	/**
 	 * 解压指定的 ZIP 压缩文件到一个指定的文件夹中
 	 * @param zipPath 需要解压的 ZIP 压缩文件路径
 	 * @param unzipDest 需要解压到的文件夹路径，如果不存在则会创建，如果解压时有文件存在则会被覆盖

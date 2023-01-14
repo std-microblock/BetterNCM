@@ -144,11 +144,53 @@ char* util::ScreenCapturePart::getData()
 	return this->allData;
 }
 
+// https://stackoverflow.com/questions/440133/how-do-i-create-a-random-alpha-numeric-string-in-c
+std::string util::random_string(std::string::size_type length)
+{
+	static auto& chrs = "0123456789"
+		"abcdefghijklmnopqrstuvwxyz"
+		"ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+	thread_local static std::mt19937 rg{ std::random_device{}() };
+	thread_local static std::uniform_int_distribution<std::string::size_type> pick(0, sizeof(chrs) - 2);
+
+	std::string s;
+
+	s.reserve(length);
+
+	while (length--)
+		s += chrs[pick(rg)];
+
+	return s;
+}
+
 DWORD util::ScreenCapturePart::getDataSize()
 {
 	return this->dwSizeofDIB;
 }
 
+std::map<std::string, std::string> mimeTypes = {
+{".html", "text/html"},
+{".txt", "text/plain"},
+{".jpg", "image/jpeg"},
+{".jpeg", "image/jpeg"},
+{".png", "image/png"},
+{".gif", "image/gif"},
+{".css", "text/css"},
+{".js", "application/javascript"},
+{".flac", "audio/mpeg"},
+{".mp3", "audio/mpeg"}
+};
+
+std::string util::guessMimeType(std::string fileExtension) {
+	std::string mimeType = "application/octet-stream";
+
+	if (mimeTypes.count(fileExtension) > 0) {
+		mimeType = mimeTypes[fileExtension];
+	}
+
+	return mimeType;
+}
 
 std::string util::load_string_resource(LPCTSTR name)
 {
