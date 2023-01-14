@@ -31,10 +31,10 @@ export namespace fs {
 	 * @param filePath 需要读取的文件路径
 	 * @returns blob
 	 */
-         export async function readFile(filePath: string): Promise<Blob> {
+	export async function readFile(filePath: string): Promise<Blob> {
 		const r = await betterncmFetch(`/fs/read_file?path=${e(filePath)}`);
 		return await r.blob();
-	 }
+	}
 
 	/**
 	 * 解压指定的 ZIP 压缩文件到一个指定的文件夹中

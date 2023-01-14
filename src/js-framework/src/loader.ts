@@ -132,6 +132,8 @@ async function loadPlugins() {
 		return;
 	}
 
+	const debouncedReload = BetterNCM.utils.debounce(BetterNCM.reload, 1000);
+
 	// rome-ignore lint/suspicious/noExplicitAny: AsyncFunction 并不暴露成类，需要手动获取
 	const AsyncFunction = async function () {}.constructor as any;
 	const pageMap = {
@@ -144,17 +146,26 @@ async function loadPlugins() {
 		const manifest = mainPlugin.manifest;
 		const pluginPath = mainPlugin.pluginPath;
 
-		if (devMode)
-				betterncm_native.fs.watchDirectory(pluginPath, (dir, path) => {
-					const RELOAD_EXTS = [".js", "manifest.json"];
-					if (RELOAD_EXTS.findIndex((ext) => path.endsWith(ext)) !== -1)
-						BetterNCM.reload();
-				});
+		if (devMode && !manifest.noDevReload) {
+			betterncm_native.fs.watchDirectory(pluginPath, (_dir, path) => {
+				const RELOAD_EXTS = [".js", "manifest.json"];
+				if (RELOAD_EXTS.findIndex((ext) => path.endsWith(ext)) !== -1) {
+					console.warn(
+						"开发插件",
+						manifest.name,
+						"文件",
+						path,
+						"发生更新，即将重载！",
+					);
+
+					debouncedReload();
+				}
+			});
+		}
 
 		async function loadInject(filePath: string) {
 			if (!manifest.slug) return;
 			const code = betterncm_native.fs.readFileText(filePath);
-			
 
 			if (filePath.endsWith(".js")) {
 				const plugin = new NCMInjectPlugin(mainPlugin, filePath);
@@ -202,7 +213,7 @@ async function loadPlugins() {
 
 	window.loadedPlugins = loadedPlugins;
 
-	const pluginPaths = await betterncm_native.fs.readDir("./plugins_runtime");
+	const pluginPaths = betterncm_native.fs.readDir("./plugins_runtime");
 
 	let plugins: NCMPlugin[] = [];
 
