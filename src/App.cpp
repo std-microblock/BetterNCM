@@ -43,7 +43,6 @@ void App::writeConfig(const std::string& key, const std::string& value) {
 		res.status = 401;                                                                            \
 		return;                                                                                      \
 	}
-const unsigned int SIZE_PER_TIME = 1000000;
 
 std::thread* App::create_server(const std::string& apiKey)
 {

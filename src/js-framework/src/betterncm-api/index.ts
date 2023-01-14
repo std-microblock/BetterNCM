@@ -11,7 +11,7 @@ import { app } from "./app";
 import { ncm } from "./ncm";
 import { tests } from "./tests";
 import { utils } from "./utils";
-import { betterncmFetch } from "./base.ts"
+import { betterncmFetch } from "./base"
 
 declare const loadingMask: HTMLDivElement;
 /**

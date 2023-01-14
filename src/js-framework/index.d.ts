@@ -52,12 +52,30 @@ declare module "betterncm-api/fs" {
          */
         function readFileText(filePath: string): Promise<string>;
         /**
+         * 读取文件
+         * @param filePath 需要读取的文件路径
+         * @returns blob
+         */
+        function readFile(filePath: string): Promise<Blob>;
+        /**
+         * 挂载路径
+         * @param filePath 需要挂载的文件夹路径
+         * @returns 挂载到的 http 地址
+         */
+        function mountDir(filePath: string): Promise<string>;
+        /**
+         * 挂载路径
+         * @param filePath 需要挂载的文件路径
+         * @returns 挂载到的 http 地址
+         */
+        function mountFile(filePath: string): Promise<string>;
+        /**
          * 解压指定的 ZIP 压缩文件到一个指定的文件夹中
          * @param zipPath 需要解压的 ZIP 压缩文件路径
          * @param unzipDest 需要解压到的文件夹路径，如果不存在则会创建，如果解压时有文件存在则会被覆盖
-         * @returns 返回值，若为0则成功，若为负值则失败
+         * @returns 返回值，是否成功
          */
-        function unzip(zipPath: string, unzipDest?: string): Promise<number>;
+        function unzip(zipPath: string, unzipDest?: string): Promise<boolean>;
         /**
          * 将文本写入到指定文件内
          * @param filePath 需要写入的文件路径
@@ -182,7 +200,7 @@ declare module "betterncm-api/app" {
 declare module "betterncm-api/ncm" {
     export namespace ncm {
         function findNativeFunction(obj: Object, identifiers: string): string | undefined;
-        function openUrl(url: string): any;
+        function openUrl(url: string): void;
         function getNCMPackageVersion(): string;
         function getNCMFullVersion(): string;
         function getNCMVersion(): string;
@@ -238,6 +256,9 @@ declare module "betterncm-api/index" {
         utils: typeof utils;
         tests: typeof tests;
         reload: typeof reload;
+        betterncmFetch: (relPath: string, option?: (RequestInit & {
+            ignoreApiKey?: boolean | undefined;
+        }) | undefined) => Promise<Response>;
     };
     export { fs, app, ncm, utils, tests, reload };
     export default BetterNCM;
@@ -262,6 +283,9 @@ declare module "plugin" {
         manifest_version: number;
         name: string;
         version: string;
+        slug: string;
+        loadAfter?: string[];
+        loadBefore?: string[];
         injects: {
             [pageType: string]: InjectFile[];
         };
@@ -272,11 +296,13 @@ declare module "plugin" {
         };
     }
     export class NCMPlugin extends EventTarget {
+        #private;
         pluginPath: string;
         injects: NCMInjectPlugin[];
         manifest: PluginManifest;
         finished: boolean;
-        constructor(manifest: PluginManifest, pluginPath: string);
+        devMode: boolean;
+        constructor(manifest: PluginManifest, pluginPath: string, devMode: boolean);
         haveConfigElement(): boolean;
     }
     export class NCMInjectPlugin extends EventTarget {
@@ -347,6 +373,10 @@ declare module "loader" {
         readonly pluginPath: string;
         readonly rawError: Error;
         constructor(pluginPath: string, rawError: Error, message?: string, options?: ErrorOptions);
+        toString(): string;
+    }
+    export class DependencyResolveError extends Error {
+        constructor(message?: string, options?: ErrorOptions);
         toString(): string;
     }
     export const isSafeMode: () => boolean;
