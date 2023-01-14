@@ -31,10 +31,40 @@ export namespace fs {
 	 * @param filePath 需要读取的文件路径
 	 * @returns blob
 	 */
-		 export async function readFile(filePath: string): Promise<string> {
-			const r = await betterncmFetch(`/fs/read_file?path=${e(filePath)}`);
-			return await r.blob();
-		}
+	export async function readFile(filePath: string): Promise<Blob> {
+		const r = await betterncmFetch(`/fs/read_file?path=${e(filePath)}`);
+		return await r.blob();
+	}
+
+	/**
+	 * 挂载路径
+	 * @param filePath 需要挂载的文件夹路径
+	 * @returns 挂载到的 http 地址
+	 */
+	export async function mountDir(filePath: string): Promise<string> {
+		const r = await betterncmFetch(`/fs/mount_dir?path=${e(filePath)}`);
+		return await r.text();
+	}
+
+	/**
+	 * 挂载路径
+	 * @param filePath 需要挂载的文件路径
+	 * @returns 挂载到的 http 地址
+	 */
+	 export async function mountFile(filePath: string): Promise<string> {
+		const r = await betterncmFetch(`/fs/mount_file?path=${e(filePath)}`);
+		return await r.text();
+	}
+
+	/**
+	 * 读取文本文件，务必保证文件编码是 UTF-8
+	 * @param filePath 需要读取的文件路径
+	 * @returns 对应文件的文本形式
+	 */
+	 export async function readFileText(filePath: string): Promise<string> {
+		const r = await betterncmFetch(`/fs/read_file_text?path=${e(filePath)}`);
+		return await r.text();
+	}
 
 	/**
 	 * 解压指定的 ZIP 压缩文件到一个指定的文件夹中
