@@ -43,7 +43,6 @@ void App::writeConfig(const std::string& key, const std::string& value) {
 		res.status = 401;                                                                            \
 		return;                                                                                      \
 	}
-const unsigned int SIZE_PER_TIME = 1000000;
 
 std::thread* App::create_server(const std::string& apiKey)
 {
@@ -142,7 +141,7 @@ std::thread* App::create_server(const std::string& apiKey)
 		size, util::guessMimeType(ext),
 		[pbuf](size_t offset, size_t length, httplib::DataSink& sink) {
 
-			char* data = new char[DATA_CHUNK_SIZE + 2];
+			char* data = new char[DATA_CHUNK_SIZE];
 	const auto d = data;
 	auto out_len = min(static_cast<size_t>(length), DATA_CHUNK_SIZE);
 
@@ -150,7 +149,7 @@ std::thread* App::create_server(const std::string& apiKey)
 	pbuf->sgetn(data, out_len);
 
 	auto ret = sink.write(&d[0], out_len);
-	delete data;
+	delete[] data;
 	return true;
 		}, [filestr](bool s) {
 			filestr->close();

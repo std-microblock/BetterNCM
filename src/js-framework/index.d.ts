@@ -263,7 +263,9 @@ declare module "betterncm-api/index" {
         utils: typeof utils;
         tests: typeof tests;
         reload: typeof reload;
-        betterncmFetch: any;
+        betterncmFetch: (relPath: string, option?: (RequestInit & {
+            ignoreApiKey?: boolean | undefined;
+        }) | undefined) => Promise<Response>;
     };
     export { fs, app, ncm, utils, tests, reload };
     export default BetterNCM;
