@@ -43,7 +43,7 @@ void App::writeConfig(const std::string& key, const std::string& value) {
 		res.status = 401;                                                                            \
 		return;                                                                                      \
 	}
-const unsigned int SIZE_PER_TIME = 10000;
+const unsigned int SIZE_PER_TIME = 1000000;
 
 std::thread* App::create_server(const std::string& apiKey)
 {
@@ -125,40 +125,37 @@ std::thread* App::create_server(const std::string& apiKey)
 	auto ext = fs::path((wstring)file_path).extension().string();
 	auto mountPoint = "/mounted_file/" + util::random_string(48) + ext;
 	svr->Get(mountPoint, [=](const httplib::Request& req, httplib::Response& res) {
-		std::ifstream input_fd(file_path, std::ios::binary);
-	input_fd.seekg(0, std::ios::end);
-	auto file_size = input_fd.tellg();
-	input_fd.seekg(offset, std::ios::beg);
+		const size_t DATA_CHUNK_SIZE = 65536;
+	std::filebuf* pbuf;
+	std::ifstream* filestr = new std::ifstream();
+	long size;
 
+	filestr->open(file_path, std::ios::binary);
+	pbuf = filestr->rdbuf();
+	size = pbuf->pubseekoff(0, std::ios::end, std::ios::in);
+
+
+
+
+	res.set_header("Content-Disposition", "inline;");
 	res.set_content_provider(
-		util::guessMimeType(ext),
-		[&](size_t offset, httplib::DataSink& sink) {
+		size, util::guessMimeType(ext),
+		[pbuf](size_t offset, size_t length, httplib::DataSink& sink) {
 
-			char data[SIZE_PER_TIME] = {};
+			char* data = new char[DATA_CHUNK_SIZE + 2];
+	const auto d = data;
+	auto out_len = min(static_cast<size_t>(length), DATA_CHUNK_SIZE);
 
+	pbuf->pubseekpos(offset);
+	pbuf->sgetn(data, out_len);
 
-	if (offset < file_size) {
-		if (file_size - input_fd.tellg() >= SIZE_PER_TIME)
-		{
-			input_fd.read(data, SIZE_PER_TIME);
-			sink.write(data, SIZE_PER_TIME);
-		}
-		else
-		{
-			auto last_data_size = file_size - input_fd.tellg();
-			input_fd.read(data, last_data_size);
-			std::cout << file_size - input_fd.tellg() << std::endl;
-			sink.write(data, last_data_size);
-		}
-	}
-	else {
-		sink.done();
-	}
-	input_fd.close();
-
+	auto ret = sink.write(&d[0], out_len);
+	delete data;
 	return true;
-		}, file_size);
-
+		}, [filestr](bool s) {
+			filestr->close();
+		delete filestr;
+		});
 		});
 
 	res.set_content("http://localhost:" + std::to_string(this->server_port) + mountPoint, "text/plain");

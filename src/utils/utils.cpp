@@ -178,7 +178,7 @@ std::map<std::string, std::string> mimeTypes = {
 {".gif", "image/gif"},
 {".css", "text/css"},
 {".js", "application/javascript"},
-{".flac", "audio/flac"},
+{".flac", "audio/mpeg"},
 {".mp3", "audio/mpeg"}
 };
 
