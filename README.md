@@ -4,6 +4,7 @@
 <h4 align="center">
 <a href=https://github.com/MicroCBer/BetterNCM/wiki/%E5%BC%80%E5%8F%91%E6%96%87%E6%A1%A3>开发文档</a> · 
 <a href=https://www.bilibili.com/video/BV1k44y197Fb/>介绍视频</a> · 
+<a href=https://v2e2npdz15.feishu.cn/docx/UZkSd9d46o4fVOxaPNBcGXSenme>用户文档（社区）</a> · 
 <a href=https://microblock.cc/betterncm/>项目页面</a>
 
 </h3>
