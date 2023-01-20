@@ -209,7 +209,7 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 		auto* fn = new JSFunction(callback);
 		auto thread = new std::thread([=]() {
 			util::watchDir(path, [&](BNString dir, BNString path) {
-		(*fn)(dir, path);
+				(*fn)(dir, path);
 		if (!fn->isValid())return false;
 		return true;
 				});
@@ -290,6 +290,18 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 				}
 
 		fs::remove_all((std::wstring)path);
+		return true;
+			}
+		);
+
+
+
+		DEFINE_API(
+			app.reloadIgnoreCache,
+			[]() {
+				auto ctx = cef_v8context_get_current_context();
+		auto browser = ctx->get_browser(ctx);
+		browser->reload_ignore_cache(browser);
 		return true;
 			}
 		);
