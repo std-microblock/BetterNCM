@@ -534,20 +534,22 @@ App::App()
 	};
 
 	EasyCEFHooks::onCommandLine = [&](struct _cef_command_line_t* command_line) {
+		auto append = [&](BNString s) {
+			CefString str = s;
+			command_line->append_switch(command_line, str.GetStruct());
+		};
 
-		{
-			CefString str = "disable-web-security";
-			command_line->append_switch(command_line, str.GetStruct());
-		}
-		{
-			CefString str = "ignore-certificate-errors";
-			command_line->append_switch(command_line, str.GetStruct());
-		}
-		if (readConfig("cc.microblock.betterncm.single-process", "false") == "true") {
-			CefString str = "single-process";
-			command_line->append_switch(command_line, str.GetStruct());
-		}
+		append("disable-web-security");
+		append("ignore-certificate-errors");
 
+		if (readConfig("cc.microblock.betterncm.single-process", "false") == "true")
+			append("single-process");
+
+		if (readConfig("cc.microblock.betterncm.experimental.optimize-memory", "false") == "true") {
+			append("process-per-site");
+			append("enable-low-end-device-mode");
+			append("enable-low-res-tiling");
+		}
 	};
 
 	EasyCEFHooks::onLoadStart = [=](_cef_browser_t* browser, _cef_frame_t* frame)
