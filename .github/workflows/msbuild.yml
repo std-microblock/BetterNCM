@@ -42,3 +42,12 @@ jobs:
         name: BetterNCMII
         # A file, directory or wildcard pattern that describes what to upload
         path: ${{ github.workspace }}/Release/BetterNCMII.dll
+        
+    - uses: "marvinpinto/action-automatic-releases@latest"
+      name: Upload to Github Release
+      with:
+        repo_token: "${{ secrets.GITHUB_TOKEN }}"
+        automatic_release_tag: "dev-nightly"
+        prerelease: true
+        title: "Latest Test Release"
+        files: ${{ github.workspace }}/Release/BetterNCMII.dll
