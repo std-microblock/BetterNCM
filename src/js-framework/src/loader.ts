@@ -217,7 +217,7 @@ async function loadPlugins() {
 
 	let plugins: NCMPlugin[] = [];
 
-	const loadPluginByPath = async (path: string, devMode: boolean) => {
+	const loadPluginByPath = (path: string, devMode: boolean) => {
 		try {
 			const manifest = JSON.parse(
 				betterncm_native.fs.readFileText(`${path}/manifest.json`),
