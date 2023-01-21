@@ -21,11 +21,14 @@
 
 使用[BetterNCM Installer](https://github.com/MicroCBer/BetterNCM-Installer)一键安装~
 
-# Star History
+# 其他
+## 相关
+- [BetterNCM 生态组织](https://github.com/BetterNCM)
+- [插件商店 下载量统计 仓库](https://github.com/BetterNCM/BetterNCM-PluginMarket-Analyze)
+- [插件商店 插件源 仓库](https://github.com/BetterNCM/BetterNCM-Plugins)
+- [Star History](https://api.star-history.com/svg?repos=MicroCBer/BetterNCM&type=Date)
 
-[![Star History Chart](https://api.star-history.com/svg?repos=MicroCBer/BetterNCM&type=Date)](https://star-history.com/#MicroCBer/BetterNCM&Date)
-
-# For MacOS
+## For MacOS
 
 ### Alternatives:
 
