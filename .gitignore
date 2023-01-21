@@ -47,5 +47,7 @@ src/js-framework/node_modules/
 src/js-framework/package-lock.json
 
 # VS
-*.vcxproj.filters
 *.vcxproj.user
+
+# VCPKG packages
+vcpkg_installed/

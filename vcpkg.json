@@ -1,0 +1,18 @@
+{
+    "name": "better-ncm",
+    "description": "PC版网易云客户端插件管理器",
+    "homepage": "https://microblock.cc/betterncm",
+    "license":"GPL-3.0-or-later",
+
+    "version-string": "latest",
+    "dependencies": [
+      "pystring",
+      "cpp-httplib",
+      "detours",
+      "nlohmann-json",
+      "kubazip",
+      "neargye-semver"
+    ],
+    "maintainers":["MicroBlock <microblock@qq.com>"],
+    "supports":"windows"
+}
