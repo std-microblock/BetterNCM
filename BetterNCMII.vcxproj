@@ -76,11 +76,11 @@
     <PublicIncludeDirectories>$(PublicIncludeDirectories)</PublicIncludeDirectories>
     <AllProjectIncludesArePublic>true</AllProjectIncludesArePublic>
     <AllProjectBMIsArePublic>true</AllProjectBMIsArePublic>
-    <ExternalIncludePath>$(ProjectDir)vcpkg_installed\x86-windows\include;$(VC_IncludePath);$(WindowsSDK_IncludePath); </ExternalIncludePath>
+    <ExternalIncludePath>$(ProjectDir)vcpkg_installed\x86-windows\include;$(VC_IncludePath);$(WindowsSDK_IncludePath); b/vcpkg_installed</ExternalIncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <ExternalIncludePath>$(ProjectDir)vcpkg_installed\x86-windows\include;$(VC_IncludePath);$(WindowsSDK_IncludePath); </ExternalIncludePath>
+    <ExternalIncludePath>$(ProjectDir)vcpkg_installed\x86-windows\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);b/vcpkg_installed </ExternalIncludePath>
     <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
     <PublicIncludeDirectories>$(PublicIncludeDirectories)</PublicIncludeDirectories>
     <AllProjectIncludesArePublic>true</AllProjectIncludesArePublic>
