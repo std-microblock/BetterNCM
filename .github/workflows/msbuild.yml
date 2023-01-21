@@ -5,6 +5,7 @@ on:
     branches: [ "v2","ci" ]
   pull_request:
     branches: [ "v2","ci" ]
+    
 
 env:
   SOLUTION_FILE_PATH: .
