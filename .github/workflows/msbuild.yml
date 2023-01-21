@@ -32,6 +32,7 @@ jobs:
       with:
         vcpkgGitCommitId: e69dd972ba64840955f46704ecce6241bf607c0f
         runVcpkgInstall: true
+        vcpkgDirectory: '${{ github.workspace }}/vcpkg_installed'
 
     - name: Install NPM packages
       working-directory: ${{env.GITHUB_WORKSPACE}}
