@@ -76,15 +76,17 @@
     <PublicIncludeDirectories>$(PublicIncludeDirectories)</PublicIncludeDirectories>
     <AllProjectIncludesArePublic>true</AllProjectIncludesArePublic>
     <AllProjectBMIsArePublic>true</AllProjectBMIsArePublic>
-    <ExternalIncludePath>$(ProjectDir)vcpkg_installed\x86-windows\include;$(VC_IncludePath);$(WindowsSDK_IncludePath); b/vcpkg_installed</ExternalIncludePath>
+    <ExternalIncludePath>$(ProjectDir)vcpkg_installed\x86-windows\include;$(VC_IncludePath);$(WindowsSDK_IncludePath); </ExternalIncludePath>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(ProjectDir)vcpkg_installed\x86-windows\lib</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <ExternalIncludePath>$(ProjectDir)vcpkg_installed\x86-windows\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);b/vcpkg_installed </ExternalIncludePath>
+    <ExternalIncludePath>$(ProjectDir)vcpkg_installed\x86-windows\include;$(VC_IncludePath);$(WindowsSDK_IncludePath);</ExternalIncludePath>
     <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
     <PublicIncludeDirectories>$(PublicIncludeDirectories)</PublicIncludeDirectories>
     <AllProjectIncludesArePublic>true</AllProjectIncludesArePublic>
     <AllProjectBMIsArePublic>true</AllProjectBMIsArePublic>
+    <LibraryPath>$(VC_LibraryPath_x86);$(WindowsSDK_LibraryPath_x86);$(ProjectDir)vcpkg_installed\x86-windows\lib</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -108,7 +110,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>src/3rd/libcef/libcef.lib;dwmapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>src/3rd/libcef/libcef.lib;dwmapi.lib;vcpkg_installed\x86-windows\lib\*.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <LinkTimeCodeGeneration>Default</LinkTimeCodeGeneration>
     </Link>
     <PostBuildEvent>
@@ -141,7 +143,7 @@ npm run build:dev</Command>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableUAC>false</EnableUAC>
-      <AdditionalDependencies>dwmapi.lib;src/3rd/libcef/libcef.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dwmapi.lib;src/3rd/libcef/libcef.lib;vcpkg_installed\x86-windows\lib\*.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
       <Command>
