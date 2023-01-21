@@ -24,3 +24,10 @@
 # Star History
 
 [![Star History Chart](https://api.star-history.com/svg?repos=MicroCBer/BetterNCM&type=Date)](https://star-history.com/#MicroCBer/BetterNCM&Date)
+
+# For MacOS
+
+### Alternatives:
+
+- [Steve-xmh/mmbncm](https://github.com/Steve-xmh/mmbncm) （自行研究用法）
+
