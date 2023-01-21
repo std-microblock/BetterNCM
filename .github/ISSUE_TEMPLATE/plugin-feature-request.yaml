@@ -1,0 +1,35 @@
+name: 插件功能请求
+description: 请求制作 提供某个功能的插件
+title: "[ Plugin FR ] 在此输入标题"
+labels: [enhancement, plugin-related]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        在提交该 Issue 之前，请确保：
+        + 先前不存在相同的 Issue
+        + 现有插件的最新版本不存在该功能
+  - type: textarea
+    id: problem
+    attributes:
+      label: 你的功能请求是否与某个问题/需求有关？请描述
+      description: 清晰简洁地描述问题/需求是什么。
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: 描述你想要的解决方案
+      description: 简明扼要地描述你希望发生什么。
+    validations:
+      required: true
+  - type: textarea
+    id: alternative-solution
+    attributes:
+      label: 描述你考虑过的替代方案
+      description: 简明扼要地描述你考虑过的任何替代解决方案或功能。
+  - type: textarea
+    id: extra-info
+    attributes:
+      label: 额外的背景
+      description: 在此添加关于该功能请求的任何其他背景、屏幕截图或设计草图。

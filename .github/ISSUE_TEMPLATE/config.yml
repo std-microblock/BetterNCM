@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: BetterNCM 文档
+    url: https://github.com/MicroCBer/BetterNCM/wiki
+    about: 包含使用说明和常见问题
