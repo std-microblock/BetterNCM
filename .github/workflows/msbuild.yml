@@ -48,7 +48,7 @@ jobs:
         automatic_release_tag: "dev-nightly"
         prerelease: true
         title: "Latest Test Release"
-        files: ${{ github.workspace }}/Release/BetterNCMII.dll
+        files: ./Release/BetterNCMII.dll
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v3.1.1
