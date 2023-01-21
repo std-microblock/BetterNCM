@@ -11,7 +11,7 @@ env:
   SOLUTION_FILE_PATH: .
   BUILD_CONFIGURATION: Release
   VCPKG_DEFAULT_TRIPLET: x86-windows
-  VCPKG_INSTALLED_DIR: /vcpkg_installed/
+  VCPKG_INSTALLED_DIR: ./vcpkg_installed/
 
 permissions:
   contents: read
