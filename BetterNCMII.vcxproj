@@ -76,10 +76,11 @@
     <PublicIncludeDirectories>$(PublicIncludeDirectories)</PublicIncludeDirectories>
     <AllProjectIncludesArePublic>true</AllProjectIncludesArePublic>
     <AllProjectBMIsArePublic>true</AllProjectBMIsArePublic>
+    <ExternalIncludePath>$(ProjectDir)vcpkg_installed\x86-windows\include;$(VC_IncludePath);$(WindowsSDK_IncludePath); </ExternalIncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <LinkIncremental>false</LinkIncremental>
-    <ExternalIncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath); I:\qtbuild\qt-everywhere-src-5.15.2\qt-everywhere-src-5.15.2\qtbase\include</ExternalIncludePath>
+    <ExternalIncludePath>$(ProjectDir)vcpkg_installed\x86-windows\include;$(VC_IncludePath);$(WindowsSDK_IncludePath); </ExternalIncludePath>
     <PostBuildEventUseInBuild>false</PostBuildEventUseInBuild>
     <PublicIncludeDirectories>$(PublicIncludeDirectories)</PublicIncludeDirectories>
     <AllProjectIncludesArePublic>true</AllProjectIncludesArePublic>
@@ -131,7 +132,7 @@ npm run build:dev</Command>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp17</LanguageStandard>
-      <AdditionalIncludeDirectories>src;src\3rd\libcef;vcpkg_installed\x86-windows\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;src\3rd\libcef;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
