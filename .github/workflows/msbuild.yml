@@ -2,14 +2,15 @@ name: MSBuild
 
 on:
   push:
-    branches: [ "v2","ci" ]
+    branches: [ "v2" ]
   pull_request:
-    branches: [ "v2","ci" ]
+    branches: [ "v2" ]
     
 
 env:
   SOLUTION_FILE_PATH: .
   BUILD_CONFIGURATION: Release
+  VCPKG_DEFAULT_TRIPLET: x86-windows
 
 permissions:
   contents: read
@@ -24,9 +25,10 @@ jobs:
     - name: Add MSBuild to PATH
       uses: microsoft/setup-msbuild@v1.0.2
       
-    - name: Install VCPKG packages
-      working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: vcpkg install cpp-httplib:x86-windows detours:x86-windows pystring:x86-windows nlohmann-json:x86-windows kubazip:x86-windows neargye-semver:x86-windows ; vcpkg integrate install
+    - name: Setup vcpkg
+      uses: lukka/run-vcpkg@v10
+      with:
+        runVcpkgInstall: true
 
     - name: Install NPM packages
       working-directory: ${{env.GITHUB_WORKSPACE}}
@@ -36,12 +38,6 @@ jobs:
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: msbuild .\BetterNCMII.sln -p:Platform="x86" -p:Configuration=Release
 
-    - name: Upload Artifact
-      uses: actions/upload-artifact@v3.1.1
-      with:
-        name: BetterNCMII
-        path: ${{ github.workspace }}/Release/BetterNCMII.dll
-        
     - uses: "marvinpinto/action-automatic-releases@latest"
       name: Upload to Github Release
       with:
@@ -50,3 +46,11 @@ jobs:
         prerelease: true
         title: "Latest Test Release"
         files: ${{ github.workspace }}/Release/BetterNCMII.dll
+
+    - name: Upload Artifact
+      uses: actions/upload-artifact@v3.1.1
+      with:
+        name: BetterNCMII
+        path: ${{ github.workspace }}/Release/BetterNCMII.dll
+        
+
