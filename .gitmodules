@@ -1,0 +1,3 @@
+[submodule "src/js-framework"]
+	path = src/js-framework
+	url = https://github.com/BetterNCM/js-framework
