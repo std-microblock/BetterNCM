@@ -33,10 +33,6 @@ jobs:
       with:
         vcpkgGitCommitId: e69dd972ba64840955f46704ecce6241bf607c0f
         runVcpkgInstall: true
-        
-    - name: ls
-      run: cd ./vcpkg_installed/ ; ls -r
-
     - name: Install NPM packages
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: cd ./src/js-framework ; npm i
