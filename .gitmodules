@@ -1,3 +1,6 @@
 [submodule "src/js-framework"]
 	path = src/js-framework
 	url = https://github.com/BetterNCM/js-framework
+[submodule "src/3rd/libcef"]
+	path = src/3rd/libcef
+	url = https://github.com/BetterNCM/libcef
