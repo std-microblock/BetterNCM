@@ -19,7 +19,7 @@
 
 # 安装
 
-使用[BetterNCM Installer](https://github.com/MicroCBer/BetterNCM-Installer)一键安装~
+使用 [BetterNCM Installer](https://github.com/MicroCBer/BetterNCM-Installer) 一键安装~
 
 # 其他
 ## 相关
