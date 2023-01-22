@@ -444,8 +444,8 @@ std::thread* App::create_server(const std::string& apiKey)
 	ofn.Flags = OFN_PATHMUSTEXIST | OFN_FILEMUSTEXIST | OFN_EXPLORER;
 	BOOL bSel = GetOpenFileName(&ofn);
 
-	std::wstring path = szBuffer;
-	res.set_content(ws2s(path), "text/plain");
+	BNString path = std::wstring(szBuffer);
+	res.set_content(path.utf8(), "text/plain");
 
 		});
 
