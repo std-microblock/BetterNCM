@@ -1,0 +1,28 @@
+name: 功能请求
+description: 提交一个与 BetterNCM 本体相关的 功能请求
+title: "[ FR ] 在此输入标题"
+labels: [enhancement]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        在提交该 Issue 之前，请确保：
+        + 先前不存在相同的 Issue
+        + 最新版本的 BetterNCM 不存在该功能
+  - type: textarea
+    id: description
+    attributes:
+      label: 描述你想要的功能
+      description: 简明扼要地描述你希望发生什么。
+    validations:
+      required: true
+  - type: textarea
+    id: alternative-solution
+    attributes:
+      label: 描述你考虑过的替代方案
+      description: 简明扼要地描述你考虑过的任何替代解决方案或功能。
+  - type: textarea
+    id: extra-info
+    attributes:
+      label: 额外的背景
+      description: 在此添加关于该功能请求的任何其他背景、屏幕截图或设计草图。

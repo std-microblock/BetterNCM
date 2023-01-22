@@ -1,0 +1,86 @@
+name: 插件 Bug 报告
+description: 提交一个与 某个插件 相关的 Bug
+title: "[ Plugin Bug ] 在此输入标题"
+labels: [bug, plugin-related]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        在提交该 Issue 之前，请确保：
+        + 先前不存在相同的 Issue
+        + 该 Bug 是由插件, 而不是 BetterNCM 本体导致的
+
+        ## 注意：
+        ### 我们建议您尽可能地在插件 repo 下提交与插件相关的问题报告。
+        ### 但是，如果一个插件没有自己的插件 repo，或您不清楚是哪个插件出了问题，您可以在此提交。
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug 描述
+      description: 简明扼要地描述该错误是什么。
+    validations:
+      required: true
+  - type: textarea
+    id: reproduce-steps
+    attributes:
+      label: 复现步骤
+      description: 重现这一行为的步骤。
+      value: |
+        **例**:
+        1. 转到"...
+        2. 点击'....'
+        3. 向下滚动到'....'
+        4. 看到错误
+    validations:
+      required: true
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: 期望行为
+      description: 清晰而简明地描述你所期望发生的事情。
+    validations:
+      required: true
+  - type: textarea
+    id: screenshot
+    attributes:
+      label: 屏幕截图
+      description: 如果适用，请添加屏幕截图以帮助解释你的问题。
+      value: 
+  - type: input
+    id: betterncm-version
+    attributes:
+      label: BetterNCM 版本
+      placeholder: "例: 1.0.0"
+    validations:
+      required: true
+  - type: input
+    id: ncm-version
+    attributes:
+      label: 网易云音乐版本
+      placeholder: "例: 2.10.6"
+    validations:
+      required: true
+  - type: input
+    id: ncm-patch-version
+    attributes:
+      label: 网易云音乐 Patch 版本
+      description: 在关于网易云音乐页可以看到。
+      placeholder: "例: 5ad43a6"
+    validations:
+      required: true
+  - type: textarea
+    id: plugin-list
+    attributes:
+      label: 已安装插件
+      description: 你所装的所有插件列表
+      value: |
+        **例**:
+        - StylesheetLoader
+        - ActionEnhancement
+    validations:
+      required: true
+  - type: textarea
+    id: extra-info
+    attributes:
+      label: 补充
+      description: 在此添加关于该问题的任何其他背景信息。
