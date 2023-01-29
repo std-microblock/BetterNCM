@@ -52,13 +52,13 @@ void util::write_file_text(const BNString& path, const BNString& text, bool appe
 	file << text;
 	file.close();
 }
- 
+
 // https://stackoverflow.com/questions/4130180/how-to-use-vs-c-getenvironmentvariable-as-cleanly-as-possible
 BNString util::getEnvironment(const BNString& key) {
 	if (!_wgetenv(key.c_str()))return BNString("");
 	return std::wstring(_wgetenv(key.c_str()));
-} 
- 
+}
+
 BNString datapath = "\\betterncm";
 
 BNString util::getNCMPath() {
