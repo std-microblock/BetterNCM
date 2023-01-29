@@ -369,7 +369,7 @@ std::thread* App::create_server(const std::string& apiKey)
 
 	svr->Get("/api/app/show_console", [&](const httplib::Request& req, httplib::Response& res) {
 		checkApiKey;
-	ShowWindow(GetConsoleWindow(), SW_SHOW);
+	ShowWindow(GetConsoleWindow(), req.has_param("hide") ? SW_HIDE : SW_SHOW);
 	res.status = 200;
 		});
 
