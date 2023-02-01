@@ -9,9 +9,7 @@
 
 </h3>
 
-![image](https://user-images.githubusercontent.com/66859419/212528589-45a9ea15-d8e9-43fe-97be-fd688976e9c5.png)
-
-![image](https://user-images.githubusercontent.com/66859419/204120694-a716c6a0-3b2a-4f99-9a2b-f93dd917a367.png)
+![image](https://user-images.githubusercontent.com/66859419/215995178-82ec6501-b70f-4503-9e11-528399726e3a.png)
 
 ---
 
