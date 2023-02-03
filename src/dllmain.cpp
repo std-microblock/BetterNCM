@@ -194,6 +194,8 @@ LONG WINAPI BNUnhandledExceptionFilter(EXCEPTION_POINTERS* ExceptionInfo)
 
 	IGNORE_ERROR_AUTO(0x80000003);
 
+	ShowWindow(GetConsoleWindow(), SW_SHOW);
+
 	int result = MessageBoxW(NULL,
 		(L"很抱歉，网易云音乐崩溃了！\n\n" +
 			PrintExceptionInfo(ExceptionInfo) +
@@ -244,9 +246,6 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 			if (process_type == L"main") {
 				AllocConsole();
 				freopen("CONOUT$", "w", stdout);
-#ifndef _DEBUG
-				ShowWindow(GetConsoleWindow(), SW_HIDE);
-#endif
 
 				std::wcout << L"Data folder picked: " << datapath << "\n";
 
