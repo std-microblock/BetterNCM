@@ -246,6 +246,7 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 			if (process_type == L"main") {
 				AllocConsole();
 				freopen("CONOUT$", "w", stdout);
+				ShowWindow(GetConsoleWindow(), SW_HIDE);
 
 				std::wcout << L"Data folder picked: " << datapath << "\n";
 
