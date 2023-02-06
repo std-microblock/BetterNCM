@@ -43,11 +43,12 @@ void process_context(cef_v8context_t* context);
 
 cef_v8context_t* hook_cef_v8context_get_current_context() {
 	cef_v8context_t* context = CAST_TO(origin_cef_v8context_get_current_context, hook_cef_v8context_get_current_context)();
-	auto frame = context->get_frame(context);
-	if (frame->is_main(frame)) {
-		process_context(frame->get_v8context(frame));
+	if (context) {
+		auto frame = context->get_frame(context);
+		if (frame->is_main(frame)) {
+			process_context(frame->get_v8context(frame));
+		}
 	}
-
 	return context;
 }
 

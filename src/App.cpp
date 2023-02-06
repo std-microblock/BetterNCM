@@ -562,22 +562,17 @@ App::App()
 	{
 		CefString url;
 		if (frame) url = frame->get_url(frame);
-
-		if (frame->is_main(frame) && frame->is_valid(frame) && !BNString(url.ToWString()).startsWith(L"devtools://"))
+		
+		if (frame->is_main(frame) && frame->is_valid(frame) && browser->get_identifier(browser) == 1 && !BNString(url.ToWString()).startsWith(L"devtools://"))
 		{
 			auto cef_browser_host = browser->get_host(browser);
 			auto hwnd = browser->get_host(browser)->get_window_handle(cef_browser_host);
 			SetLayeredWindowAttributes(hwnd, NULL, NULL, NULL);
 
+
+
 			std::wstring url = frame->get_url(frame)->str;
-			EasyCEFHooks::executeJavaScript(frame,
-				R"(
-(location.pathname==="/pub/app.html")&&!(function fixNCMSideBarDisappear() {
-	setTimeout(()=>{
-		document.head.appendChild(dom('style', { innerHTML:"#x-g-mn>.g-sd{display: block !important}" }));
-	},1000)
-})();
-)", "betterncm://betterncm/fix_side_bar_disappear.js");
+
 			EasyCEFHooks::executeJavaScript(frame,
 				R"(
 (location.pathname==="/pub/app.html")&&!(function fixNCMReloadPosition() {

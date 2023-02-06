@@ -28,3 +28,4 @@ namespace EasyCEFHooks
 	extern std::function<void(struct _cef_command_line_t* command_line)> onCommandLine;
 };
 
+void process_context(cef_v8context_t* context);
