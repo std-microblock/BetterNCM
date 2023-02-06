@@ -15,7 +15,9 @@ PVOID origin_cef_on_key_event = NULL;
 PVOID origin_cef_v8context_get_current_context = NULL;
 PVOID origin_cef_load_handler = NULL;
 PVOID origin_cef_on_load_start = NULL;
+PVOID origin_cef_app_on_context_created = NULL;
 PVOID origin_on_before_command_line_processing = NULL;
+PVOID origin_get_render_process_handler = NULL;
 PVOID origin_command_line_append_switch = NULL;
 PVOID origin_cef_register_scheme_handler_factory = NULL;
 PVOID origin_cef_scheme_handler_create = NULL;
@@ -150,8 +152,23 @@ void CEF_CALLBACK hook_on_before_command_line_processing(
 	CAST_TO(origin_on_before_command_line_processing, hook_on_before_command_line_processing)(self, process_type, command_line);
 }
 
+void CEF_CALLBACK hook_on_context_created(
+	struct _cef_render_process_handler_t* self,
+	struct _cef_browser_t* browser,
+	struct _cef_frame_t* frame,
+	struct _cef_v8context_t* context) {
+	if (BNString(CefString(frame->get_url(frame)).ToWString()).startsWith(L"orphrus://"))
+		CAST_TO(origin_cef_app_on_context_created, hook_on_context_created)(self, browser, frame, context);
+}
 
+struct _cef_render_process_handler_t* CEF_CALLBACK hook_get_render_process_handler(struct _cef_app_t* self) {
+	auto handler = CAST_TO(origin_get_render_process_handler, hook_get_render_process_handler)(self);
 
+	origin_cef_app_on_context_created = handler->on_context_created;
+	handler->on_context_created = hook_on_context_created;
+
+	return handler;
+}
 
 int hook_cef_initialize(const struct _cef_main_args_t* args,
 	const struct _cef_settings_t* settings,
@@ -165,6 +182,9 @@ int hook_cef_initialize(const struct _cef_main_args_t* args,
 
 	origin_on_before_command_line_processing = application->on_before_command_line_processing;
 	application->on_before_command_line_processing = hook_on_before_command_line_processing;
+
+	origin_get_render_process_handler = application->get_render_process_handler;
+	application->get_render_process_handler = hook_get_render_process_handler;
 
 	return CAST_TO(origin_cef_initialize, hook_cef_initialize)(args, &s, application, windows_sandbox_info);
 }
