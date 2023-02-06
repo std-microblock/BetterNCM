@@ -100,9 +100,12 @@ _cef_display_handler_t* CEF_CALLBACK hook_cef_client_get_display_handler(_cef_cl
 	display_handler->on_title_change = [](struct _cef_display_handler_t* self,
 		struct _cef_browser_t* browser,
 		const cef_string_t* title) -> void {
-			auto host = browser->get_host(browser);
-			auto hwnd = host->get_window_handle(host);
-			SetWindowText(hwnd, std::wstring(CefString(title)).c_str());
+			auto frame = browser->get_main_frame(browser);
+			if (frame && !BNString(CefString(frame->get_url(frame)).ToWString()).startsWith(L"devtools://")) {
+				auto host = browser->get_host(browser);
+				auto hwnd = host->get_window_handle(host);
+				SetWindowText(hwnd, std::wstring(CefString(title)).c_str());
+			}
 	};
 
 	return display_handler;

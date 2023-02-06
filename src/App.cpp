@@ -517,14 +517,12 @@ App::App()
 			auto cef_browser_host = browser->get_host(browser);
 			auto id = browser->get_identifier(browser);
 			auto frame = browser->get_focused_frame(browser);
-			CefString url;
-			if (frame) url = frame->get_url(frame);
-			if (BNString(url.ToWString()).startsWith(L"devtools://")) {
+			if (frame && BNString(CefString(frame->get_url(frame)).ToWString()).startsWith(L"devtools://")) {
 				cef_browser_host->close_browser(cef_browser_host, false);
 			}
 			else if (cef_browser_host->has_dev_tools(cef_browser_host))
 			{
-				HWND hwnd = FindWindow(NULL, (L"EasyCEFInject DevTools #" + std::to_wstring(id)).c_str());
+				HWND hwnd = FindWindow(NULL, (L"BetterNCM DevTools #" + std::to_wstring(id)).c_str());
 				if (hwnd)
 					DestroyWindow(hwnd);
 			}
@@ -533,7 +531,7 @@ App::App()
 				CefWindowInfo windowInfo{};
 				CefBrowserSettings settings{};
 				CefPoint point{};
-				windowInfo.SetAsPopup(NULL, "EasyCEFInject DevTools #" + std::to_string(id));
+				windowInfo.SetAsPopup(NULL, "BetterNCM DevTools #" + std::to_string(id));
 				cef_browser_host->show_dev_tools(cef_browser_host, &windowInfo, client, &settings, &point);
 			}
 		}
