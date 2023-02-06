@@ -562,12 +562,15 @@ App::App()
 	{
 		CefString url;
 		if (frame) url = frame->get_url(frame);
-		
-		if (frame->is_main(frame) && frame->is_valid(frame) && browser->get_identifier(browser) == 1 && !BNString(url.ToWString()).startsWith(L"devtools://"))
+
+		if (frame->is_main(frame) && frame->is_valid(frame))
 		{
-			auto cef_browser_host = browser->get_host(browser);
-			auto hwnd = browser->get_host(browser)->get_window_handle(cef_browser_host);
-			SetLayeredWindowAttributes(hwnd, NULL, NULL, NULL);
+			if (browser->get_identifier(browser) != 1 || BNString(url.ToWString()).startsWith(L"devtools://")) {
+				auto cef_browser_host = browser->get_host(browser);
+				auto hwnd = browser->get_host(browser)->get_window_handle(cef_browser_host);
+				SetLayeredWindowAttributes(hwnd, NULL, NULL, NULL);
+				return;
+			}
 
 
 
