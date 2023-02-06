@@ -16,6 +16,7 @@ PVOID origin_cef_v8context_get_current_context = NULL;
 PVOID origin_cef_load_handler = NULL;
 PVOID origin_cef_on_load_start = NULL;
 PVOID origin_cef_app_on_context_created = NULL;
+PVOID origin_cef_app_on_context_released = NULL;
 PVOID origin_on_before_command_line_processing = NULL;
 PVOID origin_get_render_process_handler = NULL;
 PVOID origin_command_line_append_switch = NULL;
@@ -160,13 +161,23 @@ void CEF_CALLBACK hook_on_context_created(
 	if (BNString(CefString(frame->get_url(frame)).ToWString()).startsWith(L"orphrus://"))
 		CAST_TO(origin_cef_app_on_context_created, hook_on_context_created)(self, browser, frame, context);
 }
+void CEF_CALLBACK hook_on_context_released(
+	struct _cef_render_process_handler_t* self,
+	struct _cef_browser_t* browser,
+	struct _cef_frame_t* frame,
+	struct _cef_v8context_t* context) {
+	if (BNString(CefString(frame->get_url(frame)).ToWString()).startsWith(L"orphrus://"))
+		CAST_TO(origin_cef_app_on_context_released, hook_on_context_released)(self, browser, frame, context);
+}
 
 struct _cef_render_process_handler_t* CEF_CALLBACK hook_get_render_process_handler(struct _cef_app_t* self) {
 	auto handler = CAST_TO(origin_get_render_process_handler, hook_get_render_process_handler)(self);
 
 	origin_cef_app_on_context_created = handler->on_context_created;
 	handler->on_context_created = hook_on_context_created;
-
+	origin_cef_app_on_context_released = handler->on_context_released;
+	handler->on_context_released = hook_on_context_released;
+	handler->on_browser_destroyed = nullptr;
 	return handler;
 }
 
