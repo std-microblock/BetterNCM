@@ -10,6 +10,7 @@ struct _cef_client_t* cef_client = NULL;
 PVOID origin_cef_browser_host_create_browser = NULL;
 PVOID origin_cef_initialize = NULL;
 PVOID origin_cef_get_keyboard_handler = NULL;
+PVOID origin_cef_client_get_display_handler = NULL;
 PVOID origin_cef_on_key_event = NULL;
 PVOID origin_cef_v8context_get_current_context = NULL;
 PVOID origin_cef_load_handler = NULL;
@@ -93,6 +94,20 @@ struct _cef_load_handler_t* CEF_CALLBACK hook_cef_load_handler(struct _cef_clien
 }
 
 
+
+_cef_display_handler_t* CEF_CALLBACK hook_cef_client_get_display_handler(_cef_client_t* self) {
+	_cef_display_handler_t* display_handler = CAST_TO(origin_cef_client_get_display_handler, hook_cef_client_get_display_handler)(self);
+	display_handler->on_title_change = [](struct _cef_display_handler_t* self,
+		struct _cef_browser_t* browser,
+		const cef_string_t* title) -> void {
+			auto host = browser->get_host(browser);
+			auto hwnd = host->get_window_handle(host);
+			SetWindowText(hwnd, std::wstring(CefString(title)).c_str());
+	};
+
+	return display_handler;
+}
+
 int hook_cef_browser_host_create_browser(
 	const cef_window_info_t* windowInfo,
 	struct _cef_client_t* client,
@@ -107,6 +122,9 @@ int hook_cef_browser_host_create_browser(
 
 	origin_cef_load_handler = client->get_load_handler;
 	client->get_load_handler = hook_cef_load_handler;
+
+	origin_cef_client_get_display_handler = client->get_display_handler;
+	client->get_display_handler = hook_cef_client_get_display_handler;
 
 	int origin = CAST_TO(origin_cef_browser_host_create_browser, hook_cef_browser_host_create_browser)
 		(windowInfo, client, url, settings, extra_info, request_context);
