@@ -560,7 +560,10 @@ App::App()
 
 	EasyCEFHooks::onLoadStart = [=](_cef_browser_t* browser, _cef_frame_t* frame)
 	{
-		if (frame->is_main(frame) && frame->is_valid(frame))
+		CefString url;
+		if (frame) url = frame->get_url(frame);
+
+		if (frame->is_main(frame) && frame->is_valid(frame) && !BNString(url.ToWString()).startsWith(L"devtools://"))
 		{
 			auto cef_browser_host = browser->get_host(browser);
 			auto hwnd = browser->get_host(browser)->get_window_handle(cef_browser_host);
