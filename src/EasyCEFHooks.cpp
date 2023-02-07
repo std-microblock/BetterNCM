@@ -46,14 +46,9 @@ int CEF_CALLBACK hook_cef_on_key_event(struct _cef_keyboard_handler_t* self,
 
 void process_context(cef_v8context_t* context);
 
+// Deprecated
 cef_v8context_t* hook_cef_v8context_get_current_context() {
 	cef_v8context_t* context = CAST_TO(origin_cef_v8context_get_current_context, hook_cef_v8context_get_current_context)();
-	if (context) {
-		auto frame = context->get_frame(context);
-		if (frame->is_main(frame)) {
-			process_context(frame->get_v8context(frame));
-		}
-	}
 	return context;
 }
 
@@ -158,15 +153,18 @@ void CEF_CALLBACK hook_on_context_created(
 	struct _cef_browser_t* browser,
 	struct _cef_frame_t* frame,
 	struct _cef_v8context_t* context) {
-	if (BNString(CefString(frame->get_url(frame)).ToWString()).startsWith(L"orphrus://"))
+	auto url = BNString(CefString(frame->get_url(frame)).ToWString());
+	if (url.startsWith(L"orpheus://")) {
+		process_context(context);
 		CAST_TO(origin_cef_app_on_context_created, hook_on_context_created)(self, browser, frame, context);
+	}
 }
 void CEF_CALLBACK hook_on_context_released(
 	struct _cef_render_process_handler_t* self,
 	struct _cef_browser_t* browser,
 	struct _cef_frame_t* frame,
 	struct _cef_v8context_t* context) {
-	if (BNString(CefString(frame->get_url(frame)).ToWString()).startsWith(L"orphrus://"))
+	if (BNString(CefString(frame->get_url(frame)).ToWString()).startsWith(L"orpheus://"))
 		CAST_TO(origin_cef_app_on_context_released, hook_on_context_released)(self, browser, frame, context);
 }
 
@@ -352,7 +350,7 @@ bool EasyCEFHooks::InstallHooks() {
 	origin_cef_execute_process = DetourFindFunction("libcef.dll", "cef_execute_process");
 	origin_cef_register_scheme_handler_factory = DetourFindFunction("libcef.dll", "cef_register_scheme_handler_factory");
 
-	if (origin_cef_v8context_get_current_context)
+	if (origin_cef_v8context_get_current_context && false)
 		DetourAttach(&origin_cef_v8context_get_current_context, hook_cef_v8context_get_current_context);
 
 	if (origin_cef_browser_host_create_browser)
