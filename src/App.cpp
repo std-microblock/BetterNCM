@@ -544,7 +544,9 @@ App::App()
 		};
 
 		append("disable-web-security");
-		append("ignore-certificate-errors");
+
+		if (readConfig("cc.microblock.betterncm.ignore-certificate-errors", "false") == "true")
+			append("ignore-certificate-errors");
 
 		if (readConfig("cc.microblock.betterncm.single-process", "false") == "true")
 			append("single-process");
