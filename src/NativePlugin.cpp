@@ -24,7 +24,7 @@ void from_json(const nlohmann::json& j, PluginManifest& p) {
 		if (name.empty()) return name;
 		std::replace(name.begin(), name.end(), ' ', '-');
 		try {
-			name.erase(std::remove_if(name.begin(), name.end(), [](char c) { return !isalnum(c) && c != '-'; }), name.end());
+			name.erase(std::remove_if(name.begin(), name.end(), [](char c) { return c > 0 && c < 255 && !isalnum(c) && c != '-'; }), name.end());
 		}
 		catch (std::exception& e) {}
 		return name;
