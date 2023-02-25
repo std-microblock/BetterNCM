@@ -595,6 +595,15 @@ App::App()
 				"console.log('BetterNCM API Initialized on',BETTERNCM_API_PORT);" +
 				load_string_resource(L"framework.js"), "betterncm://betterncm/framework.js");
 
+			EasyCEFHooks::executeJavaScript(frame,
+				R"(
+betterncm.utils.waitForElement('.g-sd').then(ele=>{
+    new MutationObserver(()=>{
+        document.querySelector('.g-sd').style.display='';
+    }).observe(ele,{attributes:true})
+})
+)", "betterncm://betterncm/fix_nav_disappear.js");
+
 			auto loadStartupScripts = [&](const std::string& path)
 			{
 				if (fs::exists(path))

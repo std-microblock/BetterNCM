@@ -232,8 +232,9 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 			else process_type = "main";
 			namespace fs = std::filesystem;
 
+#ifndef _DEBUG
 			SetUnhandledExceptionFilter(BNUnhandledExceptionFilter);
-
+#endif
 			// Pick data folder
 			if (getenv("BETTERNCM_PROFILE")) {
 				datapath = util::getEnvironment("BETTERNCM_PROFILE");
