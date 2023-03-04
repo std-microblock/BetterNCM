@@ -160,7 +160,7 @@ HMODULE  g_hModule = nullptr;
 
 extern BNString datapath;
 
-BNString process_type = "undetected";
+NCMProcessType process_type = NCMProcessType::Undetected;
 
 std::wstring PrintExceptionInfo(EXCEPTION_POINTERS* ExceptionInfo)
 {
@@ -199,7 +199,7 @@ LONG WINAPI BNUnhandledExceptionFilter(EXCEPTION_POINTERS* ExceptionInfo)
 	int result = MessageBoxW(NULL,
 		(L"很抱歉，网易云音乐崩溃了！\n\n" +
 			PrintExceptionInfo(ExceptionInfo) +
-			L"In Process: " + process_type + L"\n" +
+			L"In Process: " + BNString(std::format("{:#x}", (int)process_type)) + L"\n" +
 			L"\n这有可能是由于插件引起的崩溃，要重启网易云音乐吗？\n\n点击 中止 以直接结束网易云\n点击 重试 以直接重启网易云\n点击 忽略 以禁用插件并重启网易云").c_str(),
 		L"BetterNCM 网易云音乐崩溃", MB_ABORTRETRYIGNORE | MB_ICONERROR);
 
@@ -226,10 +226,10 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 	{
 		g_hModule = hModule;
 		if (!getenv("BETTERNCM_DISABLED_FLAG")) {
-			if (util::get_command_line().includes(L"--type=renderer"))process_type = "renderer";
-			else if (util::get_command_line().includes(L"--type=gpu-process"))process_type = "gpu-process";
-			else if (util::get_command_line().includes(L"--type=utility"))process_type = "utility";
-			else process_type = "main";
+			if (util::get_command_line().includes(L"--type=renderer"))process_type = NCMProcessType::Renderer;
+			else if (util::get_command_line().includes(L"--type=gpu-process"))process_type = NCMProcessType::GpuProcess;
+			else if (util::get_command_line().includes(L"--type=utility"))process_type = NCMProcessType::Utility;
+			else process_type = NCMProcessType::Main;
 			namespace fs = std::filesystem;
 
 #ifndef _DEBUG
@@ -244,7 +244,7 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 			}
 
 
-			if (process_type == L"main") {
+			if (process_type == NCMProcessType::Main) {
 				AllocConsole();
 				freopen("CONOUT$", "w", stdout);
 				ShowWindow(GetConsoleWindow(), SW_HIDE);
@@ -270,19 +270,13 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 					util::alert(L"BetterNCM访问数据目录失败！可能需要以管理员身份运行或更改数据目录。\n\nBetterNCM将不会运行");
 				}
 			}
-			else if (process_type == L"renderer") {
+			else if (process_type == NCMProcessType::Renderer) {
 				EasyCEFHooks::InstallHooks();
-
-				while (std::filesystem::exists(datapath + L"/PLUGIN_EXTRACTING_LOCK.lock"))
-					std::this_thread::sleep_for(std::chrono::milliseconds(100));
-
-				while (!std::filesystem::exists(datapath + L"/plugins_runtime"))
-					std::this_thread::sleep_for(std::chrono::milliseconds(100));
 
 				PluginsLoader::loadAll();
 
 				for (auto& plugin : PluginsLoader::plugins) {
-					plugin.loadNativePluginDll();
+					plugin.loadNativePluginDll(process_type);
 				}
 			}
 

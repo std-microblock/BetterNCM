@@ -32,6 +32,14 @@ struct PluginManifest {
 	std::string native_plugin;
 };
 
+enum NCMProcessType {
+	Undetected = 0x0,
+	Main = 0x0001,
+	Renderer = 0x10,
+	GpuProcess = 0x100,
+	Utility = 0x1000,
+};
+
 void from_json(const nlohmann::json& j, PluginManifest& p);
 
 class Plugin {
@@ -42,7 +50,7 @@ public:
 	~Plugin();
 	PluginManifest manifest;
 	std::filesystem::path runtime_path;
-	void loadNativePluginDll();
+	void loadNativePluginDll(NCMProcessType processType);
 };
 
 class PluginsLoader {

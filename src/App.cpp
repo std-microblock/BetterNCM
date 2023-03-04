@@ -494,8 +494,14 @@ App::App()
 	PluginsLoader::loadAll();
 	if (readConfig("cc.microblock.betterncm.single-process", "false") == "true")
 		for (auto& plugin : PluginsLoader::plugins) {
-			plugin.loadNativePluginDll();
+			using pt = NCMProcessType;
+			plugin.loadNativePluginDll((pt)(pt::Main | pt::GpuProcess | pt::Renderer));
 		}
+	else {
+		for (auto& plugin : PluginsLoader::plugins) {
+			plugin.loadNativePluginDll(NCMProcessType::Main);
+		}
+	}
 
 	auto apiKey = random_string(64);
 

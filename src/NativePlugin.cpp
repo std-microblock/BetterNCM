@@ -1,7 +1,7 @@
 #include "pch.h"
 #include "NativePlugin.h"
 #include <utils/utils.h>
-extern const std::string version = "1.0.2";
+extern const std::string version;
 std::map<std::string, std::shared_ptr<PluginNativeAPI>> plugin_native_apis;
 namespace fs = std::filesystem;
 
@@ -55,7 +55,7 @@ Plugin::~Plugin()
 		FreeLibrary(this->hNativeDll);
 }
 
-void Plugin::loadNativePluginDll()
+void Plugin::loadNativePluginDll(NCMProcessType processType)
 {
 	if (manifest.native_plugin[0] != '\0') {
 		try
