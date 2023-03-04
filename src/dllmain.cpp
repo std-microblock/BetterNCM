@@ -318,11 +318,9 @@ LONG WINAPI BNUnhandledExceptionFilter(EXCEPTION_POINTERS* ExceptionInfo)
 #define IGNORE_ERROR_EXIT(code) if(ExceptionInfo->ExceptionRecord->ExceptionCode==code){ util::killNCM(); return EXCEPTION_EXECUTE_HANDLER;}
 #define IGNORE_ERROR_RESTART(code) if(ExceptionInfo->ExceptionRecord->ExceptionCode==code){ util::restartNCM(); return EXCEPTION_EXECUTE_HANDLER; }
 #define IGNORE_ERROR_PASS_TO_NCM(code) if(ExceptionInfo->ExceptionRecord->ExceptionCode==code){ return EXCEPTION_CONTINUE_SEARCH; }
-#define IGNORE_ERROR_AUTO(code) if(ExceptionInfo->ExceptionRecord->ExceptionCode==code){ if(ncmWin) util::restartNCM(); else util::killNCM(); return EXCEPTION_EXECUTE_HANDLER;}
-	//IGNORE_ERROR_AUTO(0xc0000005);
-	//IGNORE_ERROR_AUTO(0xe0000008);
+#define IGNORE_ERROR_AUTO(code) if(ExceptionInfo->ExceptionRecord->ExceptionCode==code){ if(ncmWin) util::restartNCM(); else util::killNCM(); return EXCEPTION_EXECUTE_HANDLER;};
 
-	//IGNORE_ERROR_AUTO(0x80000003);
+	IGNORE_ERROR_AUTO(0x80000003); // Ignore BREAKPOINT
 
 	AllocConsole();
 	freopen("CONOUT$", "w", stdout);
@@ -331,7 +329,7 @@ LONG WINAPI BNUnhandledExceptionFilter(EXCEPTION_POINTERS* ExceptionInfo)
 	for (int x = 0; x < 10; x++)std::cout << "\n";
 	std::cout << "-------- BetterNCM CrashReport -------\nBackTrace: \n\n" << GetBacktrace(ExceptionInfo) << "\n\n--------------------------------------\n\n\n\n";
 
-	int result = MessageBoxW(NULL,
+	int result = MessageBoxW(ncmWin,
 		(L"很抱歉，网易云音乐崩溃了！\n\n" +
 			PrintExceptionInfo(ExceptionInfo) +
 			L"In Process: " + BNString(std::format("{:#x}", (int)process_type)) + L"\n" +

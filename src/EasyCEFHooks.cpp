@@ -273,12 +273,15 @@ int CEF_CALLBACK hook_scheme_handler_read(struct _cef_resource_handler_t* self,
 		return urlMap[self].sendData(data_out, bytes_to_read, bytes_read);
 	}
 
+	auto tick = GetTickCount64();
 	auto processor = EasyCEFHooks::onHijackRequest(urlMap[self].url);
 
 	if (processor) {
-		std::cout << urlMap[self].url << " hijacked" << std::endl;
+
 		urlMap[self].fillData(self, callback);
 		urlMap[self].fillData(util::wstring_to_utf8(processor(urlMap[self].getDataStr())));
+
+		std::cout << "[ BetterNCM Hijack ]" << urlMap[self].url << " hijacked, time used: " << GetTickCount64() - tick << "ms\n";
 		if (urlMap[self].sendData(data_out, bytes_to_read, bytes_read))return 1;
 		else {
 			urlMap.erase(self);
