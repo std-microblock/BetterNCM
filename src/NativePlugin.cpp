@@ -11,11 +11,6 @@ int addNativeAPI(BetterNCMNativePlugin::NativeAPIType args[], int argsNum, const
 	return true;
 }
 
-BetterNCMNativePlugin::PluginAPI pluginAPI{
-	addNativeAPI,
-	version.c_str()
-};
-
 extern BNString datapath;
 
 void from_json(const nlohmann::json& j, PluginManifest& p) {
@@ -70,7 +65,16 @@ void Plugin::loadNativePluginDll(NCMProcessType processType)
 				throw "dll is not a betterncm plugin dll.";
 			}
 
-			BetterNCMPluginMain(&pluginAPI);
+			auto pluginAPI = new BetterNCMNativePlugin::PluginAPI{
+				processType == NCMProcessType::Renderer ? addNativeAPI : [](auto,auto,auto,auto) {
+					std::cout << "[Warn] Native Plugin can only register native api on renderer process!";
+					return -1;
+				} ,
+				version.c_str(),
+				processType
+			}; // leaked but not a big problem
+
+			BetterNCMPluginMain(pluginAPI);
 			this->hNativeDll = hDll;
 		}
 		catch (std::exception& e)
