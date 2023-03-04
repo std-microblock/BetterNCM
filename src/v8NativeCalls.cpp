@@ -336,6 +336,14 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 		);
 
 		DEFINE_API(
+			app.crash,
+			[]() {
+				int i = 0;
+		return 1 / i;
+			}
+		);
+
+		DEFINE_API(
 			native_plugin.getRegisteredAPIs,
 			[]() {
 				std::vector<std::string> apiName(plugin_native_apis.size());
@@ -360,7 +368,7 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 
 				for (int argNum = 0; argNum < api->argsNum; argNum++) {
 					auto argType = *(api->args + argNum);
-					using t = BetterNCMNativePlugin::NativeAPIType;
+					using t = NativeAPIType;
 					auto argVal = callArgs->get_value_byindex(callArgs, argNum);
 					if (argType == t::Int)args[argNum] = new int(argVal->get_int_value(argVal));
 					else if (argType == t::Boolean)args[argNum] = new bool(argVal->get_bool_value(argVal));

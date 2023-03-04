@@ -5,10 +5,14 @@ extern const std::string version;
 std::map<std::string, std::shared_ptr<PluginNativeAPI>> plugin_native_apis;
 namespace fs = std::filesystem;
 
-int addNativeAPI(BetterNCMNativePlugin::NativeAPIType args[], int argsNum, const char* identifier, char* function(void**)) {
+int addNativeAPI(NativeAPIType args[], int argsNum, const char* identifier, char* function(void**)) {
 	plugin_native_apis[std::string(identifier)] =
 		std::make_shared<PluginNativeAPI>(PluginNativeAPI{ args, argsNum, std::string(identifier), function });
 	return true;
+}
+
+int addNativeAPIEmpty(NativeAPIType args[], int argsNum, const char* identifier, char* function(void**)) {
+	return false;
 }
 
 extern BNString datapath;
@@ -66,10 +70,7 @@ void Plugin::loadNativePluginDll(NCMProcessType processType)
 			}
 
 			auto pluginAPI = new BetterNCMNativePlugin::PluginAPI{
-				processType == NCMProcessType::Renderer ? addNativeAPI : [](auto,auto,auto,auto) {
-					std::cout << "[Warn] Native Plugin can only register native api on renderer process!";
-					return -1;
-				} ,
+				processType == NCMProcessType::Renderer ? addNativeAPI : addNativeAPIEmpty,
 				version.c_str(),
 				processType
 			}; // leaked but not a big problem

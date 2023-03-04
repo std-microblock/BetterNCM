@@ -8,8 +8,9 @@
 #include <BetterNCMNativePlugin.h>
 #include <utils/BNString.hpp>
 
+
 struct PluginNativeAPI {
-	BetterNCMNativePlugin::NativeAPIType* args;
+	NativeAPIType* args;
 	int argsNum;
 	const std::string identifier;
 	char* (*function)(void**);
@@ -32,13 +33,7 @@ struct PluginManifest {
 	std::string native_plugin;
 };
 
-enum NCMProcessType {
-	Undetected = 0x0,
-	Main = 0x0001,
-	Renderer = 0x10,
-	GpuProcess = 0x100,
-	Utility = 0x1000,
-};
+
 
 void from_json(const nlohmann::json& j, PluginManifest& p);
 

@@ -12,16 +12,24 @@ void CEF_CALLBACK exec(struct _cef_task_t* self);
 #endif
 #include <functional>
 
+enum NativeAPIType {
+	Int, // *int
+	Boolean, // *bool
+	Double, // *double
+	String, // *char
+	V8Value, // *cef_v8value_t
+};
 
+enum NCMProcessType {
+	Undetected = 0x0,
+	Main = 0x0001,
+	Renderer = 0x10,
+	GpuProcess = 0x100,
+	Utility = 0x1000,
+};
 
 namespace BetterNCMNativePlugin {
-	enum class NativeAPIType {
-		Int, // *int
-		Boolean, // *bool
-		Double, // *double
-		String, // *char
-		V8Value, // *cef_v8value_t
-	};
+
 
 	struct PluginAPI {
 		int (*addNativeAPI)(NativeAPIType args[], int argsNum, const char* identifier, char* function(void**));
