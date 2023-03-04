@@ -360,9 +360,8 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 	if (dwReason == DLL_PROCESS_ATTACH)
 	{
 		g_hModule = hModule;
-#ifndef _DEBUG
 		SetUnhandledExceptionFilter(BNUnhandledExceptionFilter);
-#endif
+
 
 
 		if (!getenv("BETTERNCM_DISABLED_FLAG")) {
@@ -372,7 +371,6 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 			else process_type = NCMProcessType::Main;
 			namespace fs = std::filesystem;
 
-			SetUnhandledExceptionFilter(BNUnhandledExceptionFilter);
 			// Pick data folder
 			if (getenv("BETTERNCM_PROFILE")) {
 				datapath = util::getEnvironment("BETTERNCM_PROFILE");
