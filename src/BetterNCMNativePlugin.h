@@ -25,6 +25,7 @@ namespace BetterNCMNativePlugin {
 
 	struct PluginAPI {
 		int (*addNativeAPI)(NativeAPIType args[], int argsNum, const char* identifier, char* function(void**));
+		const char* betterncm_version;
 	};
 
 #ifdef NATIVE_PLUGIN_CPP_EXTENSIONS

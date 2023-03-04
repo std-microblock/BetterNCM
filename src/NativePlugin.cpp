@@ -1,6 +1,7 @@
 #include "pch.h"
 #include "NativePlugin.h"
 #include <utils/utils.h>
+extern const std::string version = "1.0.2";
 std::map<std::string, std::shared_ptr<PluginNativeAPI>> plugin_native_apis;
 namespace fs = std::filesystem;
 
@@ -11,7 +12,8 @@ int addNativeAPI(BetterNCMNativePlugin::NativeAPIType args[], int argsNum, const
 }
 
 BetterNCMNativePlugin::PluginAPI pluginAPI{
-	addNativeAPI
+	addNativeAPI,
+	version.c_str()
 };
 
 extern BNString datapath;
