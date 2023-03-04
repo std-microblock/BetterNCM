@@ -4,6 +4,7 @@
 #include <vector>
 #include <stdexcept>
 #include <oleauto.h>
+#include <utility>
 
 class BNString :public std::wstring {
 private:
@@ -143,21 +144,22 @@ private:
 	}
 
 public:
-	static BNString fromGBK(std::string s) {
+	static BNString fromGBK(const std::string& const s) {
 		return BNString(gbk_to_wstring(s));
 	}
 	BNString() :std::wstring() {
 
 	}
-	BNString(std::string s) {
+	BNString(const std::string const s) {
 		*this = utf8_to_wstring(s);
 	}
 	BNString(const char* s) {
 		*this = BNString(std::string(s));
 	}
-	BNString(std::wstring s) :std::wstring(s) {
+	BNString(const std::wstring const s) :std::wstring(s) {
 
 	}
+
 
 	// To UTF8 String
 	operator std::string const() {

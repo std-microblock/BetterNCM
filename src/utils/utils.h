@@ -1,8 +1,10 @@
 #pragma once
 #include "pch.h"
 #include <string>
+#define BNSTRING_USE_CEFSTRING_FEATURES
 #include "../utils/BNString.hpp"
 #include "pystring/pystring.h"
+#include <include/internal/cef_string.h>
 
 
 namespace util {
@@ -15,6 +17,16 @@ namespace util {
 
 	BNString get_command_line();
 
+	template<typename S>
+	CefString cefFromCEFUserFreeTakeOwnership(S* s) {
+		CefString st;
+		st.AttachToUserFree(s);
+		return st;
+	}
+	template<typename S>
+	CefString cefFromCEFUserFree(S* s) {
+		return CefString(s);
+	}
 
 	class ScreenCapturePart
 	{

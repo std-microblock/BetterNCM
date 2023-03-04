@@ -100,10 +100,10 @@ _cef_display_handler_t* CEF_CALLBACK hook_cef_client_get_display_handler(_cef_cl
 		struct _cef_browser_t* browser,
 		const cef_string_t* title) -> void {
 			auto frame = browser->get_main_frame(browser);
-			if (frame && !BNString(CefString(frame->get_url(frame)).ToWString()).startsWith(L"devtools://")) {
+			if (frame && !BNString(util::cefFromCEFUserFreeTakeOwnership(frame->get_url(frame)).ToWString()).startsWith(L"devtools://")) {
 				auto host = browser->get_host(browser);
 				auto hwnd = host->get_window_handle(host);
-				SetWindowText(hwnd, std::wstring(CefString(title)).c_str());
+				SetWindowText(hwnd, std::wstring(util::cefFromCEFUserFree(title)).c_str());
 			}
 	};
 
@@ -133,7 +133,7 @@ int hook_cef_browser_host_create_browser(
 }
 
 void CEF_CALLBACK hook_command_line_append_switch(_cef_command_line_t* self, const cef_string_t* name) {
-	if (EasyCEFHooks::onAddCommandLine(CefString(name).ToString())) {
+	if (EasyCEFHooks::onAddCommandLine(util::cefFromCEFUserFree(name).ToString())) {
 		CAST_TO(origin_command_line_append_switch, hook_command_line_append_switch)(self, name);
 	}
 }
@@ -153,7 +153,7 @@ void CEF_CALLBACK hook_on_context_created(
 	struct _cef_browser_t* browser,
 	struct _cef_frame_t* frame,
 	struct _cef_v8context_t* context) {
-	auto url = BNString(CefString(frame->get_url(frame)).ToWString());
+	auto url = BNString(util::cefFromCEFUserFreeTakeOwnership(frame->get_url(frame)).ToWString());
 	if (url.startsWith(L"orpheus://")) {
 		process_context(context);
 		CAST_TO(origin_cef_app_on_context_created, hook_on_context_created)(self, browser, frame, context);
@@ -164,7 +164,7 @@ void CEF_CALLBACK hook_on_context_released(
 	struct _cef_browser_t* browser,
 	struct _cef_frame_t* frame,
 	struct _cef_v8context_t* context) {
-	if (BNString(CefString(frame->get_url(frame)).ToWString()).startsWith(L"orpheus://"))
+	if (BNString(util::cefFromCEFUserFreeTakeOwnership(frame->get_url(frame)).ToWString()).startsWith(L"orpheus://"))
 		CAST_TO(origin_cef_app_on_context_released, hook_on_context_released)(self, browser, frame, context);
 }
 
@@ -303,7 +303,7 @@ _cef_resource_handler_t* CEF_CALLBACK hook_cef_scheme_handler_create(
 	const cef_string_t* scheme_name,
 	struct _cef_request_t* request) {
 	_cef_resource_handler_t* ret = CAST_TO(origin_cef_scheme_handler_create, hook_cef_scheme_handler_create)(self, browser, frame, scheme_name, request);
-	CefString url = request->get_url(request);
+	CefString url = util::cefFromCEFUserFreeTakeOwnership(request->get_url(request));
 	urlMap[ret] = CefRequestMITMProcess{
 		url.ToString()
 	};

@@ -523,7 +523,7 @@ App::App()
 			auto cef_browser_host = browser->get_host(browser);
 			auto id = browser->get_identifier(browser);
 			auto frame = browser->get_focused_frame(browser);
-			if (frame && BNString(CefString(frame->get_url(frame)).ToWString()).startsWith(L"devtools://")) {
+			if (frame && BNString(util::cefFromCEFUserFreeTakeOwnership(frame->get_url(frame)).ToWString()).startsWith(L"devtools://")) {
 				cef_browser_host->close_browser(cef_browser_host, false);
 			}
 			else if (cef_browser_host->has_dev_tools(cef_browser_host))
@@ -567,7 +567,7 @@ App::App()
 	EasyCEFHooks::onLoadStart = [=](_cef_browser_t* browser, _cef_frame_t* frame)
 	{
 		CefString url;
-		if (frame) url = frame->get_url(frame);
+		if (frame) url = util::cefFromCEFUserFreeTakeOwnership(frame->get_url(frame));
 
 		if (frame->is_main(frame) && frame->is_valid(frame))
 		{

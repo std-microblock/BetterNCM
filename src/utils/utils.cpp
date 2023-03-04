@@ -515,3 +515,4 @@ void util::exec(std::wstring cmd, bool ele, bool showWindow)
 
 	LocalFree(pArgs);
 }
+
