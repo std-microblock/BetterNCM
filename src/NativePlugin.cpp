@@ -69,10 +69,13 @@ void Plugin::loadNativePluginDll(NCMProcessType processType)
 				throw "dll is not a betterncm plugin dll.";
 			}
 
+			auto ncmVer = util::getNCMExecutableVersion();
+
 			auto pluginAPI = new BetterNCMNativePlugin::PluginAPI{
 				processType == NCMProcessType::Renderer ? addNativeAPI : addNativeAPIEmpty,
 				version.c_str(),
-				processType
+				processType,
+				{ ncmVer.major, ncmVer.minor, ncmVer.patch }
 			}; // leaked but not a big problem
 
 			BetterNCMPluginMain(pluginAPI);
