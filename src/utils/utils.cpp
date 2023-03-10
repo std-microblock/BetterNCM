@@ -41,6 +41,16 @@ std::wstring util::s2ws(const std::string& s, bool isUtf8)
 	return buf;
 }
 
+void util::write_file_text_utf8(const std::string& path, const std::string& text, bool append) {
+	std::ofstream file;
+	if (append)
+		file.open(path, std::ios_base::app);
+	else
+		file.open(path);
+
+	file << text;
+	file.close();
+}
 
 void util::write_file_text(const BNString& path, const BNString& text, bool append) {
 	std::wofstream file;

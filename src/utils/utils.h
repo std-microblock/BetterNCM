@@ -11,6 +11,7 @@ namespace util {
 	BNString read_to_string(const std::filesystem::path& path);
 	std::string ws2s(const std::wstring& str);
 	std::wstring s2ws(const std::string& s, bool isUtf8 = true);
+	void write_file_text_utf8(const std::string& path, const std::string& text, bool append = false);
 	void write_file_text(const BNString& path, const BNString& text, bool append = false);
 	BNString getEnvironment(const BNString& key);
 	BNString getNCMPath();

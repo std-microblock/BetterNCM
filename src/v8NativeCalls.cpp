@@ -155,12 +155,12 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 					path = datapath + L"/" + path;
 				}
 
-		std::vector<std::string> paths;
+				std::vector<std::string> paths;
 
-		for (const auto& entry : fs::directory_iterator((std::wstring)path))
-			paths.push_back(BNString(entry.path().wstring()).utf8());
+				for (const auto& entry : fs::directory_iterator((std::wstring)path))
+					paths.push_back(BNString(entry.path().wstring()).utf8());
 
-		return paths;
+				return paths;
 
 			}
 		);
@@ -172,12 +172,12 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 					path = datapath + L"/" + path;
 				}
 
-		std::vector<std::string> paths;
+				std::vector<std::string> paths;
 
-		std::ifstream t(path);
-		std::stringstream buffer;
-		buffer << t.rdbuf();
-		return buffer.str();
+				std::ifstream t(path);
+				std::stringstream buffer;
+				buffer << t.rdbuf();
+				return buffer.str();
 			}
 		);
 
@@ -188,15 +188,15 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 					path = datapath + L"/" + path;
 				}
 
-		auto* fn = new JSFunction(callback, cef_v8context_get_current_context());
-		new std::thread([=]() {
-			std::vector<std::string> paths;
-		std::ifstream t(path);
-		std::stringstream buffer;
-		buffer << t.rdbuf();
-		(*fn)(buffer.str());
-			});
-		return create_v8value();
+				auto* fn = new JSFunction(callback, cef_v8context_get_current_context());
+				new std::thread([=]() {
+					std::vector<std::string> paths;
+					std::ifstream t(path);
+					std::stringstream buffer;
+					buffer << t.rdbuf();
+					(*fn)(buffer.str());
+					});
+				return create_v8value();
 			}
 		);
 
@@ -206,15 +206,15 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 				if (path[1] != ':') {
 					path = datapath + L"/" + path;
 				}
-		auto* fn = new JSFunction(callback);
-		auto thread = new std::thread([=]() {
-			util::watchDir(path, [&](BNString dir, BNString path) {
-				(*fn)(dir, path);
-		if (!fn->isValid())return false;
-		return true;
-				});
-			});
-		return create_v8value();
+				auto* fn = new JSFunction(callback);
+				auto thread = new std::thread([=]() {
+					util::watchDir(path, [&](BNString dir, BNString path) {
+						(*fn)(dir, path);
+						if (!fn->isValid())return false;
+						return true;
+						});
+					});
+				return create_v8value();
 			}
 		);
 
@@ -225,10 +225,10 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 					path = datapath + L"/" + path;
 				}
 
-		if (dest[1] != ':') {
-			dest = datapath + L"/" + dest;
-		}
-		return zip_extract(path.utf8().c_str(), dest.utf8().c_str(), NULL, NULL);
+				if (dest[1] != ':') {
+					dest = datapath + L"/" + dest;
+				}
+				return zip_extract(path.utf8().c_str(), dest.utf8().c_str(), NULL, NULL);
 			}
 		);
 
@@ -239,11 +239,11 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 					path = datapath + L"/" + path;
 				}
 
-		if (dest[1] != ':') {
-			dest = datapath + L"/" + dest;
-		}
-		fs::rename((std::wstring)path, (std::wstring)dest);
-		return true;
+				if (dest[1] != ':') {
+					dest = datapath + L"/" + dest;
+				}
+				fs::rename((std::wstring)path, (std::wstring)dest);
+				return true;
 			}
 		);
 
@@ -256,7 +256,7 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 				else {
 					fs::create_directories((std::wstring)path);
 				}
-		return true;
+				return true;
 			}
 		);
 
@@ -266,19 +266,19 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 				if (path[1] != ':') {
 					path = datapath + L"/" + path;
 				}
-		return fs::exists((std::wstring)path);
+				return fs::exists((std::wstring)path);
 			}
 		);
 
 		DEFINE_API(
 			fs.writeFileText,
-			[](BNString path, BNString body) {
+			[](std::string path, std::string body) {
 				if (path[1] != ':') {
-					path = datapath + L"/" + path;
+					path = datapath.utf8() + "/" + path;
 				}
 
-		util::write_file_text(path, body);
-		return true;
+				util::write_file_text_utf8(path, body);
+				return true;
 			}
 		);
 
@@ -289,8 +289,8 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 					path = datapath + L"/" + path;
 				}
 
-		fs::remove_all((std::wstring)path);
-		return true;
+				fs::remove_all((std::wstring)path);
+				return true;
 			}
 		);
 
@@ -300,9 +300,9 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 			app.reloadIgnoreCache,
 			[]() {
 				auto ctx = cef_v8context_get_current_context();
-		auto browser = ctx->get_browser(ctx);
-		browser->reload_ignore_cache(browser);
-		return true;
+				auto browser = ctx->get_browser(ctx);
+				browser->reload_ignore_cache(browser);
+				return true;
 			}
 		);
 
@@ -331,7 +331,7 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 			app.restart,
 			[]() {
 				util::restartNCM();
-		return true;
+				return true;
 			}
 		);
 
@@ -339,7 +339,7 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 			app.crash,
 			[]() {
 				int i = 0;
-		return 1 / i;
+				return 1 / i;
 			}
 		);
 
@@ -347,9 +347,9 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 			native_plugin.getRegisteredAPIs,
 			[]() {
 				std::vector<std::string> apiName(plugin_native_apis.size());
-		std::transform(plugin_native_apis.begin(), plugin_native_apis.end(), apiName.begin(), [](const auto& kv) { return kv.first; });
+				std::transform(plugin_native_apis.begin(), plugin_native_apis.end(), apiName.begin(), [](const auto& kv) { return kv.first; });
 
-		return apiName;
+				return apiName;
 			}
 		);
 
