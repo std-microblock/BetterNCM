@@ -3,6 +3,9 @@
 #include <utils/utils.h>
 extern const std::string version;
 std::map<std::string, std::shared_ptr<PluginNativeAPI>> plugin_native_apis;
+
+auto ncmVer = util::getNCMExecutableVersion();
+const unsigned short ncmVersion[3] = { ncmVer.major, ncmVer.minor, ncmVer.patch };
 namespace fs = std::filesystem;
 
 int addNativeAPI(NativeAPIType args[], int argsNum, const char* identifier, char* function(void**)) {
@@ -69,13 +72,13 @@ void Plugin::loadNativePluginDll(NCMProcessType processType)
 				throw "dll is not a betterncm plugin dll.";
 			}
 
-			auto ncmVer = util::getNCMExecutableVersion();
+
 
 			auto pluginAPI = new BetterNCMNativePlugin::PluginAPI{
 				processType == NCMProcessType::Renderer ? addNativeAPI : addNativeAPIEmpty,
 				version.c_str(),
 				processType,
-				{ ncmVer.major, ncmVer.minor, ncmVer.patch }
+				&ncmVersion
 			}; // leaked but not a big problem
 
 			BetterNCMPluginMain(pluginAPI);

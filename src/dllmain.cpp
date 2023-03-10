@@ -362,71 +362,70 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 		g_hModule = hModule;
 		SetUnhandledExceptionFilter(BNUnhandledExceptionFilter);
 
+		try {
+			if (!getenv("BETTERNCM_DISABLED_FLAG")) {
+				if (util::get_command_line().includes(L"--type=renderer"))process_type = NCMProcessType::Renderer;
+				else if (util::get_command_line().includes(L"--type=gpu-process"))process_type = NCMProcessType::GpuProcess;
+				else if (util::get_command_line().includes(L"--type=utility"))process_type = NCMProcessType::Utility;
+				else process_type = NCMProcessType::Main;
+				namespace fs = std::filesystem;
 
-
-		if (!getenv("BETTERNCM_DISABLED_FLAG")) {
-			if (util::get_command_line().includes(L"--type=renderer"))process_type = NCMProcessType::Renderer;
-			else if (util::get_command_line().includes(L"--type=gpu-process"))process_type = NCMProcessType::GpuProcess;
-			else if (util::get_command_line().includes(L"--type=utility"))process_type = NCMProcessType::Utility;
-			else process_type = NCMProcessType::Main;
-			namespace fs = std::filesystem;
-
-			// Pick data folder
-			if (getenv("BETTERNCM_PROFILE")) {
-				datapath = util::getEnvironment("BETTERNCM_PROFILE");
-			}
-			else {
-				datapath = "C:\\betterncm"; // 不再向前兼容
-			}
-
-
-			if (process_type == NCMProcessType::Main) {
-				AllocConsole();
-				freopen("CONOUT$", "w", stdout);
-				ShowWindow(GetConsoleWindow(), SW_HIDE);
-
-				std::wcout << L"Data folder picked: " << datapath << "\n";
-
-				if ((int)fs::status((std::wstring)datapath).permissions() & (int)std::filesystem::perms::owner_write) {
-					// Create data folder
-					fs::create_directories(datapath + L"/plugins");
-					// PluginMarket
-					HRSRC myResource = ::FindResource(hModule, MAKEINTRESOURCE(IDR_RCDATA1), RT_RCDATA);
-					unsigned int myResourceSize = ::SizeofResource(hModule, myResource);
-					HGLOBAL myResourceData = ::LoadResource(hModule, myResource);
-					void* pMyBinaryData = ::LockResource(myResourceData);
-					std::ofstream f(datapath + L"/plugins/PluginMarket.plugin", std::ios::out | std::ios::binary);
-					f.write((char*)pMyBinaryData, myResourceSize);
-					f.close();
-
-					// Inject NCM
-					app = new App();
+				// Pick data folder
+				if (getenv("BETTERNCM_PROFILE")) {
+					datapath = util::getEnvironment("BETTERNCM_PROFILE");
 				}
 				else {
-					util::alert(L"BetterNCM访问数据目录失败！可能需要以管理员身份运行或更改数据目录。\n\nBetterNCM将不会运行");
+					datapath = "C:\\betterncm"; // 不再向前兼容
 				}
-			}
-			else if (process_type == NCMProcessType::Renderer) {
-				EasyCEFHooks::InstallHooks();
 
-				PluginsLoader::loadAll();
+				if (process_type == NCMProcessType::Main) {
+					AllocConsole();
+					freopen("CONOUT$", "w", stdout);
+					ShowWindow(GetConsoleWindow(), SW_HIDE);
 
-				for (auto& plugin : PluginsLoader::plugins) {
-					plugin.loadNativePluginDll(process_type);
+					std::wcout << L"Data folder picked: " << datapath << "\n";
+
+					if ((int)fs::status((std::wstring)datapath).permissions() & (int)std::filesystem::perms::owner_write) {
+						// Create data folder
+						fs::create_directories(datapath + L"/plugins");
+						// PluginMarket
+						HRSRC myResource = ::FindResource(hModule, MAKEINTRESOURCE(IDR_RCDATA1), RT_RCDATA);
+						unsigned int myResourceSize = ::SizeofResource(hModule, myResource);
+						HGLOBAL myResourceData = ::LoadResource(hModule, myResource);
+						void* pMyBinaryData = ::LockResource(myResourceData);
+						std::ofstream f(datapath + L"/plugins/PluginMarket.plugin", std::ios::out | std::ios::binary);
+						f.write((char*)pMyBinaryData, myResourceSize);
+						f.close();
+
+						// Inject NCM
+						app = new App();
+					}
+					else {
+						util::alert(L"BetterNCM访问数据目录失败！可能需要以管理员身份运行或更改数据目录。\n\nBetterNCM将不会运行");
+					}
 				}
-			}
-			else {
-				PluginsLoader::loadAll();
+				else if (process_type == NCMProcessType::Renderer) {
+					EasyCEFHooks::InstallHooks();
 
-				for (auto& plugin : PluginsLoader::plugins) {
-					plugin.loadNativePluginDll(process_type);
+					PluginsLoader::loadAll();
+
+					for (auto& plugin : PluginsLoader::plugins) {
+						plugin.loadNativePluginDll(process_type);
+					}
 				}
-			}
+				else {
+					PluginsLoader::loadAll();
 
+					for (auto& plugin : PluginsLoader::plugins) {
+						plugin.loadNativePluginDll(process_type);
+					}
+				}
+
+			}
 		}
-
-
-
+		catch (std::exception& e) {
+			util::alert("BetterNCM 崩溃了！\n\nBetterNCM 将不会运行\n网易云将有可能崩溃\n\n崩溃原因：" + std::string(e.what()));
+		}
 
 
 

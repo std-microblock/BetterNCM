@@ -35,7 +35,7 @@ namespace BetterNCMNativePlugin {
 		int (*addNativeAPI)(NativeAPIType args[], int argsNum, const char* identifier, char* function(void**));
 		const char* betterncmVersion;
 		NCMProcessType processType;
-		const unsigned short ncmVersion[3];
+		const unsigned short(*ncmVersion)[3];
 	};
 
 #ifdef NATIVE_PLUGIN_CPP_EXTENSIONS
