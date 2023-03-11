@@ -321,8 +321,8 @@ LONG WINAPI BNUnhandledExceptionFilter(EXCEPTION_POINTERS* ExceptionInfo)
 #define IGNORE_ERROR_AUTO(code) if(ExceptionInfo->ExceptionRecord->ExceptionCode==code){ if(ncmWin) util::restartNCM(); else util::killNCM(); return EXCEPTION_EXECUTE_HANDLER;};
 #define IGNORE_ERROR_IGNORE(code) if(ExceptionInfo->ExceptionRecord->ExceptionCode==code){ return EXCEPTION_CONTINUE_EXECUTION;};
 
-	IGNORE_ERROR_PASS_TO_NCM(0xe0000008); // Ignore UNKNOWN
-	IGNORE_ERROR_IGNORE(0x80000003); // Ignore BREAKPOINT
+	// IGNORE_ERROR_PASS_TO_NCM(0xe0000008); // Ignore UNKNOWN
+	IGNORE_ERROR_EXIT(0x80000003); // Ignore BREAKPOINT
 
 	AllocConsole();
 	freopen("CONOUT$", "w", stdout);
