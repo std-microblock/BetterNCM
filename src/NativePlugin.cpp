@@ -154,7 +154,7 @@ void PluginsLoader::extractPackedPlugins()
 			try
 			{
 				int result = zip_extract(path.utf8().c_str(), BNString(datapath + L"/plugins_runtime/tmp").utf8().c_str(), NULL, NULL);
-				if (result != 0)throw GetLastError();
+				if (result != 0)throw std::exception(("unzip err code:" + std::to_string(GetLastError())).c_str());
 
 				PluginManifest manifest;
 				auto modManifest = nlohmann::json::parse(util::read_to_string(datapath + L"/plugins_runtime/tmp/manifest.json"));
@@ -173,12 +173,12 @@ void PluginsLoader::extractPackedPlugins()
 				}
 				else
 				{
-					throw new std::exception("Unsupported manifest version.");
+					throw std::exception("Unsupported manifest version.");
 				}
 			}
 			catch (std::exception& e)
 			{
-				util::write_file_text(datapath.utf8() + "/log.log", BNString::fromGBK(std::string("\nPlugin Loading Error: ") + (e.what())), true);
+				std::cout<< BNString::fromGBK(std::string("\nPlugin Loading Error: ") + (e.what())).utf8();
 				fs::remove_all(datapath.utf8() + "/plugins_runtime/tmp");
 			}
 		}

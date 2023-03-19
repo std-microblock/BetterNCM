@@ -637,7 +637,7 @@ betterncm.utils.waitForElement('.g-sd').then(ele=>{
 		}
 	};
 
-	auto loadHijacking = [&](const std::string& path)
+	auto loadHijacking = [&](const std::string& path, const bool dev = false)
 	{
 		std::vector<nlohmann::json> satisfied_hijacks;
 		if (fs::exists(path))
@@ -648,29 +648,37 @@ betterncm.utils.waitForElement('.g-sd').then(ele=>{
 					if (fs::exists(file.path().string() + "/manifest.json"))
 					{
 						auto json = nlohmann::json::parse(read_to_string(file.path().string() + "/manifest.json"));
-						for (auto& [version, hijack] : json["hijacks"].items())
-						{
-							if (semver::range::satisfies(getNCMExecutableVersion(), version))
-							{
-								for (auto& hij : hijack)
-								{
-									if (hij.is_array())
-										for (auto& hij_unit : hij)
-										{
-											hij_unit["base_path"] = file.path().string();
-											hij_unit["plugin_name"] = json["name"];
-										}
-									else
-									{
-										hij["base_path"] = file.path().string();
-										hij["plugin_name"] = json["name"];
-									}
-								}
-
-								satisfied_hijacks.push_back(hijack);
-								break;
+						auto slug = json["name"].get<std::string>();
+						// skip if have same slug in PluginsLoader::plugins
+						if (dev && std::find_if(PluginsLoader::plugins.begin(), PluginsLoader::plugins.end(), [&](const auto& plugin) {
+							return plugin.manifest.name == slug;
 							}
-						}
+						) != PluginsLoader::plugins.end())
+							continue;
+
+							for (auto& [version, hijack] : json["hijacks"].items())
+							{
+								if (semver::range::satisfies(getNCMExecutableVersion(), version))
+								{
+									for (auto& hij : hijack)
+									{
+										if (hij.is_array())
+											for (auto& hij_unit : hij)
+											{
+												hij_unit["base_path"] = file.path().string();
+												hij_unit["plugin_name"] = json["name"];
+											}
+										else
+										{
+											hij["base_path"] = file.path().string();
+											hij["plugin_name"] = json["name"];
+										}
+									}
+
+									satisfied_hijacks.push_back(hijack);
+									break;
+								}
+							}
 					}
 				}
 				catch (std::invalid_argument e)
@@ -710,7 +718,7 @@ betterncm.utils.waitForElement('.g-sd').then(ele=>{
 
 		filter_hijacks(satisfied_hijacks);
 
-		auto satisfied_hijacks_dev = loadHijacking(datapath.utf8() + "/plugins_dev");
+		auto satisfied_hijacks_dev = loadHijacking(datapath.utf8() + "/plugins_dev", true);
 		filter_hijacks(satisfied_hijacks_dev);
 
 		std::function<std::wstring(std::wstring)> processor = nullptr;
