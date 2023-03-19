@@ -18,19 +18,19 @@ namespace util {
 
 	BNString get_command_line();
 
-	template<typename S>
+	template <typename S>
 	CefString cefFromCEFUserFreeTakeOwnership(S* s) {
 		CefString st;
 		st.AttachToUserFree(s);
 		return st;
 	}
-	template<typename S>
+
+	template <typename S>
 	CefString cefFromCEFUserFree(S* s) {
 		return CefString(s);
 	}
 
-	class ScreenCapturePart
-	{
+	class ScreenCapturePart {
 	public:
 		ScreenCapturePart();
 		~ScreenCapturePart();
@@ -51,13 +51,13 @@ namespace util {
 	// https://stackoverflow.com/questions/1394053/how-to-write-a-generic-alert-message-using-win32
 	void alert(const wchar_t* item);
 	void alert(const std::wstring* item);
-	template<typename T>
-	void alert(T item)
-	{
+
+	template <typename T>
+	void alert(T item) {
 		//this accepts all types that supports operator << 
 		std::ostringstream os;
 		os << item;
-		MessageBoxA(NULL, os.str().c_str(), "BetterNCM", MB_OK | MB_ICONINFORMATION);
+		MessageBoxA(nullptr, os.str().c_str(), "BetterNCM", MB_OK | MB_ICONINFORMATION);
 	}
 
 

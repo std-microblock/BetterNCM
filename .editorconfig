@@ -1,0 +1,12 @@
+
+[*]
+
+# ReSharper properties
+resharper_cpp_anonymous_method_declaration_braces = end_of_line
+resharper_cpp_case_block_braces = end_of_line
+resharper_cpp_invocable_declaration_braces = end_of_line
+resharper_cpp_other_braces = end_of_line
+resharper_cpp_type_declaration_braces = end_of_line
+resharper_expression_braces = outside_and_inside
+resharper_namespace_declaration_braces = end_of_line
+resharper_requires_expression_braces = end_of_line

@@ -6,7 +6,7 @@
 #include<variant>
 #include "App.h"
 #include <NativePlugin.h>
-typedef cef_string_userfree_t cef_str_arg;
+using cef_str_arg = cef_string_userfree_t;
 extern BNString datapath;
 extern std::map<std::string, std::shared_ptr<PluginNativeAPI>> plugin_native_apis;
 
@@ -50,7 +50,7 @@ cef_v8value_t* create_v8value(cef_v8value_t* val) {
 	return val;
 }
 
-template<typename T>
+template <typename T>
 cef_v8value_t* create_v8value(std::vector<T> val) {
 	cef_v8value_t* arr = cef_v8value_create_array(val.size());
 	for (const auto& item : val)
@@ -59,10 +59,10 @@ cef_v8value_t* create_v8value(std::vector<T> val) {
 }
 
 template <typename R, typename... Args>
-cef_v8value_t* check_params_call(std::function <R(Args...)> fn,
+cef_v8value_t* check_params_call(std::function<R(Args...)> fn,
 	size_t argumentsCount,
 	struct _cef_v8value_t* const* arguments) {
-	constexpr size_t num_args = std::tuple_size<std::tuple<Args...>>::value;
+	constexpr size_t num_args = std::tuple_size_v<std::tuple<Args...>>;
 
 
 	if (argumentsCount < num_args)
@@ -74,9 +74,9 @@ cef_v8value_t* check_params_call(std::function <R(Args...)> fn,
 			std::to_string(num_args) + " arguments, received " +
 			std::to_string(argumentsCount) + " arguments.");
 
-	auto get_type = [&](size_t rtype, int i)->std::variant<int, double, bool, unsigned int, cef_str_arg, std::string, BNString, cef_v8value_t*> {
-
-
+	auto get_type = [&](size_t rtype,
+		int i)-> std::variant<int, double, bool, unsigned int, cef_str_arg, std::string, BNString,
+		cef_v8value_t*> {
 #define CHECK_PARAM_AND_GET(type,checkFn,getFn) CHECK_PARAM(type,checkFn) {return arguments[i]->getFn(arguments[i]);}
 
 #define CHECK_PARAM(type,checkFn) \
@@ -84,8 +84,7 @@ cef_v8value_t* check_params_call(std::function <R(Args...)> fn,
 			if (!(arguments[i]->checkFn(arguments[i]))) throw std::string("Invalid argument " +\
 														std::to_string(i) + ". Expected an " + #type + \
 														" but received a different type.");\
-			else \
-
+			else
 		if (rtype == typeid(cef_v8value_t*).hash_code())
 			return arguments[i];
 
@@ -112,10 +111,9 @@ cef_v8value_t* check_params_call(std::function <R(Args...)> fn,
 
 
 	int cnt = 0;
-	std::tuple < Args... > args = std::tuple{ std::get<Args>(get_type(typeid(Args).hash_code(), cnt++))... };
+	std::tuple<Args...> args = std::tuple{ std::get<Args>(get_type(typeid(Args).hash_code(), cnt++))... };
 	return create_v8value(std::apply(fn, args));
 }
-
 
 
 int _stdcall execute(struct _cef_v8handler_t* self,
@@ -131,7 +129,6 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 	std::string nameS = name_cefS.ToString();
 #define DEFINE_API(name,func) if(self==0)apis.push_back(#name);else if(#name==nameS){ *retval = check_params_call(std::function(func), argumentsCount, arguments); return 1;}
 	try {
-
 		DEFINE_API(
 			test.m.i.c.r.o.b.l.o.c.k,
 			[](int a, double b) {
@@ -157,7 +154,7 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 
 				std::vector<std::string> paths;
 
-				for (const auto& entry : fs::directory_iterator((std::wstring)path))
+				for (const auto& entry : fs::directory_iterator(static_cast<std::wstring>(path)))
 					paths.push_back(BNString(entry.path().wstring()).utf8());
 
 				return paths;
@@ -242,7 +239,7 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 				if (dest[1] != ':') {
 					dest = datapath + L"/" + dest;
 				}
-				fs::rename((std::wstring)path, (std::wstring)dest);
+				fs::rename(static_cast<std::wstring>(path), static_cast<std::wstring>(dest));
 				return true;
 			}
 		);
@@ -254,7 +251,7 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 					fs::create_directories(datapath + L"/" + path);
 				}
 				else {
-					fs::create_directories((std::wstring)path);
+					fs::create_directories(static_cast<std::wstring>(path));
 				}
 				return true;
 			}
@@ -266,7 +263,7 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 				if (path[1] != ':') {
 					path = datapath + L"/" + path;
 				}
-				return fs::exists((std::wstring)path);
+				return fs::exists(static_cast<std::wstring>(path));
 			}
 		);
 
@@ -289,11 +286,10 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 					path = datapath + L"/" + path;
 				}
 
-				fs::remove_all((std::wstring)path);
+				fs::remove_all(static_cast<std::wstring>(path));
 				return true;
 			}
 		);
-
 
 
 		DEFINE_API(
@@ -347,7 +343,8 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 			native_plugin.getRegisteredAPIs,
 			[]() {
 				std::vector<std::string> apiName(plugin_native_apis.size());
-				std::transform(plugin_native_apis.begin(), plugin_native_apis.end(), apiName.begin(), [](const auto& kv) { return kv.first; });
+				std::transform(plugin_native_apis.begin(), plugin_native_apis.end(), apiName.begin(), [](const auto& kv) {
+					return kv.first; });
 
 				return apiName;
 			}
@@ -358,44 +355,42 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 			if (apiPair == plugin_native_apis.end()) {
 				throw "Invalid api id";
 			}
-			else {
-				auto& api = apiPair->second;
+			auto& api = apiPair->second;
 
-				if (!callArgs->is_array(callArgs))throw "The second argument should be an array.";
-				if (callArgs->get_array_length(callArgs) != api->argsNum) throw "Wrong args count.";
+			if (!callArgs->is_array(callArgs))throw "The second argument should be an array.";
+			if (callArgs->get_array_length(callArgs) != api->argsNum) throw "Wrong args count.";
 
-				void* args[100] = {};
+			void* args[100] = {};
 
-				for (int argNum = 0; argNum < api->argsNum; argNum++) {
-					auto argType = *(api->args + argNum);
-					using t = NativeAPIType;
-					auto argVal = callArgs->get_value_byindex(callArgs, argNum);
-					if (argType == t::Int)args[argNum] = new int(argVal->get_int_value(argVal));
-					else if (argType == t::Boolean)args[argNum] = new bool(argVal->get_bool_value(argVal));
-					else if (argType == t::Double)args[argNum] = new double(argVal->get_double_value(argVal));
-					else if (argType == t::String) {
-						CefString* s = new CefString();
-						s->AttachToUserFree(argVal->get_string_value(argVal));
-						auto str = (s->ToString());
-						char* cstr = new char[str.length() + 1];
-						strcpy_s(cstr, str.length() + 1, str.c_str());
-						args[argNum] = cstr;
-					}
-					else if (argType == t::V8Value)args[argNum] = argVal;
-					else throw "Unsupported argument value!";
+			for (int argNum = 0; argNum < api->argsNum; argNum++) {
+				auto argType = *(api->args + argNum);
+				using t = NativeAPIType;
+				auto argVal = callArgs->get_value_byindex(callArgs, argNum);
+				if (argType == Int)args[argNum] = new int(argVal->get_int_value(argVal));
+				else if (argType == Boolean)args[argNum] = new bool(argVal->get_bool_value(argVal));
+				else if (argType == Double)args[argNum] = new double(argVal->get_double_value(argVal));
+				else if (argType == String) {
+					auto s = new CefString();
+					s->AttachToUserFree(argVal->get_string_value(argVal));
+					auto str = (s->ToString());
+					auto cstr = new char[str.length() + 1];
+					strcpy_s(cstr, str.length() + 1, str.c_str());
+					args[argNum] = cstr;
 				}
-
-				auto ret = api->function(args);
-
-				if (ret)
-					return create_v8value(std::string(ret));
-				return create_v8value();
+				else if (argType == V8Value)args[argNum] = argVal;
+				else throw "Unsupported argument value!";
 			}
+
+			auto ret = api->function(args);
+
+			if (ret)
+				return create_v8value(std::string(ret));
+			return create_v8value();
 		};
 		DEFINE_API(
 			native_plugin.call,
-			native_call);
-
+			native_call
+		);
 	}
 	catch (std::exception& e) {
 		if (!self)return -1;
@@ -422,14 +417,13 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 		return 1;
 	}
 	return 0;
-
 };
 
 void process_context(cef_v8context_t* context) {
 	_cef_v8value_t* global = context->get_global(context);
 	if (!global->has_value_bykey(global, CefString("betterncm_native").GetStruct())) {
 		if (apis.size() == 0)
-			execute(0, 0, 0, 0, 0, 0, 0);
+			execute(nullptr, nullptr, nullptr, 0, nullptr, nullptr, nullptr);
 		native_value = cef_v8value_create_object(nullptr, nullptr);
 		auto handler = new cef_v8handler_t{};
 		handler->base.size = sizeof(cef_v8handler_t);
@@ -451,7 +445,8 @@ void process_context(cef_v8context_t* context) {
 				}
 				else {
 					if (!(val->has_value_bykey(val, s)))
-						val->set_value_bykey(val, s, cef_v8value_create_object(nullptr, nullptr), V8_PROPERTY_ATTRIBUTE_NONE);
+						val->set_value_bykey(val, s, cef_v8value_create_object(nullptr, nullptr),
+							V8_PROPERTY_ATTRIBUTE_NONE);
 
 					val = val->get_value_bykey(val, s);
 				}
@@ -459,8 +454,7 @@ void process_context(cef_v8context_t* context) {
 		}
 
 
-		global->set_value_bykey(global, CefString("betterncm_native").GetStruct(), native_value, V8_PROPERTY_ATTRIBUTE_NONE);
-
+		global->set_value_bykey(global, CefString("betterncm_native").GetStruct(), native_value,
+			V8_PROPERTY_ATTRIBUTE_NONE);
 	}
-
 }

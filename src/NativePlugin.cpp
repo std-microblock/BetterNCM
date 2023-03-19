@@ -28,9 +28,10 @@ void from_json(const nlohmann::json& j, PluginManifest& p) {
 		if (name.empty()) return name;
 		std::replace(name.begin(), name.end(), ' ', '-');
 		try {
-			name.erase(std::remove_if(name.begin(), name.end(), [](char c) { return c > 0 && c < 255 && !isalnum(c) && c != '-'; }), name.end());
+			std::erase_if(name, [](char c) { return c > 0 && c < 255 && !isalnum(c) && c != '-'; });
 		}
-		catch (std::exception& e) {}
+		catch (std::exception& e) {
+		}
 		return name;
 	};
 
@@ -45,79 +46,70 @@ void from_json(const nlohmann::json& j, PluginManifest& p) {
 	p.native_plugin = j.value("native_plugin", "\0");
 }
 
-Plugin::Plugin(PluginManifest manifest, std::filesystem::path runtime_path)
-{
+Plugin::Plugin(PluginManifest manifest, std::filesystem::path runtime_path) {
 	this->manifest = manifest;
 	this->runtime_path = runtime_path;
 }
 
-Plugin::~Plugin()
-{
+Plugin::~Plugin() {
 	if (this->hNativeDll)
 		FreeLibrary(this->hNativeDll);
 }
 
-void Plugin::loadNativePluginDll(NCMProcessType processType)
-{
+void Plugin::loadNativePluginDll(NCMProcessType processType) {
 	if (manifest.native_plugin[0] != '\0') {
-		try
-		{
+		try {
 			HMODULE hDll = LoadLibrary((runtime_path / manifest.native_plugin).wstring().c_str());
 			if (!hDll) {
 				throw "dll doesn't exists.";
 			}
 
-			BetterNCMPluginMainFunc BetterNCMPluginMain = (BetterNCMPluginMainFunc)GetProcAddress(hDll, "BetterNCMPluginMain");
+			auto BetterNCMPluginMain = (BetterNCMPluginMainFunc)GetProcAddress(hDll, "BetterNCMPluginMain");
 			if (!BetterNCMPluginMain) {
 				throw "dll is not a betterncm plugin dll.";
 			}
 
 
-
 			auto pluginAPI = new BetterNCMNativePlugin::PluginAPI{
-				processType == NCMProcessType::Renderer ? addNativeAPI : addNativeAPIEmpty,
-				version.c_str(),
-				processType,
-				&ncmVersion
+					processType == Renderer ? addNativeAPI : addNativeAPIEmpty,
+					version.c_str(),
+					processType,
+					&ncmVersion
 			}; // leaked but not a big problem
 
 			BetterNCMPluginMain(pluginAPI);
 			this->hNativeDll = hDll;
 		}
-		catch (std::exception& e)
-		{
-			util::write_file_text(datapath.utf8() + "/log.log", std::string("\n[" + manifest.slug + "]Plugin Native Plugin load Error: ") + (e.what()), true);
+		catch (std::exception& e) {
+			util::write_file_text(datapath.utf8() + "/log.log",
+				std::string("\n[" + manifest.slug + "]Plugin Native Plugin load Error: ") + (e.
+					what()), true);
 		}
 	}
 }
 
-void PluginsLoader::loadAll()
-{
+void PluginsLoader::loadAll() {
 	unloadAll();
 	loadRuntime();
 	loadDev();
 }
 
-void PluginsLoader::unloadAll()
-{
+void PluginsLoader::unloadAll() {
 	plugin_native_apis.clear();
 	plugins.clear();
 }
 
-void PluginsLoader::loadDev()
-{
+void PluginsLoader::loadDev() {
 	loadInPath(datapath + L"/plugins_dev");
 }
 
-void PluginsLoader::loadRuntime()
-{
+void PluginsLoader::loadRuntime() {
 	loadInPath(datapath + L"/plugins_runtime");
 }
 
 std::vector<Plugin> PluginsLoader::plugins;
 
-void PluginsLoader::extractPackedPlugins()
-{
+void PluginsLoader::extractPackedPlugins() {
 	util::write_file_text(datapath + L"/PLUGIN_EXTRACTING_LOCK.lock", "");
 
 
@@ -129,40 +121,37 @@ void PluginsLoader::extractPackedPlugins()
 				modManifest.get_to(manifest);
 
 				if (manifest.native_plugin[0] == '\0')
-					fs::remove_all(file.path());
+					remove_all(file.path());
 				else {
 					std::error_code ec;
 					fs::remove(file.path() / manifest.native_plugin, ec);
-					if (ec.value() == 0)fs::remove_all(file.path());
+					if (ec.value() == 0)remove_all(file.path());
 				}
 			}
 			catch (std::exception& e) {
-				fs::remove_all(file.path());
+				remove_all(file.path());
 			}
 		}
 	}
 
 	fs::create_directories(datapath + L"/plugins_runtime");
 
-	for (auto file : fs::directory_iterator(datapath + L"/plugins"))
-	{
+	for (auto file : fs::directory_iterator(datapath + L"/plugins")) {
 		BNString path = file.path().wstring();
-		if (path.endsWith(L".plugin"))
-		{
-
-
-			try
-			{
-				int result = zip_extract(path.utf8().c_str(), BNString(datapath + L"/plugins_runtime/tmp").utf8().c_str(), NULL, NULL);
+		if (path.endsWith(L".plugin")) {
+			try {
+				int result = zip_extract(path.utf8().c_str(),
+					BNString(datapath + L"/plugins_runtime/tmp").utf8().c_str(), nullptr, nullptr);
 				if (result != 0)throw std::exception(("unzip err code:" + std::to_string(GetLastError())).c_str());
 
 				PluginManifest manifest;
-				auto modManifest = nlohmann::json::parse(util::read_to_string(datapath + L"/plugins_runtime/tmp/manifest.json"));
+				auto modManifest = nlohmann::json::parse(
+					util::read_to_string(datapath + L"/plugins_runtime/tmp/manifest.json"));
 				modManifest.get_to(manifest);
 
-				if (manifest.manifest_version == 1)
-				{
-					util::write_file_text(datapath + L"/plugins_runtime/tmp/.plugin.path.meta", pystring::slice(path, datapath.length()));
+				if (manifest.manifest_version == 1) {
+					util::write_file_text(datapath + L"/plugins_runtime/tmp/.plugin.path.meta",
+						pystring::slice(path, datapath.length()));
 					auto realPath = datapath + L"/plugins_runtime/" + BNString(manifest.slug);
 
 					std::error_code ec;
@@ -171,14 +160,13 @@ void PluginsLoader::extractPackedPlugins()
 
 					fs::rename(datapath + L"/plugins_runtime/tmp", realPath);
 				}
-				else
-				{
+				else {
 					throw std::exception("Unsupported manifest version.");
 				}
 			}
-			catch (std::exception& e)
-			{
-				std::cout<< BNString::fromGBK(std::string("\n[BetterNCM] Plugin Loading Error: ") + (e.what())).utf8()+"\n";
+			catch (std::exception& e) {
+				std::cout << BNString::fromGBK(std::string("\n[BetterNCM] Plugin Loading Error: ") + (e.what())).utf8()
+					+ "\n";
 				fs::remove_all(datapath.utf8() + "/plugins_runtime/tmp");
 			}
 		}
@@ -187,24 +175,21 @@ void PluginsLoader::extractPackedPlugins()
 	fs::remove(datapath + L"/PLUGIN_EXTRACTING_LOCK.lock");
 }
 
-void PluginsLoader::loadInPath(std::wstring path)
-{
+void PluginsLoader::loadInPath(std::wstring path) {
 	if (fs::exists(path))
-		for (const auto& file : fs::directory_iterator(path))
-		{
-			try
-			{
-				if (fs::exists(file.path().string() + "/manifest.json"))
-				{
+		for (const auto& file : fs::directory_iterator(path)) {
+			try {
+				if (fs::exists(file.path().string() + "/manifest.json")) {
 					auto json = nlohmann::json::parse(util::read_to_string(file.path().string() + "/manifest.json"));
 					PluginManifest manifest;
 					json.get_to(manifest);
 					plugins.push_back(Plugin{ manifest, file.path() });
 				}
 			}
-			catch (std::exception& e)
-			{
-				util::write_file_text(datapath.utf8() + "/log.log", std::string("\n[" + file.path().string() + "]Plugin Native load Error: ") + (e.what()), true);
+			catch (std::exception& e) {
+				util::write_file_text(datapath.utf8() + "/log.log",
+					std::string("\n[" + file.path().string() + "]Plugin Native load Error: ") + (e.
+						what()), true);
 			}
 		}
 }

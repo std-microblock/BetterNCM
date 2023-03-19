@@ -1,4 +1,4 @@
-#include "pch.h" 
+#include "pch.h"
 
 #pragma once
 #ifdef NATIVE_PLUGIN_CPP_EXTENSIONS
@@ -6,18 +6,23 @@
 #include <memory>
 #include "3rd/libcef/include/capi/cef_v8_capi.h"
 #include <atomic>
-typedef struct _cef_task_post_exec cef_task_post_exec_t;
+using cef_task_post_exec_t = struct _cef_task_post_exec;
 
 void CEF_CALLBACK exec(struct _cef_task_t* self);
 #endif
 #include <functional>
 
 enum NativeAPIType {
-	Int, // *int
-	Boolean, // *bool
-	Double, // *double
-	String, // *char
-	V8Value, // *cef_v8value_t
+	Int,
+	// *int
+	Boolean,
+	// *bool
+	Double,
+	// *double
+	String,
+	// *char
+	V8Value,
+	// *cef_v8value_t
 };
 
 enum NCMProcessType {
@@ -29,8 +34,6 @@ enum NCMProcessType {
 };
 
 namespace BetterNCMNativePlugin {
-
-
 	struct PluginAPI {
 		int (*addNativeAPI)(NativeAPIType args[], int argsNum, const char* identifier, char* function(void**));
 		const char* betterncmVersion;
@@ -82,7 +85,7 @@ namespace BetterNCMNativePlugin {
 				return val;
 			}
 
-			template<typename T>
+			template <typename T>
 			static cef_v8value_t* create_v8value(std::vector<T> val) {
 				cef_v8value_t* arr = cef_v8value_create_array(val.size());
 				for (const auto& item : val)
@@ -91,15 +94,13 @@ namespace BetterNCMNativePlugin {
 			}
 
 
-			typedef struct _cef_task_post_exec {
+			using cef_task_post_exec = struct _cef_task_post_exec {
 				cef_task_t task;
-				BetterNCMNativePlugin::extensions::JSFunction* func;
+				JSFunction* func;
 				std::function<std::vector<cef_v8value_t*>()> args;
-
-			} cef_task_post_exec;
+			};
 
 			static void CEF_CALLBACK exec(struct _cef_task_t* self) {
-
 				JSFunction* func = ((_cef_task_post_exec*)self)->func;
 				auto args = (((_cef_task_post_exec*)self)->args)();
 				int nArg = 0;
@@ -124,15 +125,17 @@ namespace BetterNCMNativePlugin {
 
 			cef_v8value_t* func;
 			std::atomic<cef_v8context_t*> context;
-			std::atomic <bool> busy = false;
-			std::atomic <bool> valid = true;
+			std::atomic<bool> busy = false;
+			std::atomic<bool> valid = true;
 			cef_task_runner_t* runner;
+
 		public:
 			~JSFunction() {
 				CEF_V8_RELEASE(this->func);
 				CEF_V8_RELEASE(this->context.load());
 				CEF_V8_RELEASE(this->runner);
 			}
+
 			void updateContext(cef_v8context_t* baseContext = nullptr) {
 				if (!this->valid)return;
 
@@ -142,8 +145,8 @@ namespace BetterNCMNativePlugin {
 				auto mainFrame = browser->get_main_frame(browser);
 				this->context = mainFrame->get_v8context(mainFrame);
 			}
-			JSFunction(cef_v8value_t* func, cef_v8context_t* context = nullptr) {
 
+			JSFunction(cef_v8value_t* func, cef_v8context_t* context = nullptr) {
 				CEF_V8_ADDREF(func);
 				this->func = func;
 
@@ -163,16 +166,18 @@ namespace BetterNCMNativePlugin {
 				}
 				CEF_V8_ADDREF(this->runner);
 			}
+
 			bool isValid() {
 				return this->valid;
 			}
+
 			template <typename... Args>
-			const int operator() (Args... args) {
+			const int operator()(Args... args) {
 				if (!this->valid)return -1;
 				while (this->busy);
 				this->busy = true;
-				cef_task_post_exec* task = (cef_task_post_exec*)calloc(1, sizeof(cef_task_post_exec));
-				task->func = (JSFunction*)this;
+				auto task = static_cast<cef_task_post_exec*>(calloc(1, sizeof(cef_task_post_exec)));
+				task->func = this;
 
 
 				task->task.base.size = sizeof(cef_task_t);

@@ -34,11 +34,11 @@ struct PluginManifest {
 };
 
 
-
 void from_json(const nlohmann::json& j, PluginManifest& p);
 
 class Plugin {
 	HMODULE hNativeDll;
+
 public:
 	Plugin(PluginManifest manifest,
 		std::filesystem::path runtime_path);
@@ -50,6 +50,7 @@ public:
 
 class PluginsLoader {
 	static void loadInPath(std::wstring path);
+
 public:
 	static void loadAll();
 	static void unloadAll();
@@ -59,4 +60,4 @@ public:
 	static std::vector<Plugin> plugins;
 };
 
-typedef int (*BetterNCMPluginMainFunc)(BetterNCMNativePlugin::PluginAPI*);
+using BetterNCMPluginMainFunc = int(*)(BetterNCMNativePlugin::PluginAPI*);

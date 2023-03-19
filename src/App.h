@@ -6,6 +6,7 @@
 #include <shared_mutex>
 #include "NativePlugin.h"
 extern const std::string version;
+
 class App {
 	httplib::Server* httpServer = nullptr;
 	std::thread* server_thread;
@@ -16,6 +17,7 @@ class App {
 	std::shared_timed_mutex succeeded_hijacks_lock;
 	std::vector<std::string> succeeded_hijacks;
 	void parseConfig();
+
 public:
 	App();
 	~App();
