@@ -178,7 +178,7 @@ void PluginsLoader::extractPackedPlugins()
 			}
 			catch (std::exception& e)
 			{
-				std::cout<< BNString::fromGBK(std::string("\nPlugin Loading Error: ") + (e.what())).utf8();
+				std::cout<< BNString::fromGBK(std::string("\n[BetterNCM] Plugin Loading Error: ") + (e.what())).utf8()+"\n";
 				fs::remove_all(datapath.utf8() + "/plugins_runtime/tmp");
 			}
 		}
