@@ -239,7 +239,7 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 				for (const auto& entry : fs::directory_iterator(static_cast<std::wstring>(path))) {
 					std::map<std::string, std::variant<std::string, bool, long long>> m;
 					m["path"] = BNString(entry.path().wstring()).utf8();
-					m["filename"] = BNString(entry.path().filename().wstring()).utf8();
+					m["name"] = BNString(entry.path().filename().wstring()).utf8();
 					m["extension"] = BNString(entry.path().extension().wstring()).utf8();
 					m["type"] = "unknown";
 					if (entry.is_directory()) { m["type"] = "directory"; }
