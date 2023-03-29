@@ -248,6 +248,7 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 					m["size"] = (long long) entry.file_size();
 					m["lastModified"] = std::chrono::duration_cast<std::chrono::milliseconds>(entry.last_write_time().time_since_epoch()).count();
 					m["hidden"] = (GetFileAttributesW(entry.path().wstring().c_str()) & FILE_ATTRIBUTE_HIDDEN) != 0;
+					m["system"] = (GetFileAttributesW(entry.path().wstring().c_str()) & FILE_ATTRIBUTE_SYSTEM) != 0;
 					items.push_back(m);
 				}
 
@@ -448,6 +449,7 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 				properties["extension"] = BNString(p.extension().string()).utf8();
 				properties["lastModified"] = std::chrono::duration_cast<std::chrono::milliseconds>(fs::last_write_time(p).time_since_epoch()).count();
 				properties["hidden"] = (GetFileAttributesW(p.c_str()) & FILE_ATTRIBUTE_HIDDEN) != 0;
+				properties["system"] = (GetFileAttributesW(p.c_str()) & FILE_ATTRIBUTE_SYSTEM) != 0;
 				return properties;
 			}
 		));
