@@ -6,29 +6,62 @@
 #include<variant>
 #include "App.h"
 #include <NativePlugin.h>
+#include <shlobj.h>
 using cef_str_arg = cef_string_userfree_t;
 extern BNString datapath;
 extern std::map<std::string, std::shared_ptr<PluginNativeAPI>> plugin_native_apis;
+#include <include/cef_v8.h>
+
+CefString create_cefstring(const std::string& val) {
+	CefString s;
+	s.FromString(val);
+	return s;
+}
+
+CefString create_cefstring(const std::wstring& val) {
+	CefString s;
+	s.FromWString(val);
+	return s;
+}
+
+template <typename T>
+CefString create_cefstring(const T& val) {
+	static_assert(std::is_same<T, std::string>::value || std::is_same<T, std::wstring>::value,
+		"create_cefstring() requires a specialization for this type");
+	return CefString();
+}
 
 std::vector<std::string> apis;
 _cef_v8value_t* native_value;
 
+cef_v8value_t* create_v8value(const std::string& val);
+cef_v8value_t* create_v8value(const std::wstring& val);
+cef_v8value_t* create_v8value(int val);
+cef_v8value_t* create_v8value(unsigned int val);
+cef_v8value_t* create_v8value(double val);
+cef_v8value_t* create_v8value(long val);
+cef_v8value_t* create_v8value(long long val);
+cef_v8value_t* create_v8value(bool val);
+template <typename T>
+cef_v8value_t* create_v8value(std::vector<T> val);
+template <typename K, typename V>
+cef_v8value_t* create_v8value(const std::map<K, V>& val);
+template<typename... Ts>
+cef_v8value_t* create_v8value(const std::variant<Ts...>& val);
+
 cef_v8value_t* create_v8value(const std::string& val) {
 	CefString s;
 	s.FromString(val);
-	return cef_v8value_create_string(s.GetStruct());
+	return cef_v8value_create_string(create_cefstring(val).GetStruct());
 }
 
 cef_v8value_t* create_v8value(const std::wstring& val) {
-	CefString s;
-	s.FromWString(val);
-	return cef_v8value_create_string(s.GetStruct());
+	return cef_v8value_create_string(create_cefstring(val).GetStruct());
 }
 
 cef_v8value_t* create_v8value(int val) {
 	return cef_v8value_create_int(val);
 }
-
 
 cef_v8value_t* create_v8value(unsigned int val) {
 	return cef_v8value_create_uint(val);
@@ -36,6 +69,14 @@ cef_v8value_t* create_v8value(unsigned int val) {
 
 cef_v8value_t* create_v8value(double val) {
 	return cef_v8value_create_double(val);
+}
+
+cef_v8value_t* create_v8value(long val) {
+	return cef_v8value_create_double((double)val);
+}
+
+cef_v8value_t* create_v8value(long long val) {
+	return cef_v8value_create_double((double)val);
 }
 
 cef_v8value_t* create_v8value(bool val) {
@@ -50,12 +91,37 @@ cef_v8value_t* create_v8value(cef_v8value_t* val) {
 	return val;
 }
 
+struct V8ValueCreatorVisitor {
+	template<typename T>
+	cef_v8value_t* operator()(const T& val) {
+		return create_v8value(val);
+	}
+};
+
+template<typename... Ts>
+cef_v8value_t* create_v8value(const std::variant<Ts...>& val) {
+	return std::visit(V8ValueCreatorVisitor{}, val);
+}
+
 template <typename T>
 cef_v8value_t* create_v8value(std::vector<T> val) {
 	cef_v8value_t* arr = cef_v8value_create_array(val.size());
 	for (const auto& item : val)
 		arr->set_value_byindex(arr, &item - &val[0], create_v8value(item));
 	return arr;
+}
+
+template <typename K, typename V>
+cef_v8value_t* create_v8value(const std::map<K, V>& val) {
+	cef_v8value_t* obj = cef_v8value_create_object(NULL, NULL);
+
+	for (const auto& entry : val) {
+		CefString key = create_cefstring(entry.first);
+		cef_v8value_t* value = create_v8value(entry.second);
+		obj->set_value_bykey(obj, key.GetStruct(), value, V8_PROPERTY_ATTRIBUTE_NONE);
+	}
+
+	return obj;
 }
 
 template <typename R, typename... Args>
@@ -158,9 +224,107 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 					paths.push_back(BNString(entry.path().wstring()).utf8());
 
 				return paths;
-
 			}
 		);
+		
+		DEFINE_API(
+			fs.readDirWithDetails,
+			([](BNString path) {
+				if (path[1] != ':') {
+					path = datapath + L"/" + path;
+				}
+
+				std::vector<std::map<std::string, std::variant<std::string, bool, long long>>> items;
+
+				for (const auto& entry : fs::directory_iterator(static_cast<std::wstring>(path))) {
+					std::map<std::string, std::variant<std::string, bool, long long>> m;
+					m["path"] = BNString(entry.path().wstring()).utf8();
+					m["name"] = BNString(entry.path().filename().wstring()).utf8();
+					m["extension"] = BNString(entry.path().extension().wstring()).utf8();
+					m["type"] = "unknown";
+					if (entry.is_directory()) { m["type"] = "directory"; }
+					else if (entry.is_regular_file()) { m["type"] = "file"; }
+					else if (entry.is_symlink()) { m["type"] = "symlink"; }
+					m["size"] = (long long) entry.file_size();
+					m["lastModified"] = std::chrono::duration_cast<std::chrono::milliseconds>(entry.last_write_time().time_since_epoch()).count();
+					m["hidden"] = (GetFileAttributesW(entry.path().wstring().c_str()) & FILE_ATTRIBUTE_HIDDEN) != 0;
+					m["system"] = (GetFileAttributesW(entry.path().wstring().c_str()) & FILE_ATTRIBUTE_SYSTEM) != 0;
+					items.push_back(m);
+				}
+
+				return items;
+			})
+		);
+
+		DEFINE_API(
+			fs.getDisks,
+			([]() {
+				std::vector<std::map<std::string, std::variant<std::string, long long>>> disks;
+
+				DWORD drives = GetLogicalDrives();
+				for (int i = 0; i < 26; ++i) {
+					if (drives & (1 << i)) {
+						wchar_t diskLetter[4] = { L'A' + i, L':', L'\\', L'\0' };
+
+						ULARGE_INTEGER freeBytesAvailable, totalNumberOfBytes, totalNumberOfFreeBytes;
+						if (GetDiskFreeSpaceExW(diskLetter,
+							&freeBytesAvailable,
+							&totalNumberOfBytes,
+							&totalNumberOfFreeBytes)) {
+							std::map<std::string, std::variant<std::string, long long>> diskInfo;
+							diskInfo["disk"] = std::string(1, 'A' + i) + ":";
+
+							wchar_t diskName[MAX_PATH] = { 0 };
+							if (GetVolumeInformationW(diskLetter, diskName, MAX_PATH,
+								NULL, NULL, NULL, NULL, 0)) {
+								diskInfo["name"] = std::wstring_convert<std::codecvt_utf8<wchar_t>>{}.to_bytes(diskName);
+							}
+							else {
+								diskInfo["name"] = "";
+							}
+
+							diskInfo["used"] = (long long) (totalNumberOfBytes.QuadPart - totalNumberOfFreeBytes.QuadPart);
+							diskInfo["size"] = (long long) (totalNumberOfBytes.QuadPart);
+
+							disks.push_back(diskInfo);
+						}
+					}
+				}
+
+				return disks;
+			})
+		);
+		
+		DEFINE_API(
+			fs.getLibraries,
+			([]() {
+				std::vector<std::map<std::string, std::string>> libraries;
+
+				const KNOWNFOLDERID library_ids[] = { FOLDERID_Desktop, FOLDERID_Downloads, FOLDERID_Documents, FOLDERID_Pictures, FOLDERID_Music, FOLDERID_Videos };
+				const std::string library_names[] = { "Desktop", "Downloads", "Documents", "Pictures", "Music", "Videos" };
+
+				for (size_t i = 0; i < sizeof(library_ids) / sizeof(library_ids[0]); i++) {
+					PWSTR folder_path;
+					HRESULT hr = SHGetKnownFolderPath(library_ids[i], 0, NULL, &folder_path);
+
+					if (SUCCEEDED(hr)) {
+						std::wstring w_folder_path(folder_path);
+						std::string s_folder_path(w_folder_path.begin(), w_folder_path.end());
+
+						std::map<std::string, std::string> library;
+						library["name"] = library_names[i];
+						library["path"] = s_folder_path;
+
+						libraries.push_back(library);
+
+						CoTaskMemFree(folder_path);
+					}
+				}
+
+				return libraries;
+			})
+		);
+			
 
 		DEFINE_API(
 			fs.readFileText,
@@ -266,6 +430,29 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 				return fs::exists(static_cast<std::wstring>(path));
 			}
 		);
+
+		DEFINE_API(
+			fs.getProperties,
+			([](BNString path) {
+				if (path[1] != ':') {
+					path = datapath + L"/" + path;
+				}
+				std::map < std::string, std::variant < std::string, long long, bool >> properties;
+				fs::path p(static_cast<std::wstring>(path));
+				properties["name"] = BNString(p.filename().string()).utf8();
+				properties["path"] = BNString(p.parent_path().string());
+				properties["size"] = (long long) fs::file_size(p);
+				properties["type"] = "unknown";
+				if (fs::is_directory(p)) { properties["type"] = "directory"; }
+				else if (fs::is_regular_file(p)) { properties["type"] = "file"; }
+				else if (fs::is_symlink(p)) { properties["type"] = "symlink"; }
+				properties["extension"] = BNString(p.extension().string()).utf8();
+				properties["lastModified"] = std::chrono::duration_cast<std::chrono::milliseconds>(fs::last_write_time(p).time_since_epoch()).count();
+				properties["hidden"] = (GetFileAttributesW(p.c_str()) & FILE_ATTRIBUTE_HIDDEN) != 0;
+				properties["system"] = (GetFileAttributesW(p.c_str()) & FILE_ATTRIBUTE_SYSTEM) != 0;
+				return properties;
+			}
+		));
 
 		DEFINE_API(
 			fs.writeFileText,
