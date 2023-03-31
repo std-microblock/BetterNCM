@@ -9,11 +9,13 @@
 
 </h3>
 
-![image](https://user-images.githubusercontent.com/66859419/215995178-82ec6501-b70f-4503-9e11-528399726e3a.png)
+<div align="center">
+  <image src="https://user-images.githubusercontent.com/66859419/215995178-82ec6501-b70f-4503-9e11-528399726e3a.png" />
+</div>
 
 ---
 
-最新测试兼容版本：`2.10.7`
+最新测试兼容版本：`2.10.8`
 
 # 安装
 
@@ -26,3 +28,11 @@
 - [插件商店 插件源 仓库](https://github.com/BetterNCM/BetterNCM-Plugins)
 - [Star History](https://api.star-history.com/svg?repos=MicroCBer/BetterNCM&type=Date)
 
+## 致谢
+
+<div align="center">
+<image src="https://resources.jetbrains.com/storage/products/company/brand/logos/jb_beam.svg" />
+<div>
+感谢 <a href=https://jb.gg/OpenSourceSupport>JetBrains</a> 为本项目提供的大力支持
+</div>
+</div>
