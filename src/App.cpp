@@ -659,6 +659,7 @@ betterncm.utils.waitForElement('.g-sd').then(ele=>{
 		if (hijack_actions.size())
 			processor = [=](std::wstring code) {
 				for (const auto& hijack : hijack_actions) {
+					auto previousCode = code;
 					try {
 						if(const auto& act= std::get_if<HijackActionRegex>(&hijack.action)) {
 							const std::wregex hijack_regex{ utf8_to_wstring(act->from) };
@@ -666,13 +667,13 @@ betterncm.utils.waitForElement('.g-sd').then(ele=>{
 						}
 
 						if (const auto& act = std::get_if<HijackActionReplace>(&hijack.action)) {
-							std::cout<<"from: "<< act->from << " to: " << act->to << "len from" << code.length();
+							std::cout<<" - from: "<< act->from << "\n - to: " << act->to << "\n - len: " << code.length();
 							code = wreplaceAll(
 								code, 
 								utf8_to_wstring(act->from),
 								utf8_to_wstring(act->to)
 							);
-							std::cout << "to" << code.length() << std::endl;
+							std::cout << "->" << code.length() << std::endl;
 						}
 
 						if (const auto& act = std::get_if<HijackActionAppend>(&hijack.action)) {
@@ -683,11 +684,11 @@ betterncm.utils.waitForElement('.g-sd').then(ele=>{
 							code = utf8_to_wstring(act->code) + code;
 					 	}
 						 
-						
-						std::visit([&hijack, this](const auto& value) {
-							std::lock_guard<std::shared_timed_mutex> guard(succeeded_hijacks_lock);
-							succeeded_hijacks.push_back(hijack.plugin_slug + "::" + value.id);
-						}, hijack.action);
+						if(previousCode!=code)
+							std::visit([&hijack, this](const auto& value) {
+								std::lock_guard<std::shared_timed_mutex> guard(succeeded_hijacks_lock);
+								succeeded_hijacks.push_back(hijack.plugin_slug + "::" + value.id);
+							}, hijack.action);
 						
 					}
 					catch (std::exception& e) {
