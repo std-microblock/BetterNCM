@@ -5,6 +5,8 @@
 extern const std::string version;
 std::map<std::string, std::shared_ptr<PluginNativeAPI>> plugin_native_apis;
 
+std::vector<std::shared_ptr<Plugin>> PluginsLoader::packedPlugins;
+
 auto ncmVer = util::getNCMExecutableVersion();
 const unsigned short ncmVersion[3] = { ncmVer.major, ncmVer.minor, ncmVer.patch };
 namespace fs = std::filesystem;
@@ -43,7 +45,68 @@ void from_json(const nlohmann::json& j, PluginManifest& p) {
 	p.betterncm_version = j.value("betterncm_version", "unknown");
 	p.preview = j.value("preview", "unknown");
 	p.injects = j.value("injects", std::map<std::string, std::vector<std::map<std::string, std::string>>>());
-	p.hijacks = j.value("hijacks", std::map<std::string, std::map<std::string, std::map<std::string, std::string>>>());
+
+	p.hijacks.clear();
+	if (j.count("hijacks")) {
+		const auto& hijack_version_map = j.at("hijacks");
+		for (auto version_it = hijack_version_map.begin(); version_it != hijack_version_map.end(); ++version_it) {
+			const auto& hijack_version = version_it.key();
+			HijackURLMap hijack_url_map;
+			const auto& hijack_url_map_json = version_it.value();
+			for (auto url_it = hijack_url_map_json.begin(); url_it != hijack_url_map_json.end(); ++url_it) {
+				const auto& hijack_url = url_it.key();
+				std::vector<HijackAction> hijack_actions;
+				auto& hijack_actions_json = url_it.value();
+
+				auto process_hijack_entry = [](nlohmann::json hijack_action_json) -> HijackAction {
+					const std::string type = hijack_action_json.at("type").get<std::string>();
+					const std::string id = hijack_action_json.value("id", "");
+
+					if (type == "regex") {
+						return HijackActionRegex{
+							id ,
+							hijack_action_json.at("from").get<std::string>(),
+							hijack_action_json.at("to").get<std::string>()
+							};
+					}
+
+					if (type == "replace") {
+						return HijackActionReplace{
+							id ,
+							hijack_action_json.at("from").get<std::string>(),
+							hijack_action_json.at("to").get<std::string>()
+							};
+					}
+
+					if (type == "append") {
+						return HijackActionAppend{
+							id ,
+							hijack_action_json.at("code").get<std::string>()
+							};
+					}
+
+					if (type == "prepend") {
+						return HijackActionPrepend{
+							 id ,
+							hijack_action_json.at("code").get<std::string>()
+							};
+					}
+				};
+
+				if (url_it->is_object()) {
+					hijack_actions.push_back(process_hijack_entry(url_it.value()));
+				}
+				else {
+					for (auto action_it = hijack_actions_json.begin(); action_it != hijack_actions_json.end(); ++action_it) 
+						hijack_actions.push_back(process_hijack_entry(*action_it));
+				}
+				
+				hijack_url_map[hijack_url] = hijack_actions;
+			}
+			p.hijacks[hijack_version] = hijack_url_map;
+		}
+	}
+
 	p.native_plugin = j.value("native_plugin", "\0");
 }
 
@@ -53,8 +116,8 @@ Plugin::Plugin(PluginManifest manifest, std::filesystem::path runtime_path) {
 }
 
 Plugin::~Plugin() {
-	if (this->hNativeDll)
-		FreeLibrary(this->hNativeDll);
+	/*if (this->hNativeDll)
+		FreeLibrary(this->hNativeDll);*/
 }
 
 void Plugin::loadNativePluginDll(NCMProcessType processType) {
@@ -92,23 +155,16 @@ void Plugin::loadNativePluginDll(NCMProcessType processType) {
 void PluginsLoader::loadAll() {
 	unloadAll();
 	loadRuntime();
-	loadDev();
 }
 
 void PluginsLoader::unloadAll() {
 	plugin_native_apis.clear();
-	plugins.clear();
-}
-
-void PluginsLoader::loadDev() {
-	loadInPath(datapath + L"/plugins_dev");
+	packedPlugins.clear();
 }
 
 void PluginsLoader::loadRuntime() {
-	loadInPath(datapath + L"/plugins_runtime");
+	packedPlugins = loadInPath(datapath + L"/plugins_runtime");
 }
-
-std::vector<Plugin> PluginsLoader::plugins;
 
 void PluginsLoader::extractPackedPlugins() {
 	util::write_file_text(datapath + L"/PLUGIN_EXTRACTING_LOCK.lock", "");
@@ -176,7 +232,38 @@ void PluginsLoader::extractPackedPlugins() {
 	fs::remove(datapath + L"/PLUGIN_EXTRACTING_LOCK.lock");
 }
 
-void PluginsLoader::loadInPath(std::wstring path) {
+std::vector<std::shared_ptr<Plugin>> PluginsLoader::getDevPlugins()
+{
+	return loadInPath(datapath + L"/plugins_dev");
+}
+
+
+std::vector<std::shared_ptr<Plugin>> PluginsLoader::getAllPlugins()
+{
+	std::vector<std::shared_ptr<Plugin>> tmp = getPackedPlugins();
+	auto devPlugins = getDevPlugins();
+	tmp.insert(tmp.end(), devPlugins.begin(), devPlugins.end());
+
+	std::sort(tmp.begin(), tmp.end(), [](const auto& a, const auto& b) {
+		return a->manifest.slug < b->manifest.slug;
+		});
+
+	auto last = std::unique(tmp.begin(), tmp.end(), [](const auto& a, const auto& b) {
+		return a->manifest.slug == b->manifest.slug;
+		});
+
+	tmp.erase(last, tmp.end());
+
+	return tmp;
+}
+
+std::vector<std::shared_ptr<Plugin>> PluginsLoader::getPackedPlugins()
+{
+	return PluginsLoader::packedPlugins;
+}
+
+std::vector<std::shared_ptr<Plugin>> PluginsLoader::loadInPath(const std::wstring& path) {
+	std::vector<std::shared_ptr<Plugin>> plugins;
 	if (fs::exists(path))
 		for (const auto& file : fs::directory_iterator(path)) {
 			try {
@@ -184,7 +271,7 @@ void PluginsLoader::loadInPath(std::wstring path) {
 					auto json = nlohmann::json::parse(util::read_to_string(file.path().string() + "/manifest.json"));
 					PluginManifest manifest;
 					json.get_to(manifest);
-					plugins.push_back(Plugin{ manifest, file.path() });
+					plugins.push_back(std::make_shared<Plugin>(manifest, file.path()));
 				}
 			}
 			catch (std::exception& e) {
@@ -193,4 +280,6 @@ void PluginsLoader::loadInPath(std::wstring path) {
 						what()), true);
 			}
 		}
+
+	return plugins;
 }

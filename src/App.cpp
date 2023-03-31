@@ -474,13 +474,13 @@ App::App() {
 	PluginsLoader::extractPackedPlugins();
 	PluginsLoader::loadAll();
 	if (readConfig("cc.microblock.betterncm.single-process", "false") == "true")
-		for (auto& plugin : PluginsLoader::plugins) {
+		for (auto& plugin : PluginsLoader::getAllPlugins()) {
 			using pt = NCMProcessType;
-			plugin.loadNativePluginDll(static_cast<pt>(Main | GpuProcess | Renderer));
+			plugin->loadNativePluginDll(static_cast<pt>(Main | GpuProcess | Renderer));
 		}
 	else {
-		for (auto& plugin : PluginsLoader::plugins) {
-			plugin.loadNativePluginDll(Main);
+		for (auto& plugin : PluginsLoader::getAllPlugins()) {
+			plugin->loadNativePluginDll(Main);
 		}
 	}
 
@@ -611,124 +611,84 @@ betterncm.utils.waitForElement('.g-sd').then(ele=>{
 		}
 	};
 
-	auto loadHijacking = [&](const std::string& path, const bool dev = false) {
-		std::vector<nlohmann::json> satisfied_hijacks;
-		if (fs::exists(path))
-			for (const auto& file : fs::directory_iterator(path)) {
-				try {
-					if (fs::exists(file.path().string() + "/manifest.json")) {
-						auto json = nlohmann::json::parse(read_to_string(file.path().string() + "/manifest.json"));
-						auto slug = json["name"].get<std::string>();
-						// skip if have same slug in PluginsLoader::plugins
-						if (dev && std::find_if(PluginsLoader::plugins.begin(), PluginsLoader::plugins.end(),
-						                        [&](const auto& plugin) {
-							                        return plugin.manifest.name == slug;
-						                        }
-						) != PluginsLoader::plugins.end())
-							continue;
-
-						for (auto& [version, hijack] : json["hijacks"].items()) {
-							if (semver::range::satisfies(getNCMExecutableVersion(), version)) {
-								for (auto& hij : hijack) {
-									if (hij.is_array())
-										for (auto& hij_unit : hij) {
-											hij_unit["base_path"] = file.path().string();
-											hij_unit["plugin_name"] = json["name"];
-										}
-									else {
-										hij["base_path"] = file.path().string();
-										hij["plugin_name"] = json["name"];
-									}
-								}
-
-								satisfied_hijacks.push_back(hijack);
-								break;
-							}
-						}
-					}
-				}
-				catch (std::invalid_argument e) {
-					write_file_text(datapath.utf8() + "/log.log",
-					                std::string("\n[" + file.path().string() + "]Plugin Hijacking Error: ") + (e.
-						                what()), true);
-				}
-			}
-		return satisfied_hijacks;
-	};
-
-	std::vector<nlohmann::json> satisfied_hijacks = loadHijacking(datapath.utf8() + "/plugins_runtime");
-
-
 	EasyCEFHooks::onHijackRequest = [=](std::string url) -> std::function<std::wstring(std::wstring)> {
 		if (readConfig("cc.microblock.betterncm.cpp_side_inject_feature_disabled", "false") == "true")return nullptr;
-		std::vector<nlohmann::json> this_hijacks;
+		std::vector<PluginHijackAction> hijack_actions;
+		auto ncmVersion = getNCMExecutableVersion();
 
-		auto filter_hijacks = [&](std::vector<nlohmann::json> full) {
-			for (const auto& hijack : full)
-				for (const auto& [hij_url, hij] : hijack.items()) {
-					if (pystring::startswith(url, hij_url)) {
-						std::vector<nlohmann::json> hijs = {};
+		for (const auto& plugin : PluginsLoader::getAllPlugins()) {
+			for(const auto& [version_req, hijacks_actions]: plugin->manifest.hijacks) {
+				if(semver::range::satisfies(ncmVersion,version_req))
+				for (const auto& [hijack_url, actions] : hijacks_actions) {
+					if (url.starts_with(hijack_url)) {
+						for (const auto& action : actions) {
+							hijack_actions.push_back(
+								PluginHijackAction{
+									action,
+									plugin->manifest.slug,
+									hijack_url
+								}
+							);
+						}
 
-						if (hij.is_array())
-							hijs = hij.get<std::vector<nlohmann::json>>();
-						else if (hij.is_object())
-							hijs = std::vector<nlohmann::json>{hij};
-
-						this_hijacks.insert(this_hijacks.end(), hijs.begin(), hijs.end());
 					}
 				}
-		};
-
-		filter_hijacks(satisfied_hijacks);
-
-		auto satisfied_hijacks_dev = loadHijacking(datapath.utf8() + "/plugins_dev", true);
-		filter_hijacks(satisfied_hijacks_dev);
+			}
+		}
 
 		std::function<std::wstring(std::wstring)> processor = nullptr;
 
 		if (pystring::startswith(url, "orpheus://orpheus/pub/app.html"))
-			this_hijacks.push_back(nlohmann::json({
-					{"type", "replace"},
-					{"from", R"(<body )"},
-					{
-						"to", R"(
+			hijack_actions.push_back(
+				PluginHijackAction{
+					HijackActionReplace{
+						"splash_screen",
+						"<body ",
+						R"(
 
 <div id=loadingMask style="position: absolute; inset: 0px; background: linear-gradient(54deg, rgb(49, 16, 37), rgb(25, 37, 64)); z-index: 1000; display: flex; justify-content: center; align-items: center; pointer-events: none; opacity: 1;">
-<div><svg fill="#ffffffcc"><use xlink:href="orpheus://orpheus/style/res/svg/topbar.sp.svg#logo_white"></use></svg></div></div><body )"
+<div><svg fill="#ffffffcc"><use xlink:href="orpheus://orpheus/style/res/svg/topbar.sp.svg#logo_white"></use></svg></div></div><body )",
+						
 					},
-					{"plugin_name", "betterncm"},
-					{"id", "splash_screen"}
-				}));
+					"betterncm",
+					"orpheus://orpheus/pub/app.html",
+					
+				}
+		);
 
-		if (this_hijacks.size())
+		if (hijack_actions.size())
 			processor = [=](std::wstring code) {
-				for (const auto hijack : this_hijacks) {
+				for (const auto& hijack : hijack_actions) {
 					try {
-						if (hijack["type"].get<std::string>() == "regex") {
-							const std::wregex hijack_regex{utf8_to_wstring(hijack["from"].get<std::string>())};
-							code = std::regex_replace(code, hijack_regex,
-							                          utf8_to_wstring(hijack["to"].get<std::string>()));
+						if(const auto& act= std::get_if<HijackActionRegex>(&hijack.action)) {
+							const std::wregex hijack_regex{ utf8_to_wstring(act->from) };
+							code = std::regex_replace(code, hijack_regex, utf8_to_wstring(act->to));
 						}
 
-						if (hijack["type"].get<std::string>() == "replace") {
-							code = wreplaceAll(code, utf8_to_wstring(hijack["from"].get<std::string>()),
-							                   utf8_to_wstring(hijack["to"].get<std::string>()));
+						if (const auto& act = std::get_if<HijackActionReplace>(&hijack.action)) {
+							std::cout<<"from: "<< act->from << " to: " << act->to << "len from" << code.length();
+							code = wreplaceAll(
+								code, 
+								utf8_to_wstring(act->from),
+								utf8_to_wstring(act->to)
+							);
+							std::cout << "to" << code.length() << std::endl;
 						}
 
-						if (hijack["type"].get<std::string>() == "append") {
-							code += utf8_to_wstring(hijack["code"].get<std::string>());
+						if (const auto& act = std::get_if<HijackActionAppend>(&hijack.action)) {
+							code += utf8_to_wstring(act->code);
 						}
 
-						if (hijack["type"].get<std::string>() == "prepend") {
-							code = utf8_to_wstring(hijack["code"].get<std::string>()) + code;
-						}
-
-						std::string id = "<missing_id>";
-						if (hijack.contains("id") && hijack["id"].is_string())
-							id = hijack["id"].get<std::string>();
-
-						std::lock_guard<std::shared_timed_mutex> guard(succeeded_hijacks_lock);
-						succeeded_hijacks.push_back(hijack["plugin_name"].get<std::string>() + "::" + id);
+						if (const auto& act = std::get_if<HijackActionPrepend>(&hijack.action)) {
+							code = utf8_to_wstring(act->code) + code;
+					 	}
+						 
+						
+						std::visit([&hijack, this](const auto& value) {
+							std::lock_guard<std::shared_timed_mutex> guard(succeeded_hijacks_lock);
+							succeeded_hijacks.push_back(hijack.plugin_slug + "::" + value.id);
+						}, hijack.action);
+						
 					}
 					catch (std::exception& e) {
 						std::cout << "Failed to hijack: " << e.what() << std::endl;

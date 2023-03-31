@@ -6,6 +6,7 @@
 
 #define NATIVE_PLUGIN_CPP_EXTENSIONS
 #include <BetterNCMNativePlugin.h>
+#include <variant>
 #include <utils/BNString.hpp>
 
 
@@ -18,6 +19,39 @@ struct PluginNativeAPI {
 
 extern std::map<std::string, std::shared_ptr<PluginNativeAPI>> plugin_native_apis;
 
+struct HijackActionBase {
+	std::string id;
+};
+
+struct HijackActionReplace: HijackActionBase {
+	std::string from;
+	std::string to;
+};
+
+struct HijackActionRegex: HijackActionBase {
+	std::string from;
+	std::string to;
+};
+
+struct HijackActionPrepend: HijackActionBase {
+	std::string code;
+};
+
+struct HijackActionAppend: HijackActionBase {
+	std::string code;
+};
+
+typedef std::variant<HijackActionReplace, HijackActionRegex, HijackActionPrepend, HijackActionAppend> HijackAction;
+
+struct PluginHijackAction {
+	HijackAction action;
+	std::string plugin_slug;
+	std::string url;
+};
+
+typedef std::map<std::string, std::vector<HijackAction>> HijackURLMap;
+typedef std::map<std::string, HijackURLMap> HijackVersionMap;
+
 struct PluginManifest {
 	int manifest_version;
 	std::string name;
@@ -29,7 +63,7 @@ struct PluginManifest {
 	std::string preview;
 
 	std::map<std::string, std::vector<std::map<std::string, std::string>>> injects;
-	std::map<std::string, std::map<std::string, std::map<std::string, std::string>>> hijacks;
+	HijackVersionMap hijacks;
 	std::string native_plugin;
 };
 
@@ -37,7 +71,7 @@ struct PluginManifest {
 void from_json(const nlohmann::json& j, PluginManifest& p);
 
 class Plugin {
-	HMODULE hNativeDll;
+	HMODULE hNativeDll=nullptr;
 
 public:
 	Plugin(PluginManifest manifest,
@@ -49,15 +83,16 @@ public:
 };
 
 class PluginsLoader {
-	static void loadInPath(std::wstring path);
-
+	static std::vector<std::shared_ptr<Plugin>> loadInPath(const std::wstring& path);
+	static std::vector<std::shared_ptr<Plugin>> packedPlugins;
 public:
 	static void loadAll();
 	static void unloadAll();
-	static void loadDev();
 	static void loadRuntime();
 	static void extractPackedPlugins();
-	static std::vector<Plugin> plugins;
+	static std::vector<std::shared_ptr<Plugin>> getDevPlugins();
+	static std::vector<std::shared_ptr<Plugin>> getAllPlugins();
+	static std::vector<std::shared_ptr<Plugin>> getPackedPlugins();
 };
 
 using BetterNCMPluginMainFunc = int(*)(BetterNCMNativePlugin::PluginAPI*);

@@ -129,14 +129,14 @@ private:
 	}
 
 public:
-	static BNString fromGBK(const std::string& const s) {
+	static BNString fromGBK(const std::string& s) {
 		return BNString(gbk_to_wstring(s));
 	}
 
 	BNString() : std::wstring() {
 	}
 
-	BNString(const std::string const s) {
+	BNString(const std::string s) {
 		*this = utf8_to_wstring(s);
 	}
 
@@ -144,7 +144,7 @@ public:
 		*this = BNString(std::string(s));
 	}
 
-	BNString(const std::wstring const s) : std::wstring(s) {
+	BNString(const std::wstring s) : std::wstring(s) {
 	}
 
 

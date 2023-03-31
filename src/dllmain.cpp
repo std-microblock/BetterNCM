@@ -392,15 +392,15 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved) {
 
 					PluginsLoader::loadAll();
 
-					for (auto& plugin : PluginsLoader::plugins) {
-						plugin.loadNativePluginDll(process_type);
+					for (auto& plugin : PluginsLoader::getAllPlugins()) {
+						plugin->loadNativePluginDll(process_type);
 					}
 				}
 				else {
 					PluginsLoader::loadAll();
 
-					for (auto& plugin : PluginsLoader::plugins) {
-						plugin.loadNativePluginDll(process_type);
+					for (auto& plugin : PluginsLoader::getAllPlugins()) {
+						plugin->loadNativePluginDll(process_type);
 					}
 				}
 			}
