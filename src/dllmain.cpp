@@ -6,7 +6,7 @@
 #include "resource.h"
 #include "utils/utils.h"
 #include <stdlib.h>
-#include <NativePlugin.h>
+#include <PluginLoader.h>
 #include <dbghelp.h>
 #pragma comment(lib, "dbghelp.lib")
 

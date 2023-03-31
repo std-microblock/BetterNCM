@@ -1,5 +1,6 @@
 #include "pch.h"
-#include "NativePlugin.h"
+#include "PluginLoader.h"
+
 #include <utils/utils.h>
 extern const std::string version;
 std::map<std::string, std::shared_ptr<PluginNativeAPI>> plugin_native_apis;
@@ -71,7 +72,7 @@ void Plugin::loadNativePluginDll(NCMProcessType processType) {
 
 
 			auto pluginAPI = new BetterNCMNativePlugin::PluginAPI{
-					processType == Renderer ? addNativeAPI : addNativeAPIEmpty,
+					processType & Renderer ? addNativeAPI : addNativeAPIEmpty,
 					version.c_str(),
 					processType,
 					&ncmVersion

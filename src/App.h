@@ -4,7 +4,7 @@
 #include "shellapi.h"
 #include <mutex>
 #include <shared_mutex>
-#include "NativePlugin.h"
+#include "PluginLoader.h"
 extern const std::string version;
 
 class App {
