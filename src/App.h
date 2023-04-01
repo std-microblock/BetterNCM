@@ -4,7 +4,7 @@
 #include "shellapi.h"
 #include <mutex>
 #include <shared_mutex>
-#include "PluginLoader.h"
+#include "PluginManager.h"
 #include "utils/Interprocess.hpp"
 extern const std::string version;
 
@@ -18,7 +18,7 @@ class App {
 	std::shared_timed_mutex succeeded_hijacks_lock;
 	std::vector<std::string> succeeded_hijacks;
 	void parseConfig();
-
+	
 public:
 	App();
 	~App();

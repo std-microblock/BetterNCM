@@ -201,7 +201,7 @@ npm run build</Command>
     <ClInclude Include="src\EasyCEFHooks.h" />
     <ClInclude Include="src\ErrorHandler.h" />
     <ClInclude Include="src\framework.h" />
-    <ClInclude Include="src\PluginLoader.h" />
+    <ClInclude Include="src\PluginManager.h" />
     <ClInclude Include="src\pch.h" />
     <ClInclude Include="src\resource.h" />
     <ClInclude Include="src\utils\BNString.hpp" />
@@ -213,7 +213,7 @@ npm run build</Command>
     <ClCompile Include="src\dllmain.cpp" />
     <ClCompile Include="src\EasyCEFHooks.cpp" />
     <ClCompile Include="src\ErrorHandler.cpp" />
-    <ClCompile Include="src\PluginLoader.cpp" />
+    <ClCompile Include="src\PluginManager.cpp" />
     <ClCompile Include="src\pch.cpp" />
     <ClCompile Include="src\utils\utils.cpp" />
     <ClCompile Include="src\v8NativeCalls.cpp" />

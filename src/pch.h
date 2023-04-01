@@ -28,5 +28,6 @@
 #include <thread>
 #include "neargye/semver.hpp"
 #include "kubazip/zip/zip.h"
+#include <WinInet.h>
 
 #endif //PCH_H

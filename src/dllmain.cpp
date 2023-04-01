@@ -6,9 +6,9 @@
 #include "resource.h"
 #include "utils/utils.h"
 #include <stdlib.h>
-#include <PluginLoader.h>
+#include <PluginManager.h>
 #pragma comment(lib, "dbghelp.lib")
-
+#pragma comment(lib, "Wininet.lib")
 
 #pragma comment(linker, "/EXPORT:vSetDdrawflag=_AheadLib_vSetDdrawflag,@1")
 #pragma comment(linker, "/EXPORT:AlphaBlend=_AheadLib_AlphaBlend,@2")
@@ -185,14 +185,17 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved) {
 						std::filesystem::perms::owner_write)) {
 						// Create data folder
 						fs::create_directories(datapath + L"/plugins");
+						
 						// PluginMarket
-						HRSRC myResource = ::FindResource(hModule, MAKEINTRESOURCE(IDR_RCDATA1), RT_RCDATA);
-						unsigned int myResourceSize = SizeofResource(hModule, myResource);
-						HGLOBAL myResourceData = LoadResource(hModule, myResource);
-						void* pMyBinaryData = LockResource(myResourceData);
-						std::ofstream f(datapath + L"/plugins/PluginMarket.plugin", std::ios::out | std::ios::binary);
-						f.write(static_cast<char*>(pMyBinaryData), myResourceSize);
-						f.close();
+						if (!fs::exists(datapath + L"/plugins/PluginMarket.plugin")) {
+							HRSRC myResource = ::FindResource(hModule, MAKEINTRESOURCE(IDR_RCDATA1), RT_RCDATA);
+							unsigned int myResourceSize = SizeofResource(hModule, myResource);
+							HGLOBAL myResourceData = LoadResource(hModule, myResource);
+							void* pMyBinaryData = LockResource(myResourceData);
+							std::ofstream f(datapath + L"/plugins/PluginMarket.plugin", std::ios::out | std::ios::binary);
+							f.write(static_cast<char*>(pMyBinaryData), myResourceSize);
+							f.close();
+						}
 
 						// Inject NCM
 						app = new App();
@@ -204,16 +207,16 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved) {
 				else if (process_type == Renderer) {
 					EasyCEFHooks::InstallHooks();
 
-					PluginsLoader::loadAll();
+					PluginManager::loadAll();
 					SetUnhandledExceptionFilter(BNUnhandledExceptionFilter);
-					for (auto& plugin : PluginsLoader::getAllPlugins()) {
+					for (auto& plugin : PluginManager::getAllPlugins()) {
 						plugin->loadNativePluginDll(process_type);
 					}
 				}
 				else {
-					PluginsLoader::loadAll();
+					PluginManager::loadAll();
 					SetUnhandledExceptionFilter(BNUnhandledExceptionFilter);
-					for (auto& plugin : PluginsLoader::getAllPlugins()) {
+					for (auto& plugin : PluginManager::getAllPlugins()) {
 						plugin->loadNativePluginDll(process_type);
 					}
 				}

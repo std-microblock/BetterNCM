@@ -424,6 +424,89 @@ close:
 	CloseHandle(hEvent);
 }
 
+bool util::DownloadFile(const BNString& url, const BNString& dest)
+{
+	// Initialize WinInet library
+	HINTERNET hInternet = InternetOpenW(L"Download", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
+	if (!hInternet)
+	{
+		return FALSE;
+	}
+
+	// Open the URL
+	HINTERNET hUrl = InternetOpenUrlW(hInternet, url.c_str(), NULL, 0, INTERNET_FLAG_RELOAD, 0);
+	if (!hUrl)
+	{
+		InternetCloseHandle(hInternet);
+		return FALSE;
+	}
+
+	// Create a file at the destination path
+	HANDLE hFile = CreateFileW(
+		dest.c_str(),
+		GENERIC_WRITE,
+		0,
+		NULL,
+		CREATE_ALWAYS,
+		FILE_ATTRIBUTE_NORMAL,
+		NULL
+	);
+	if (hFile == INVALID_HANDLE_VALUE)
+	{
+		InternetCloseHandle(hUrl);
+		InternetCloseHandle(hInternet);
+		return FALSE;
+	}
+
+	// Download the file and write to the created file
+	DWORD dwBytesRead = 0;
+	BOOL bResult = FALSE;
+	CHAR szBuffer[4096];
+	while (InternetReadFile(hUrl, szBuffer, 4096, &dwBytesRead) && dwBytesRead)
+	{
+		DWORD dwBytesWritten = 0;
+		bResult = WriteFile(hFile, szBuffer, dwBytesRead, &dwBytesWritten, NULL);
+		if (!bResult)
+		{
+			break;
+		}
+	}
+
+	// Clean up
+	CloseHandle(hFile);
+	InternetCloseHandle(hUrl);
+	InternetCloseHandle(hInternet);
+
+	return bResult;
+}
+
+BNString util::FetchWebContent(const BNString& url)
+{
+	HINTERNET hInternet = InternetOpenW(L"WinINetExample", INTERNET_OPEN_TYPE_PRECONFIG, NULL, NULL, 0);
+	if (hInternet == NULL) {
+		return "";
+	}
+
+	HINTERNET hUrl = InternetOpenUrlW(hInternet, url.c_str(), NULL, 0, INTERNET_FLAG_RELOAD, 0);
+	if (hUrl == NULL) {
+		InternetCloseHandle(hInternet);
+		return "";
+	}
+
+	std::string content;
+
+	DWORD bytesRead = 0;
+	char buffer[1024];
+	while (InternetReadFile(hUrl, buffer, sizeof(buffer), &bytesRead) && bytesRead != 0) {
+		std::string temp(buffer, bytesRead);
+		content += std::string(temp.begin(), temp.end());
+	}
+
+	InternetCloseHandle(hUrl);
+	InternetCloseHandle(hInternet);
+
+	return content;
+}
 
 void util::restartNCM() {
 	WCHAR szProcessName[MAX_PATH];

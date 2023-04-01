@@ -76,18 +76,41 @@ class Plugin {
 
 public:
 	Plugin(PluginManifest manifest,
-		std::filesystem::path runtime_path);
+		std::filesystem::path runtime_path,
+		std::optional<std::filesystem::path> packed_file_path);
 	~Plugin();
 	PluginManifest manifest;
 	std::filesystem::path runtime_path;
+	std::optional<std::filesystem::path> packed_file_path;
 	void loadNativePluginDll(NCMProcessType processType);
 	std::optional<std::string> getStartupScript();
 };
 
-class PluginsLoader {
+struct RemotePlugin {
+	std::string name;
+	std::string author;
+	std::string version;
+	std::string description;
+	std::string betterncm_version;
+	std::string preview;
+	std::string slug;
+	uint64_t update_time;
+	uint64_t publish_time;
+	std::string repo;
+	std::string file;
+	std::string file_url;
+	boolean force_install;
+	boolean force_uninstall;
+	std::string force_update;
+};
+
+
+class PluginManager {
 	static std::vector<std::shared_ptr<Plugin>> loadInPath(const std::wstring& path);
 	static std::vector<std::shared_ptr<Plugin>> packedPlugins;
+	static void performForceInstallAndUpdateSync(const std::string& source);
 public:
+	static void performForceInstallAndUpdateAsync(const std::string& source);
 	static void loadAll();
 	static void unloadAll();
 	static void loadRuntime();

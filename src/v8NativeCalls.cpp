@@ -5,7 +5,7 @@
 #include "EasyCEFHooks.h"
 #include<variant>
 #include "App.h"
-#include <PluginLoader.h>
+#include <PluginManager.h>
 #include <shlobj.h>
 using cef_str_arg = cef_string_userfree_t;
 extern BNString datapath;

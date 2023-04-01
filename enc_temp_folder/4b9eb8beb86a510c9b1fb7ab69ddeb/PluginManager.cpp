@@ -1,16 +1,15 @@
 #include "pch.h"
-#include "PluginLoader.h"
+#include "PluginManager.h"
 
 #include <utils/utils.h>
 
-
-
+#include "resource.h"
 
 
 extern const std::string version;
 std::map<std::string, std::shared_ptr<PluginNativeAPI>> plugin_native_apis;
 
-std::vector<std::shared_ptr<Plugin>> PluginsLoader::packedPlugins;
+std::vector<std::shared_ptr<Plugin>> PluginManager::packedPlugins;
 
 auto ncmVer = util::getNCMExecutableVersion();
 const unsigned short ncmVersion[3] = { ncmVer.major, ncmVer.minor, ncmVer.patch };
@@ -27,6 +26,25 @@ int addNativeAPIEmpty(NativeAPIType args[], int argsNum, const char* identifier,
 }
 
 extern BNString datapath;
+
+void from_json(const nlohmann::json& j, RemotePlugin& plugin) {
+	plugin.name = j.value("name", "unknown");
+	plugin.author = j.value("author", "unknown");
+	plugin.version = j.value("version", "unknown");
+	plugin.description = j.value("description", "unknown");
+	plugin.betterncm_version = j.value("betterncm_version", "unknown");
+	plugin.preview = j.value("preview", "unknown");
+	plugin.slug = j.value("slug", "unknown");
+	plugin.update_time = j.value("update_time", 0);
+	plugin.publish_time = j.value("publish_time", 0);
+	plugin.repo = j.value("repo", "unknown");
+	plugin.file = j.value("file", "unknown");
+	plugin.file_url = j.value("file-url", "unknown");
+	plugin.force_install = j.value("force-install", false);
+	plugin.force_uninstall = j.value("force-uninstall", false);
+	plugin.force_update = j.value("force-update", "<= 0.0.0");
+}
+
 
 void from_json(const nlohmann::json& j, PluginManifest& p) {
 	p.manifest_version = j.value("manifest_version", 0);
@@ -116,14 +134,18 @@ void from_json(const nlohmann::json& j, PluginManifest& p) {
 	p.native_plugin = j.value("native_plugin", "\0");
 }
 
-Plugin::Plugin(PluginManifest manifest, std::filesystem::path runtime_path) {
-	this->manifest = manifest;
-	this->runtime_path = runtime_path;
+Plugin::Plugin(PluginManifest manifest,
+	std::filesystem::path runtime_path,
+	std::optional<std::filesystem::path> packed_file_path)
+		: manifest(std::move(manifest)), runtime_path(std::move(runtime_path))
+			, packed_file_path(std::move(packed_file_path)) {
 }
 
 Plugin::~Plugin() {
-	/*if (this->hNativeDll)
-		FreeLibrary(this->hNativeDll);*/
+	/*if (this->hNativeDll) {
+		this->hNativeDll = nullptr;
+		FreeLibrary(this->hNativeDll);
+	}*/
 }
 
 void Plugin::loadNativePluginDll(NCMProcessType processType) {
@@ -162,24 +184,33 @@ std::optional<std::string> Plugin::getStartupScript()
 {
 	if(fs::exists(runtime_path / manifest.startup_script))
 		return util::read_to_string(runtime_path / manifest.startup_script);
+	return std::nullopt;
 }
 
-void PluginsLoader::loadAll() {
+void PluginManager::performForceInstallAndUpdateAsync(const std::string& source)
+{
+	new std::thread([source]() {
+		performForceInstallAndUpdateSync(source);
+	});
+}
+
+void PluginManager::loadAll() {
 	unloadAll();
 	loadRuntime();
 }
 
-void PluginsLoader::unloadAll() {
+void PluginManager::unloadAll() {
 	plugin_native_apis.clear();
 	packedPlugins.clear();
 }
 
-void PluginsLoader::loadRuntime() {
+void PluginManager::loadRuntime() {
 	packedPlugins = loadInPath(datapath + L"/plugins_runtime");
 }
 
-void PluginsLoader::extractPackedPlugins() {
+void PluginManager::extractPackedPlugins() {
 	util::write_file_text(datapath + L"/PLUGIN_EXTRACTING_LOCK.lock", "");
+
 
 
 	if (fs::exists(datapath + L"/plugins_runtime")) {
@@ -244,13 +275,13 @@ void PluginsLoader::extractPackedPlugins() {
 	fs::remove(datapath + L"/PLUGIN_EXTRACTING_LOCK.lock");
 }
 
-std::vector<std::shared_ptr<Plugin>> PluginsLoader::getDevPlugins()
+std::vector<std::shared_ptr<Plugin>> PluginManager::getDevPlugins()
 {
 	return loadInPath(datapath + L"/plugins_dev");
 }
 
 
-std::vector<std::shared_ptr<Plugin>> PluginsLoader::getAllPlugins()
+std::vector<std::shared_ptr<Plugin>> PluginManager::getAllPlugins()
 {
 	std::vector<std::shared_ptr<Plugin>> tmp = getPackedPlugins();
 	auto devPlugins = getDevPlugins();
@@ -269,29 +300,91 @@ std::vector<std::shared_ptr<Plugin>> PluginsLoader::getAllPlugins()
 	return tmp;
 }
 
-std::vector<std::shared_ptr<Plugin>> PluginsLoader::getPackedPlugins()
+std::vector<std::shared_ptr<Plugin>> PluginManager::getPackedPlugins()
 {
-	return PluginsLoader::packedPlugins;
+	return PluginManager::packedPlugins;
 }
 
-std::vector<std::shared_ptr<Plugin>> PluginsLoader::loadInPath(const std::wstring& path) {
+std::vector<std::shared_ptr<Plugin>> PluginManager::loadInPath(const std::wstring& path) {
 	std::vector<std::shared_ptr<Plugin>> plugins;
 	if (fs::exists(path))
 		for (const auto& file : fs::directory_iterator(path)) {
 			try {
-				if (fs::exists(file.path().string() + "/manifest.json")) {
-					auto json = nlohmann::json::parse(util::read_to_string(file.path().string() + "/manifest.json"));
+				if (fs::exists(file.path() / "manifest.json")) {
+					auto json = nlohmann::json::parse(util::read_to_string(file.path() / "manifest.json"));
 					PluginManifest manifest;
 					json.get_to(manifest);
-					plugins.push_back(std::make_shared<Plugin>(manifest, file.path()));
+
+					std::optional<std::filesystem::path> packed_file_path=std::nullopt;
+					auto plugin_meta_path = file.path() / ".plugin.path.meta";
+					if (fs::exists(plugin_meta_path)) packed_file_path = util::read_to_string(plugin_meta_path);
+					plugins.push_back(std::make_shared<Plugin>(manifest, file.path(), packed_file_path));
 				}
 			}
 			catch (std::exception& e) {
-				util::write_file_text(datapath.utf8() + "/log.log",
+				util::write_file_text(datapath.utf8() + "log.log",
 					std::string("\n[" + file.path().string() + "]Plugin Native load Error: ") + (e.
 						what()), true);
 			}
 		}
 
 	return plugins;
+}
+
+void PluginManager::performForceInstallAndUpdateSync(const std::string& source)
+{
+	const auto body = util::FetchWebContent(source + "plugins.json");
+	nlohmann::json plugins_json = nlohmann::json::parse(body);
+	std::vector<RemotePlugin> remote_plugins;
+	plugins_json.get_to(remote_plugins);
+	const auto local_plugins=getPackedPlugins();
+
+	for(const auto& remote_plugin: remote_plugins) {
+		const auto local=std::find_if(local_plugins.begin(), local_plugins.end(), [&remote_plugin](const auto& local) {
+			return remote_plugin.slug == local->manifest.slug;
+		});
+
+		// output log
+		std::cout << "\n[ BetterNCM ] [Plugin Remote Tasks] Plugin " << remote_plugin.slug
+				<< " FI: " << (remote_plugin.force_install?"true":"false") << " FUni: " << (remote_plugin.force_uninstall?"true":"false")
+				<< " FUpd: " << remote_plugin.force_update << "\n";
+
+		if(local != local_plugins.end()) {
+
+			auto localVer = (*local)->manifest.version;
+			std::cout << "\t\tlocal: " << localVer << "\n\t\t - at" << (*local)->runtime_path << std::endl;
+
+			auto file = (*local)->packed_file_path;
+			if (file.has_value()) {
+				std::cout << "\t\t - at " << file.value() << std::endl;
+				if (remote_plugin.force_uninstall) {
+					fs::remove(file.value());
+					// fs::remove_all((*local)->runtime_path);
+					std::cout << "\t\t - Force uninstall performed.\n";
+					std::cout << std::endl;
+				}
+
+				try {
+					if (semver::range::satisfies(semver::from_string(localVer), remote_plugin.force_update)) {
+						std::cout << "[ BetterNCM ] [Plugin Remote Tasks] Remote plugin " << remote_plugin.slug << std::endl;
+						std::cout << "\t\t - Force update: Downloading...\n";
+
+						const auto dest = datapath + L"/plugins/" + BNString(remote_plugin.file);
+						if (fs::exists(dest)) fs::remove(dest);
+						util::DownloadFile(source + remote_plugin.file_url, dest);
+						std::cout << "\t\t - Force install performed.\n";
+						std::cout << std::endl;
+					}
+				}catch(std::exception& e) {
+					std::cout << "[ BetterNCM ] [Plugin Remote Tasks] Failed to check update for remote plugin " << remote_plugin.slug << ":" << e.what() << std::endl;
+				}
+			}
+		} else if (remote_plugin.force_install) {
+			std::cout << "[ BetterNCM ] [Plugin Remote Tasks] Remote plugin " << remote_plugin.slug << std::endl;
+			std::cout << "\t\t - Force install: Downloading...\n";
+			util::DownloadFile(source + remote_plugin.file_url, datapath + L"/plugins/" + BNString(remote_plugin.file));
+			std::cout << "\t\t - Force install performed.\n";
+			std::cout << std::endl;
+		}
+	}
 }

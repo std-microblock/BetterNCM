@@ -3,7 +3,7 @@
 #include <Windows.h>
 #include "dwmapi.h"
 #include "CommDlg.h"
-#include <PluginLoader.h>
+#include <PluginManager.h>
 #include <ErrorHandler.h>
 
 #include "utils/Interprocess.hpp"
@@ -351,7 +351,7 @@ std::thread* App::create_server(const std::string& apiKey) {
 
 		svr->Get("/api/app/reload_plugin", [&](const httplib::Request& req, httplib::Response& res) {
 			checkApiKey;
-			PluginsLoader::extractPackedPlugins();
+			PluginManager::extractPackedPlugins();
 			res.status = 200;
 		});
 
@@ -474,15 +474,16 @@ App::App() {
 
 	parseConfig();
 	
-	PluginsLoader::extractPackedPlugins();
-	PluginsLoader::loadAll();
+	PluginManager::extractPackedPlugins();
+	PluginManager::loadAll();
+	PluginManager::performForceInstallAndUpdateAsync("https://gitee.com/microblock/BetterNCMPluginsMarketData/raw/master/");
 	if (readConfig("cc.microblock.betterncm.single-process", "false") == "true")
-		for (auto& plugin : PluginsLoader::getAllPlugins()) {
+		for (auto& plugin : PluginManager::getAllPlugins()) {
 			using pt = NCMProcessType;
 			plugin->loadNativePluginDll(static_cast<pt>(Main | GpuProcess | Renderer));
 		}
 	else {
-		for (auto& plugin : PluginsLoader::getAllPlugins()) {
+		for (auto& plugin : PluginManager::getAllPlugins()) {
 			plugin->loadNativePluginDll(Main);
 		}
 	}
@@ -594,7 +595,7 @@ betterncm.utils.waitForElement('.g-sd').then(ele=>{
 			
 
 			if (readConfig("cc.microblock.betterncm.cpp_side_inject_feature_disabled", "false") != "true") {
-				for (const auto &plugin : PluginsLoader::getAllPlugins()) {
+				for (const auto &plugin : PluginManager::getAllPlugins()) {
 					auto script = plugin->getStartupScript();
 					if (script.has_value())
 						EasyCEFHooks::executeJavaScript(
@@ -610,7 +611,7 @@ betterncm.utils.waitForElement('.g-sd').then(ele=>{
 		std::vector<PluginHijackAction> hijack_actions;
 		auto ncmVersion = getNCMExecutableVersion();
 
-		for (const auto& plugin : PluginsLoader::getAllPlugins()) {
+		for (const auto& plugin : PluginManager::getAllPlugins()) {
 			for(const auto& [version_req, hijacks_actions]: plugin->manifest.hijacks) {
 				if(semver::range::satisfies(ncmVersion,version_req))
 				for (const auto& [hijack_url, actions] : hijacks_actions) {

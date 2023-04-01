@@ -74,4 +74,7 @@ namespace util {
 	void exec(std::wstring cmd, bool ele, bool showWindow = false);
 	void killNCM();
 	void watchDir(const BNString& directory, std::function<bool(BNString, BNString)>);
+
+	bool DownloadFile(const BNString& url, const BNString& dest);
+	BNString FetchWebContent(const BNString& url);
 }
