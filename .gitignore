@@ -48,6 +48,7 @@ src/js-framework/package-lock.json
 
 # VS
 *.vcxproj.user
+enc_temp_folder
 
 # VCPKG packages
 vcpkg_installed/
