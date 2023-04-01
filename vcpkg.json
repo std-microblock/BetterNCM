@@ -11,7 +11,8 @@
       "detours",
       "nlohmann-json",
       "kubazip",
-      "neargye-semver"
+      "neargye-semver",
+      "fltk"
     ],
     "maintainers":["MicroBlock <microblock@qq.com>"],
     "supports":"windows"
