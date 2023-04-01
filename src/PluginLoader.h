@@ -61,6 +61,7 @@ struct PluginManifest {
 	std::string description;
 	std::string betterncm_version;
 	std::string preview;
+	std::string startup_script;
 
 	std::map<std::string, std::vector<std::map<std::string, std::string>>> injects;
 	HijackVersionMap hijacks;
@@ -80,6 +81,7 @@ public:
 	PluginManifest manifest;
 	std::filesystem::path runtime_path;
 	void loadNativePluginDll(NCMProcessType processType);
+	std::optional<std::string> getStartupScript();
 };
 
 class PluginsLoader {

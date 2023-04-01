@@ -2,6 +2,11 @@
 #include "PluginLoader.h"
 
 #include <utils/utils.h>
+
+
+
+
+
 extern const std::string version;
 std::map<std::string, std::shared_ptr<PluginNativeAPI>> plugin_native_apis;
 
@@ -42,9 +47,10 @@ void from_json(const nlohmann::json& j, PluginManifest& p) {
 	p.version = j.value("version", "unknown");
 	p.author = j.value("author", "unknown");
 	p.description = j.value("description", "unknown");
-	p.betterncm_version = j.value("betterncm_version", "unknown");
+	p.betterncm_version = j.value("betterncm_version", ">=1.0.0");
 	p.preview = j.value("preview", "unknown");
 	p.injects = j.value("injects", std::map<std::string, std::vector<std::map<std::string, std::string>>>());
+	p.startup_script = j.value("startup_script", "startup_script.js");
 
 	p.hijacks.clear();
 	if (j.count("hijacks")) {
@@ -150,6 +156,12 @@ void Plugin::loadNativePluginDll(NCMProcessType processType) {
 					what()), true);
 		}
 	}
+}
+
+std::optional<std::string> Plugin::getStartupScript()
+{
+	if(fs::exists(runtime_path / manifest.startup_script))
+		return util::read_to_string(runtime_path / manifest.startup_script);
 }
 
 void PluginsLoader::loadAll() {

@@ -4,6 +4,9 @@
 #include "dwmapi.h"
 #include "CommDlg.h"
 #include <PluginLoader.h>
+#include <ErrorHandler.h>
+
+#include "utils/Interprocess.hpp"
 
 #define WIN32_LEAN_AND_MEAN
 
@@ -438,7 +441,7 @@ std::thread* App::create_server(const std::string& apiKey) {
 			res.set_content(path.utf8(), "text/plain");
 		});
 
-		// åŠ è½½æ’ä»¶ç®¡ç†å™¨çš„æ ·å¼æ–‡ä»¶
+		// ¼ÓÔØ²å¼þ¹ÜÀíÆ÷µÄÑùÊ½ÎÄ¼þ
 		svr->Get("/api/internal/framework.css", [&](const httplib::Request& req, httplib::Response& res) {
 			checkApiKey;
 			res.set_content(load_string_resource(L"framework.css"), "text/css");
@@ -460,17 +463,17 @@ void App::parseConfig() {
 			config = nlohmann::json::parse(read_to_string(datapath + L"\\config.json"));
 		}
 		catch (std::exception e) {
-			std::wcout << L"[BetterNCM] è§£æžé…ç½®æ–‡ä»¶å¤±è´¥ï¼å°†ä½¿ç”¨é»˜è®¤é…ç½®æ–‡ä»¶\n\n";
+			std::wcout << L"[BetterNCM] ½âÎöÅäÖÃÎÄ¼þÊ§°Ü£¡½«Ê¹ÓÃÄ¬ÈÏÅäÖÃÎÄ¼þ\n\n";
 		}
 	}
 }
 
 App::App() {
+
 	std::cout << "BetterNCM v" << version << " running on NCM " << getNCMExecutableVersion() << std::endl;
 
 	parseConfig();
-
-
+	
 	PluginsLoader::extractPackedPlugins();
 	PluginsLoader::loadAll();
 	if (readConfig("cc.microblock.betterncm.single-process", "false") == "true")
@@ -493,7 +496,7 @@ App::App() {
 	                              const struct _cef_key_event_t* event) {
 		if (event->type == KEYEVENT_KEYUP &&
 #if _DEBUG
-			event->windows_key_code == 122 // DEBUGÄ£Ê½ï¿½Â¸Ä³ï¿½F11
+			event->windows_key_code == 122 // DEBUG????????????F11
 #else
 			event->windows_key_code == 123
 #endif
@@ -588,25 +591,16 @@ betterncm.utils.waitForElement('.g-sd').then(ele=>{
 })
 )", "betterncm://betterncm/fix_nav_disappear.js");
 
-			auto loadStartupScripts = [&](const std::string& path) {
-				if (fs::exists(path))
-					for (const auto file : fs::directory_iterator(path)) {
-						try {
-							if (fs::exists(file.path().string() + "/startup_script.js")) {
-								EasyCEFHooks::executeJavaScript(
-									frame, read_to_string(file.path().string() + "/startup_script.js"),
-									std::string("file://") + file.path().string() + "/startup_script.js");
-							}
-						}
-						catch (std::exception& e) {
-							std::cout << "Failed to load startup script " << e.what();
-						}
-					}
-			};
+			
 
 			if (readConfig("cc.microblock.betterncm.cpp_side_inject_feature_disabled", "false") != "true") {
-				loadStartupScripts(datapath.utf8() + "/plugins_runtime");
-				loadStartupScripts(datapath.utf8() + "/plugins_dev");
+				for (const auto &plugin : PluginsLoader::getAllPlugins()) {
+					auto script = plugin->getStartupScript();
+					if (script.has_value())
+						EasyCEFHooks::executeJavaScript(
+							frame, script.value(),
+							std::string("file://") + plugin->manifest.slug + "/startup_script.js");
+				}
 			}
 		}
 	};

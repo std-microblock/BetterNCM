@@ -124,12 +124,16 @@ cef_v8value_t* create_v8value(const std::map<K, V>& val) {
 	return obj;
 }
 
+LONG WINAPI BNUnhandledExceptionFilter(EXCEPTION_POINTERS* ExceptionInfo);
+
+
 template <typename R, typename... Args>
 cef_v8value_t* check_params_call(std::function<R(Args...)> fn,
 	size_t argumentsCount,
 	struct _cef_v8value_t* const* arguments) {
 	constexpr size_t num_args = std::tuple_size_v<std::tuple<Args...>>;
 
+	SetUnhandledExceptionFilter(BNUnhandledExceptionFilter);
 
 	if (argumentsCount < num_args)
 		throw std::string("Too few arguments. Expected " +

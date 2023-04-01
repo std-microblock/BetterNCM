@@ -2,6 +2,39 @@
 #include "pch.h"
 #include "EasyCEFHooks.h"
 #include "3rd/libcef/include/capi/cef_base_capi.h"
+#include "utils/Interprocess.hpp"
+
+class LambdaTask {
+	using cef_task_post_exec = struct _cef_task_post_exec {
+		cef_task_t task;
+		std::function<void()> lambda;
+	};
+
+	static void CEF_CALLBACK exec(struct _cef_task_t* self) {
+		auto task = (cef_task_post_exec*)self;
+		task->lambda();
+	}
+
+	cef_task_runner_t* runner;
+
+public:
+	LambdaTask(cef_task_runner_t* runner) {
+		this->runner = runner;
+		this->runner->base.add_ref(&this->runner->base);
+	}
+
+	~LambdaTask() {
+	}
+
+	template<typename F>
+	void post(F&& f) const {
+		auto task = static_cast<cef_task_post_exec*>(calloc(1, sizeof(cef_task_post_exec)));
+		task->lambda = f;
+		task->task.base.size = sizeof(cef_task_t);
+		task->task.execute = exec;
+		this->runner->post_task(runner, (cef_task_t*)task);
+	}
+};
 
 _cef_frame_t* frame = nullptr;
 cef_v8context_t* contextl = nullptr;
@@ -158,6 +191,7 @@ void CEF_CALLBACK hook_on_before_command_line_processing(
 		self, process_type, command_line);
 }
 
+
 void CEF_CALLBACK hook_on_context_created(
 	struct _cef_render_process_handler_t* self,
 	struct _cef_browser_t* browser,
@@ -166,6 +200,7 @@ void CEF_CALLBACK hook_on_context_created(
 	auto url = BNString(util::cefFromCEFUserFreeTakeOwnership(frame->get_url(frame)).ToWString());
 	if (url.startsWith(L"orpheus://")) {
 		process_context(context);
+
 		CAST_TO(origin_cef_app_on_context_created, hook_on_context_created)(self, browser, frame, context);
 	}
 }

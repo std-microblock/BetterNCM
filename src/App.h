@@ -5,6 +5,7 @@
 #include <mutex>
 #include <shared_mutex>
 #include "PluginLoader.h"
+#include "utils/Interprocess.hpp"
 extern const std::string version;
 
 class App {
