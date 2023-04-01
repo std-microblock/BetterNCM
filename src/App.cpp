@@ -476,7 +476,8 @@ App::App() {
 	
 	PluginManager::extractPackedPlugins();
 	PluginManager::loadAll();
-	PluginManager::performForceInstallAndUpdateAsync("https://gitee.com/microblock/BetterNCMPluginsMarketData/raw/master/");
+	PluginManager::performForceInstallAndUpdateAsync(readConfig("cc.microblock.pluginmarket.source", 
+																	"https://gitee.com/microblock/BetterNCMPluginsMarketData/raw/master/"));
 	if (readConfig("cc.microblock.betterncm.single-process", "false") == "true")
 		for (auto& plugin : PluginManager::getAllPlugins()) {
 			using pt = NCMProcessType;
