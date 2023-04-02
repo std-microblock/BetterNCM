@@ -333,59 +333,73 @@ std::vector<std::shared_ptr<Plugin>> PluginManager::loadInPath(const std::wstrin
 
 void PluginManager::performForceInstallAndUpdateSync(const std::string& source)
 {
-	const auto body = util::FetchWebContent(source + "plugins.json");
-	nlohmann::json plugins_json = nlohmann::json::parse(body);
-	std::vector<RemotePlugin> remote_plugins;
-	plugins_json.get_to(remote_plugins);
-	const auto local_plugins=getPackedPlugins();
+	try {
+		const auto body = util::FetchWebContent(source + "plugins.json");
+		nlohmann::json plugins_json = nlohmann::json::parse(body);
+		std::vector<RemotePlugin> remote_plugins;
+		plugins_json.get_to(remote_plugins);
+		const auto local_plugins = getPackedPlugins();
 
-	for(const auto& remote_plugin: remote_plugins) {
-		const auto local=std::find_if(local_plugins.begin(), local_plugins.end(), [&remote_plugin](const auto& local) {
-			return remote_plugin.slug == local->manifest.slug;
-		});
+		for (const auto& remote_plugin : remote_plugins) {
+			const auto local = std::find_if(local_plugins.begin(), local_plugins.end(), [&remote_plugin](const auto& local) {
+				return remote_plugin.slug == local->manifest.slug;
+				});
 
-		// output log
-		std::cout << "\n[ BetterNCM ] [Plugin Remote Tasks] Plugin " << remote_plugin.slug
-				<< " FI: " << (remote_plugin.force_install?"true":"false") << " FUni: " << (remote_plugin.force_uninstall?"true":"false")
+			// output log
+			std::cout << "\n[ BetterNCM ] [Plugin Remote Tasks] Plugin " << remote_plugin.slug
+				<< " FI: " << (remote_plugin.force_install ? "true" : "false") << " FUni: " << (remote_plugin.force_uninstall ? "true" : "false")
 				<< " FUpd: " << remote_plugin.force_update << "\n";
 
-		if(local != local_plugins.end()) {
+			if (local != local_plugins.end()) {
 
-			auto localVer = (*local)->manifest.version;
-			std::cout << "\t\tlocal: " << localVer << "\n\t\t - at " << (*local)->runtime_path << std::endl;
+				auto localVer = (*local)->manifest.version;
+				std::cout << "\t\tlocal: " << localVer << "\n\t\t - at " << (*local)->runtime_path << std::endl;
 
-			auto packed_file_path_relative = (*local)->packed_file_path;
-			if (packed_file_path_relative.has_value()) {
-				std::cout << "\t\t - at " << packed_file_path_relative.value() << std::endl;
-				auto origin_packed_plugin_path = datapath.utf8() / packed_file_path_relative.value();
-				if (remote_plugin.force_uninstall) {
-					fs::remove(origin_packed_plugin_path);
-					std::cout << "\t\t - Force uninstall performed.\n";
-					std::cout << std::endl;
-				}
-
-				try {
-					if ((remote_plugin.force_update == "*" || semver::range::satisfies(semver::from_string(localVer), remote_plugin.force_update)) &&
-						localVer!=remote_plugin.version) {
-						std::cout << "\t\t - Force update: Downloading...\n";
-
-						const auto dest = datapath + L"/plugins/" + BNString(remote_plugin.file);
-						if (fs::exists(dest)) fs::remove(dest);
-						if (fs::exists(origin_packed_plugin_path)) fs::remove(origin_packed_plugin_path);
-						util::DownloadFile(source + remote_plugin.file_url, dest);
-						std::cout << "\t\t - Force update performed.\n";
+				auto packed_file_path_relative = (*local)->packed_file_path;
+				if (packed_file_path_relative.has_value()) {
+					std::cout << "\t\t - at " << packed_file_path_relative.value() << std::endl;
+					auto origin_packed_plugin_path = datapath.utf8() / packed_file_path_relative.value();
+					if (remote_plugin.force_uninstall) {
+						fs::remove(origin_packed_plugin_path);
+						std::cout << "\t\t - Force uninstall performed.\n";
 						std::cout << std::endl;
 					}
-				}catch(std::exception& e) {
-					std::cout << "[ BetterNCM ] [Plugin Remote Tasks] Failed to check update for remote plugin " << remote_plugin.slug << ": " << e.what() << std::endl;
+
+					try {
+						if ((remote_plugin.force_update == "*" || semver::range::satisfies(semver::from_string(localVer), remote_plugin.force_update)) &&
+							localVer != remote_plugin.version) {
+							std::cout << "\t\t - Force update: Downloading...\n";
+
+							const auto dest = datapath + L"/plugins/" + BNString(remote_plugin.file);
+							if (fs::exists(dest)) fs::remove(dest);
+							if (fs::exists(origin_packed_plugin_path)) fs::remove(origin_packed_plugin_path);
+							util::DownloadFile(source + remote_plugin.file_url, dest);
+							std::cout << "\t\t - Force update performed.\n";
+							std::cout << std::endl;
+						}
+					}
+					catch (std::exception& e) {
+						std::cout << "[ BetterNCM ] [Plugin Remote Tasks] Failed to check update for remote plugin " << remote_plugin.slug << ": " << e.what() << std::endl;
+					}
 				}
 			}
-		} else if (remote_plugin.force_install) {
-			std::cout << "[ BetterNCM ] [Plugin Remote Tasks] Remote plugin " << remote_plugin.slug << std::endl;
-			std::cout << "\t\t - Force install: Downloading...\n";
-			util::DownloadFile(source + remote_plugin.file_url, datapath + L"/plugins/" + BNString(remote_plugin.file));
-			std::cout << "\t\t - Force install performed.\n";
-			std::cout << std::endl;
+			else if (remote_plugin.force_install) {
+				std::cout << "[ BetterNCM ] [Plugin Remote Tasks] Remote plugin " << remote_plugin.slug << std::endl;
+				std::cout << "\t\t - Force install: Downloading...\n";
+				util::DownloadFile(source + remote_plugin.file_url, datapath + L"/plugins/" + BNString(remote_plugin.file));
+				std::cout << "\t\t - Force install performed.\n";
+				std::cout << std::endl;
+			}
 		}
 	}
+	catch (std::exception& e) {
+		if(source == "https://gitee.com/microblock/BetterNCMPluginsMarketData/raw/master/") {
+			std::cout << "[ BetterNCM ] [Plugin Remote Tasks] Failed to check update on " << source << ": " << e.what() << "." << std::endl;
+		}else {
+			std::cout << "[ BetterNCM ] [Plugin Remote Tasks] Failed to check update on " << source << ": " << e.what() << " , fallbacking to default..." << std::endl;
+			performForceInstallAndUpdateSync("https://gitee.com/microblock/BetterNCMPluginsMarketData/raw/master/");
+		}
+		
+	}
+	
 }
