@@ -31,7 +31,7 @@ jobs:
     - name: Setup vcpkg
       uses: lukka/run-vcpkg@v10
       with:
-        vcpkgGitCommitId: e69dd972ba64840955f46704ecce6241bf607c0f
+        vcpkgGitCommitId: 69efe9cc2df0015f0bb2d37d55acde4a75c9a25b
         runVcpkgInstall: true
     - name: Install NPM packages
       working-directory: ${{env.GITHUB_WORKSPACE}}
