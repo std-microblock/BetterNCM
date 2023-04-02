@@ -365,15 +365,15 @@ void PluginManager::performForceInstallAndUpdateSync(const std::string& source)
 				}
 
 				try {
-					if (semver::range::satisfies(semver::from_string(localVer), remote_plugin.force_update)) {
-						std::cout << "[ BetterNCM ] [Plugin Remote Tasks] Remote plugin " << remote_plugin.slug << std::endl;
+					if ((remote_plugin.force_update == "*" || semver::range::satisfies(semver::from_string(localVer), remote_plugin.force_update)) &&
+						localVer!=remote_plugin.version) {
 						std::cout << "\t\t - Force update: Downloading...\n";
 
 						const auto dest = datapath + L"/plugins/" + BNString(remote_plugin.file);
 						if (fs::exists(dest)) fs::remove(dest);
 						if (fs::exists(origin_packed_plugin_path)) fs::remove(origin_packed_plugin_path);
 						util::DownloadFile(source + remote_plugin.file_url, dest);
-						std::cout << "\t\t - Force install performed.\n";
+						std::cout << "\t\t - Force update performed.\n";
 						std::cout << std::endl;
 					}
 				}catch(std::exception& e) {
