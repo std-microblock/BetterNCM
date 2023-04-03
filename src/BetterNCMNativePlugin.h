@@ -1,16 +1,15 @@
-#include "pch.h"
-
 #pragma once
 #ifdef NATIVE_PLUGIN_CPP_EXTENSIONS
+#include "pch.h"
 #include <vector>
 #include <memory>
 #include "3rd/libcef/include/capi/cef_v8_capi.h"
 #include <atomic>
+#include <functional>
 using cef_task_post_exec_t = struct _cef_task_post_exec;
 
 void CEF_CALLBACK exec(struct _cef_task_t* self);
 #endif
-#include <functional>
 
 enum NativeAPIType {
 	Int,
@@ -25,6 +24,8 @@ enum NativeAPIType {
 	// *cef_v8value_t
 };
 
+typedef enum NativeAPIType NativeAPIType;
+
 enum NCMProcessType {
 	Undetected = 0x0,
 	Main = 0x0001,
@@ -33,7 +34,11 @@ enum NCMProcessType {
 	Utility = 0x1000,
 };
 
+typedef enum NCMProcessType NCMProcessType;
+
+#ifdef NATIVE_PLUGIN_CPP_EXTENSIONS
 namespace BetterNCMNativePlugin {
+#endif
 	struct PluginAPI {
 		int (*addNativeAPI)(NativeAPIType args[], int argsNum, const char* identifier, char* function(void**));
 		const char* betterncmVersion;
@@ -195,4 +200,6 @@ namespace BetterNCMNativePlugin {
 		};
 	}
 #endif
+#ifdef NATIVE_PLUGIN_CPP_EXTENSIONS
 }
+#endif
