@@ -177,13 +177,14 @@ namespace BetterNCMNativePlugin {
 			}
 
 			template <typename... Args>
-			const int operator()(Args... args) {
-				if (!this->valid)return -1;
-				while (this->busy);
-				this->busy = true;
+			int operator()(Args... args) {
+				if (!this->valid) return -1;
+				bool expected = false;
+				while (!busy.compare_exchange_strong(expected, true)) 
+					expected = false;
+
 				auto task = static_cast<cef_task_post_exec*>(calloc(1, sizeof(cef_task_post_exec)));
 				task->func = this;
-
 
 				task->task.base.size = sizeof(cef_task_t);
 
