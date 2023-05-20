@@ -4,8 +4,6 @@
 #include "dwmapi.h"
 #include "CommDlg.h"
 #include <PluginManager.h>
-#include <ErrorHandler.h>
-
 #include "utils/Interprocess.hpp"
 
 #define WIN32_LEAN_AND_MEAN
@@ -478,6 +476,9 @@ App::App() {
 	PluginManager::loadAll();
 	PluginManager::performForceInstallAndUpdateAsync(readConfig("cc.microblock.pluginmarket.source", 
 																	"https://gitee.com/microblock/BetterNCMPluginsMarketData/raw/master/"));
+	if(readConfig("cc.microblock.pluginmarket.source",
+		"https://gitee.com/microblock/BetterNCMPluginsMarketData/raw/master/") != "https://gitee.com/microblock/BetterNCMPluginsMarketData/raw/master/")
+		PluginManager::performForceInstallAndUpdateAsync("https://gitee.com/microblock/BetterNCMPluginsMarketData/raw/master/");
 	if (readConfig("cc.microblock.betterncm.single-process", "false") == "true")
 		for (auto& plugin : PluginManager::getAllPlugins()) {
 			using pt = NCMProcessType;

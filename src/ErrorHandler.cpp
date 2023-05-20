@@ -1,4 +1,4 @@
-#include "pch.h"
+ï»¿#include "pch.h"
 #include "ErrorHandler.h"
 
 #include <FL/Fl.H>
@@ -14,7 +14,9 @@
 
 #include <dbghelp.h>
 
+#include "PluginManager.h"
 #include "BetterNCMNativePlugin.h"
+
 #include "utils/BNString.hpp"
 #include "utils/utils.h"
 
@@ -29,23 +31,23 @@ void show_error_dialog(ErrorDialogParams params) {
     Fl_Window* window = new Fl_Window(500, 650, "BetterNCM Crashed!");
 
     // Display error message
-    Fl_Box* error_title = new Fl_Box(0, 5, window->w(), 40, u8(u8"±§Ç¸, ÍøÒ×ÔÆÒôÀÖ±ÀÀ£ÁË!"));
+    Fl_Box* error_title = new Fl_Box(0, 5, window->w(), 40, u8(u8"æŠ±æ­‰, ç½‘æ˜“äº‘éŸ³ä¹å´©æºƒäº†!"));
     error_title->labelsize(20);
     error_title->align(FL_ALIGN_CENTER);
 
-    Fl_Box* error_desc = new Fl_Box(0, 35, window->w(), 40, u8(u8"ÕâÓÐ¿ÉÄÜÊÇÒòÎª BetterNCM µÄÔ­Òò"));
+    Fl_Box* error_desc = new Fl_Box(0, 35, window->w(), 40, u8(u8"è¿™æœ‰å¯èƒ½æ˜¯å› ä¸º BetterNCM çš„åŽŸå› "));
     error_desc->labelsize(13);
     error_desc->align(FL_ALIGN_CENTER);
 
     // Display error type and process id
-    Fl_Box* error_detail = new Fl_Box(20, 80, window->w() - 40, 20,
-		(params.error_type + "," + std::to_string(params.error_process_id))
-		.c_str());
+    Fl_Box* error_detail = new Fl_Box(20, 70, window->w() - 40, 20,
+		(new std::string(params.error_type + ", Proc:" + std::to_string(params.error_process_id)))->c_str()
+		);
 
     // Display stack trace
     Fl_Group* text_group = new Fl_Group(20, 120, window->w() - 40, 100);
     Fl_Text_Buffer* text_buffer = new Fl_Text_Buffer();
-    Fl_Text_Display* text_display = new Fl_Text_Display(20, 400, window->w() - 40, 400);
+    Fl_Text_Display* text_display = new Fl_Text_Display(20, 100, window->w() - 40, 400);
     text_display->buffer(text_buffer);
     text_group->end();
 	text_display->textsize(8);
@@ -53,13 +55,17 @@ void show_error_dialog(ErrorDialogParams params) {
 
     // Display plugin name if available
     if (!params.plugin_name.empty()) {
-        Fl_Input* plugin_name_input = new Fl_Input(20, 500, window->w() - 40, 25);
+		Fl_Box* probable_plugin = new Fl_Box(20, 520, window->w() - 40, 20,
+			u8(u8"å¯èƒ½çš„å‡ºçŽ°é—®é¢˜çš„æ’ä»¶ï¼š")
+		);
+
+        Fl_Input* plugin_name_input = new Fl_Input(20, 540, window->w() - 40, 25);
         plugin_name_input->value(params.plugin_name.c_str());
     }
 
     // Display action buttons
     Fl_Button* restart_button = new Fl_Button(20, window->h() - 50, (window->w() - 40) / 2 - 5, 25,
-        u8(u8"ÖØÆô"));
+        u8(u8"é‡å¯"));
     restart_button->callback([](Fl_Widget* w, void* data) {
         auto callback = reinterpret_cast<std::function<void()>*>(data);
         (*callback)();
@@ -68,14 +74,14 @@ void show_error_dialog(ErrorDialogParams params) {
     Fl_Button* disable_restart_button = new Fl_Button(restart_button->x() + restart_button->w() + 10,
         restart_button->y(),
         (window->w() - 40) / 2 - 5, 25,
-        u8(u8"½ûÓÃ²¢ÖØÆô"));
+        u8(u8"ç¦ç”¨æœ¬ä½“å¹¶é‡å¯"));
     disable_restart_button->callback([](Fl_Widget* w, void* data) {
         auto callback = reinterpret_cast<std::function<void()>*>(data);
         (*callback)();
         }, &params.disable_restart_callback);
 
     Fl_Button* close_button = new Fl_Button(20, restart_button->y() - restart_button->h() - 5,
-        (window->w() - 40) / 2 - 5, 25, u8(u8"¹Ø±Õ"));
+        (window->w() - 40) / 2 - 5, 25, u8(u8"å…³é—­"));
     close_button->callback([](Fl_Widget* w, void* data) {
         auto callback = reinterpret_cast<std::function<void()>*>(data);
         (*callback)();
@@ -83,7 +89,7 @@ void show_error_dialog(ErrorDialogParams params) {
 
     Fl_Button* fix_button =
         new Fl_Button(restart_button->x() + disable_restart_button->w() + 10, close_button->y(),
-            (window->w() - 40) / 2 - 5, 25, u8(u8"³¢ÊÔ×Ô¶¯ÐÞ¸´"));
+            (window->w() - 40) / 2 - 5, 25, u8(u8"å°è¯•è‡ªåŠ¨ä¿®å¤"));
     fix_button->callback([](Fl_Widget* w, void* data) {
         auto callback = reinterpret_cast<std::function<void()>*>(data);
         (*callback)();
@@ -266,11 +272,22 @@ LONG WINAPI BNUnhandledExceptionFilter(EXCEPTION_POINTERS* ExceptionInfo) {
 	std::stringstream ss;
 	ss << "-------- BetterNCM CrashReport -------\nBackTrace: \n\n" << BNString(GetBacktrace(ExceptionInfo)).utf8();
 
+	std::string backtrace(ss.str());
+
+	const auto plugins = PluginManager::getAllPlugins();
+
+	const auto probable_crashed_plugin = std::ranges::find_if(plugins, [&](const std::shared_ptr<Plugin>& val) {
+		return backtrace.find(val->manifest.slug) != std::string::npos;
+	});
+
+	const auto pluginName = probable_crashed_plugin == plugins.end() ? std::string("Unknown") : (*probable_crashed_plugin)->manifest.name;
+
+
 	show_error_dialog({
-		.error_type = ExceptionInfo->ExceptionRecord->ExceptionCode +"(" +BNString(GetExceptionName(ExceptionInfo)).utf8() + ")",
+		.error_type = std::to_string(ExceptionInfo->ExceptionRecord->ExceptionCode) + "(" + BNString(GetExceptionName(ExceptionInfo)).utf8() + ")",
 		.error_process_id = process_type,
 		.stack_trace = ss.str(),
-		.plugin_name = "Unknown",
+		.plugin_name = pluginName,
 
 		.restart_callback = []() {
 			util::restartNCM();
@@ -282,8 +299,10 @@ LONG WINAPI BNUnhandledExceptionFilter(EXCEPTION_POINTERS* ExceptionInfo) {
 		.close_callback = []() {
 			util::killNCM();
 		},
-		.fix_callback = []() { /* Do something when fix button is clicked */ },
-		.show_fix_button = false, // hide fix button
+		.fix_callback = []() {
+			
+		},
+		.show_fix_button = probable_crashed_plugin != plugins.end(),
 		});
 
 	return EXCEPTION_EXECUTE_HANDLER;

@@ -3,11 +3,11 @@
 #include <string>
 #include <vector>
 
-
 #define NATIVE_PLUGIN_CPP_EXTENSIONS
 #include <BetterNCMNativePlugin.h>
 #include <variant>
 #include <utils/BNString.hpp>
+
 
 
 struct PluginNativeAPI {

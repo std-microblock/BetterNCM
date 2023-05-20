@@ -334,8 +334,6 @@ int CEF_CALLBACK hook_scheme_handler_read(struct _cef_resource_handler_t* self,
 	}
 	return CAST_TO(origin_scheme_handler_read, hook_scheme_handler_read)(
 		self, data_out, bytes_to_read, bytes_read, callback);
-
-	return 0;
 }
 
 
@@ -397,8 +395,9 @@ bool EasyCEFHooks::InstallHooks() {
 	origin_cef_register_scheme_handler_factory =
 		DetourFindFunction("libcef.dll", "cef_register_scheme_handler_factory");
 
+	/*
 	if (origin_cef_v8context_get_current_context && false)
-		DetourAttach(&origin_cef_v8context_get_current_context, hook_cef_v8context_get_current_context);
+		DetourAttach(&origin_cef_v8context_get_current_context, hook_cef_v8context_get_current_context);*/
 
 	if (origin_cef_browser_host_create_browser)
 		DetourAttach(&origin_cef_browser_host_create_browser, hook_cef_browser_host_create_browser);
