@@ -118,6 +118,7 @@ public:
 	static std::vector<std::shared_ptr<Plugin>> getDevPlugins();
 	static std::vector<std::shared_ptr<Plugin>> getAllPlugins();
 	static std::vector<std::shared_ptr<Plugin>> getPackedPlugins();
+	static std::vector<std::string> getDisableList();
 };
 
 using BetterNCMPluginMainFunc = int(*)(BetterNCMNativePlugin::PluginAPI*);

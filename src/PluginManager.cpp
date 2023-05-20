@@ -211,7 +211,7 @@ void PluginManager::loadRuntime() {
 void PluginManager::extractPackedPlugins() {
 	util::write_file_text(datapath + L"/PLUGIN_EXTRACTING_LOCK.lock", "");
 
-
+	const auto disable_list = PluginManager::getDisableList();
 
 	if (fs::exists(datapath + L"/plugins_runtime")) {
 		for (auto file : fs::directory_iterator(datapath + L"/plugins_runtime")) {
@@ -248,6 +248,11 @@ void PluginManager::extractPackedPlugins() {
 				auto modManifest = nlohmann::json::parse(
 					util::read_to_string(datapath + L"/plugins_runtime/tmp/manifest.json"));
 				modManifest.get_to(manifest);
+
+				if (std::ranges::find(disable_list, manifest.slug) != disable_list.end()) {
+					fs::remove_all(datapath.utf8() + "/plugins_runtime/tmp");
+					continue;
+				}
 
 				if (manifest.manifest_version == 1) {
 					util::write_file_text(datapath + L"/plugins_runtime/tmp/.plugin.path.meta",
@@ -303,6 +308,27 @@ std::vector<std::shared_ptr<Plugin>> PluginManager::getAllPlugins()
 std::vector<std::shared_ptr<Plugin>> PluginManager::getPackedPlugins()
 {
 	return PluginManager::packedPlugins;
+}
+
+std::vector<std::string> PluginManager::getDisableList()
+{
+	std::vector<std::string> disable_list;
+	std::ifstream file(datapath + L"/disable_list.txt");
+	if (!file.is_open()) {
+		return disable_list;
+	}
+
+	std::string line;
+	while (std::getline(file, line)) {
+		// Trim leading and trailing white space characters
+		auto isspace = [](char c) { return std::isspace(static_cast<unsigned char>(c)); };
+		line.erase(line.begin(), std::find_if_not(line.begin(), line.end(), isspace));
+		line.erase(std::find_if_not(line.rbegin(), line.rend(), isspace).base(), line.end());
+
+		disable_list.push_back(line);
+	}
+	file.close();
+	return disable_list;
 }
 
 std::vector<std::shared_ptr<Plugin>> PluginManager::loadInPath(const std::wstring& path) {

@@ -11,6 +11,7 @@
 #include <FL/Fl_Text_Buffer.H>
 #include <functional>
 #include <string>
+#include <ostream>
 
 #include <dbghelp.h>
 
@@ -257,6 +258,8 @@ std::wstring PrintExceptionInfo(EXCEPTION_POINTERS* ExceptionInfo) {
 	return Stream.str();
 }
 
+extern BNString datapath;
+
 LONG WINAPI BNUnhandledExceptionFilter(EXCEPTION_POINTERS* ExceptionInfo) {
 	HWND ncmWin = FindWindow(L"OrpheusBrowserHost", nullptr);
 
@@ -299,8 +302,21 @@ LONG WINAPI BNUnhandledExceptionFilter(EXCEPTION_POINTERS* ExceptionInfo) {
 		.close_callback = []() {
 			util::killNCM();
 		},
-		.fix_callback = []() {
-			
+		.fix_callback = [=]() {
+			auto list = PluginManager::getDisableList();
+			const auto slug = (*probable_crashed_plugin)->manifest.slug;
+			if (std::ranges::find(list, slug) == list.end()) {
+				list.push_back(slug);
+				std::ofstream ofs(datapath + L"/disable_list.txt");
+				for (const auto&v : list) {
+					ofs << v << std::endl;
+				}
+				ofs.close();
+				util::restartNCM();
+			} else {
+				util::alert("自动修复失败，程序即将重启");
+				util::restartNCM();
+			}
 		},
 		.show_fix_button = probable_crashed_plugin != plugins.end(),
 		});
