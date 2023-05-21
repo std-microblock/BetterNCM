@@ -189,9 +189,9 @@ std::optional<std::string> Plugin::getStartupScript()
 
 void PluginManager::performForceInstallAndUpdateAsync(const std::string& source)
 {
-	new std::thread([source]() {
+	std::thread([source]() {
 		performForceInstallAndUpdateSync(source);
-	});
+	}).detach();
 }
 
 void PluginManager::loadAll() {
