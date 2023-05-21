@@ -372,7 +372,7 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 					path = datapath + L"/" + path;
 				}
 				auto* fn = new JSFunction(callback);
-				auto thread = std::thread([=]() {
+				std::thread([=]() {
 					util::watchDir(path, [&](BNString dir, BNString path) {
 						(*fn)(dir, path);
 						if (!fn->isValid())return false;
