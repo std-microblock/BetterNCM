@@ -474,11 +474,7 @@ App::App() {
 	
 	PluginManager::extractPackedPlugins();
 	PluginManager::loadAll();
-	PluginManager::performForceInstallAndUpdateAsync(readConfig("cc.microblock.pluginmarket.source", 
-																	"https://gitee.com/microblock/BetterNCMPluginsMarketData/raw/master/"));
-	if(readConfig("cc.microblock.pluginmarket.source",
-		"https://gitee.com/microblock/BetterNCMPluginsMarketData/raw/master/") != "https://gitee.com/microblock/BetterNCMPluginsMarketData/raw/master/")
-		PluginManager::performForceInstallAndUpdateAsync("https://gitee.com/microblock/BetterNCMPluginsMarketData/raw/master/");
+
 	if (readConfig("cc.microblock.betterncm.single-process", "false") == "true")
 		for (auto& plugin : PluginManager::getAllPlugins()) {
 			using pt = NCMProcessType;
@@ -582,7 +578,8 @@ App::App() {
 			                                "const BETTERNCM_FILES_PATH = 'http://localhost:" + std::to_string(
 				                                this->server_port) + "/local';" +
 			                                "console.log('BetterNCM API Initialized on',BETTERNCM_API_PORT);" +
-			                                load_string_resource(L"framework.js"),
+			                                load_string_resource(L"framework.js") + "\n\n" +
+											R"(betterncm.app.readConfig("cc.microblock.pluginmarket.source","https://gitee.com/microblock/BetterNCMPluginsMarketData/raw/master/").then(betterncm_native.app.auto_update))",
 			                                "betterncm://betterncm/framework.js");
 
 			EasyCEFHooks::executeJavaScript(frame,

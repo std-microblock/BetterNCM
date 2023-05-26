@@ -482,6 +482,16 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 			}
 		);
 
+		DEFINE_API(
+			app.auto_update,
+			[](std::string source) {
+				PluginManager::performForceInstallAndUpdateAsync(source);
+				if (source != "https://gitee.com/microblock/BetterNCMPluginsMarketData/raw/master/")
+					PluginManager::performForceInstallAndUpdateAsync("https://gitee.com/microblock/BetterNCMPluginsMarketData/raw/master/");
+
+				return nullptr;
+			}
+		)
 
 		DEFINE_API(
 			app.reloadIgnoreCache,
