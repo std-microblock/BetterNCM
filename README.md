@@ -2,14 +2,15 @@
 <div align="center">
   <image width="140em" src="https://github.com/MicroCBer/BetterUniverse-Installer/assets/66859419/919b7908-16b1-4a92-8468-07f02ab0f21d" />
 </div>
+
 <h1 align="center">BetterUniverse</h1>
-</div>
 
 <h3 align="center">for NCM</h3>
 <h4 align="center">PC版 NCM 客户端插件管理器</h4>
 
 <div align="center">
   <image width="60em" src="https://user-images.githubusercontent.com/66859419/183120498-1dede5b4-0666-4891-b95f-c3a812b3f12f.png" />
+  </div>
   
 <h4 align="center">
 <a href=https://github.com/MicroCBer/BetterNCM/wiki/%E5%BC%80%E5%8F%91%E6%96%87%E6%A1%A3>开发文档</a> · 
