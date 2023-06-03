@@ -28,11 +28,22 @@
 
 最新测试兼容版本：`2.10.10`
 
-注意：目前并不兼容 `3.0.0` 测试版
+目前并不兼容 `3.0.0` 测试版
+
+# 注意
+BetterNCM 不保证在所有版本上的通用可用性，也不保证安全性（封号，崩溃等）。
+
+在使用此插件后所遇到的 Bug，崩溃等，请**不要**向官方反馈，而应在此 Repo 下发送 Issue。
+
+请**不要**在官方群聊等内提及，甚至 “炫耀” 此插件。
+
+请**不要**发送视频，帖子等来宣传此插件。
+
+BetterNCM 可能将于未来的某一天突然跑路。
 
 # 安装
 
-使用 [BetterNCM Installer](https://github.com/MicroCBer/BetterNCM-Installer) 一键安装~
+使用 [BetterUniversal Installer](https://github.com/MicroCBer/BetterNCM-Installer) 一键安装~
 
 # 其他
 ## 相关
