@@ -28,7 +28,7 @@
 
 最新测试兼容版本：`2.10.10`
 
-目前并不兼容 `3.0.0` 测试版
+3.0.0 测试版兼容进度：https://github.com/MicroCBer/BetterNCM/tree/3.0.0-adaption
 
 # 注意
 BetterNCM 不保证在所有版本上的通用可用性，也不保证安全性（封号，崩溃等）。
