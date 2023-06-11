@@ -149,6 +149,7 @@ Plugin::~Plugin() {
 }
 
 void Plugin::loadNativePluginDll(NCMProcessType processType) {
+	return;
 	if (manifest.native_plugin[0] != '\0') {
 		try {
 			HMODULE hDll = LoadLibrary((runtime_path / manifest.native_plugin).wstring().c_str());

@@ -1,0 +1,14 @@
+{
+    "logging": true,
+    "enabled": true,
+    "auto_load": false,
+    "targets": [
+      "cloudmusic.exe"
+    ],
+    "modules": [
+      {
+        "path": "J:/Projects/BetterNCM/x64/Release/BetterNCMII.dll",
+        "required": false
+      }
+    ]
+  }

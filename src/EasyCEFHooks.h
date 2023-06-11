@@ -6,7 +6,6 @@
 
 #include "pystring/pystring.h"
 
-
 #include "3rd/libcef/include/capi/cef_client_capi.h"
 #include "3rd/libcef/include/capi/cef_app_capi.h"
 #include "3rd/libcef/include/internal/cef_export.h"

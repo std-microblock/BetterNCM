@@ -131,16 +131,16 @@ std::wstring GetBacktrace(const EXCEPTION_POINTERS* ExceptionInfo) {
 
 	// Initialize the stack frame
 	STACKFRAME64 stackFrame = { 0 };
-	stackFrame.AddrPC.Offset = contextRecord->Eip;
+	stackFrame.AddrPC.Offset = contextRecord->Rip;
 	stackFrame.AddrPC.Mode = AddrModeFlat;
-	stackFrame.AddrFrame.Offset = contextRecord->Ebp;
+	stackFrame.AddrFrame.Offset = contextRecord->Rbp;
 	stackFrame.AddrFrame.Mode = AddrModeFlat;
-	stackFrame.AddrStack.Offset = contextRecord->Esp;
+	stackFrame.AddrStack.Offset = contextRecord->Rsp;
 	stackFrame.AddrStack.Mode = AddrModeFlat;
 
 	DWORD64 displacement = 0;
 	// Walk the call stack and append each frame to the string
-	while (StackWalk64(IMAGE_FILE_MACHINE_I386, GetCurrentProcess(), GetCurrentThread(), &stackFrame, contextRecord,
+	while (StackWalk64(IMAGE_FILE_MACHINE_AMD64, GetCurrentProcess(), GetCurrentThread(), &stackFrame, contextRecord,
 		nullptr, SymFunctionTableAccess64, SymGetModuleBase64, nullptr)) {
 		// Get the module name and offset for this frame
 		DWORD64 moduleBase = SymGetModuleBase64(GetCurrentProcess(), stackFrame.AddrPC.Offset);
@@ -167,7 +167,6 @@ std::wstring GetBacktrace(const EXCEPTION_POINTERS* ExceptionInfo) {
 	// Return the backtrace string
 	return info;
 }
-
 
 std::string GetExceptionName(EXCEPTION_POINTERS* ExceptionInfo) {
 	std::string exceptionName;
@@ -248,10 +247,16 @@ std::wstring PrintExceptionInfo(EXCEPTION_POINTERS* ExceptionInfo) {
 	Stream << L"Exception flags: 0x" << std::hex << ExceptionRecord->ExceptionFlags << std::endl;
 	Stream << L"Exception address: 0x" << std::hex << ExceptionRecord->ExceptionAddress << std::endl;
 
-	Stream << L"Context record:" << std::endl;
+#ifdef _WIN64
+	Stream << L"  RIP: 0x" << std::hex << ContextRecord->Rip << std::endl;
+	Stream << L"  RSP: 0x" << std::hex << ContextRecord->Rsp << std::endl;
+	Stream << L"  RBP: 0x" << std::hex << ContextRecord->Rbp << std::endl;
+#else
 	Stream << L"  EIP: 0x" << std::hex << ContextRecord->Eip << std::endl;
 	Stream << L"  ESP: 0x" << std::hex << ContextRecord->Esp << std::endl;
 	Stream << L"  EBP: 0x" << std::hex << ContextRecord->Ebp << std::endl;
+#endif
+
 
 	Stream << L"Backtrace:\n  See console for detail" << std::endl;
 
