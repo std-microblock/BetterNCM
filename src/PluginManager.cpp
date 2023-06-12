@@ -287,7 +287,7 @@ std::vector<std::shared_ptr<Plugin>> PluginManager::getDevPlugins()
 }
 
 
-std::vector<std::shared_ptr<Plugin>> PluginManager::getAllPlugins()
+std::vector<std::shared_ptr<Plugin>> PluginManager::getAllPlugins() 
 {
 	std::vector<std::shared_ptr<Plugin>> tmp = getPackedPlugins();
 	auto devPlugins = getDevPlugins();
