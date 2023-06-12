@@ -12,8 +12,6 @@
 
 std::string script;
 
-HMODULE g_hModule = nullptr;
-
 void message(const std::string& title, const std::string& text) {
 	MessageBox(nullptr, util::s2ws(text).c_str(), util::s2ws(title).c_str(), 0);
 }
@@ -22,12 +20,10 @@ extern BNString datapath;
 
 NCMProcessType process_type = Undetected;
 LONG WINAPI BNUnhandledExceptionFilter(EXCEPTION_POINTERS* ExceptionInfo);
-
-BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved) {
-	if (dwReason == DLL_PROCESS_ATTACH) {
+extern HMODULE g_hModule;
+void bncmMain() {
 		SetUnhandledExceptionFilter(BNUnhandledExceptionFilter);
 
-		g_hModule = hModule;
 
 		try {
 			if (!getenv("BETTERNCM_DISABLED_FLAG")) {
@@ -59,9 +55,9 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved) {
 						
 						// PluginMarket
 						if (!fs::exists(datapath + L"/plugins/PluginMarket.plugin")) {
-							HRSRC myResource = ::FindResource(hModule, MAKEINTRESOURCE(IDR_RCDATA1), RT_RCDATA);
-							unsigned int myResourceSize = SizeofResource(hModule, myResource);
-							HGLOBAL myResourceData = LoadResource(hModule, myResource);
+							HRSRC myResource = ::FindResource(g_hModule, MAKEINTRESOURCE(IDR_RCDATA1), RT_RCDATA);
+							unsigned int myResourceSize = SizeofResource(g_hModule, myResource);
+							HGLOBAL myResourceData = LoadResource(g_hModule, myResource);
 							void* pMyBinaryData = LockResource(myResourceData);
 							std::ofstream f(datapath + L"/plugins/PluginMarket.plugin", std::ios::out | std::ios::binary);
 							f.write(static_cast<char*>(pMyBinaryData), myResourceSize);
@@ -98,9 +94,5 @@ BOOL WINAPI DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved) {
 			util::alert("BetterNCM 崩溃了！\n\nBetterNCM 将不会运行\n网易云将有可能崩溃\n\n崩溃原因：" + std::string(e.what()));
 		}
 
-	}
-	if (dwReason == DLL_PROCESS_DETACH) {
-
-	}
-	return TRUE;
+	
 }

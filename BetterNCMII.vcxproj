@@ -55,6 +55,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.props" />
   </ImportGroup>
   <ImportGroup Label="Shared">
   </ImportGroup>
@@ -161,7 +162,6 @@ npm run build</Command>
       <Inputs>%(Inputs)</Inputs>
     </CustomBuildStep>
   </ItemDefinitionGroup>
-
   <ItemGroup>
     <ClInclude Include="src\App.h" />
     <ClInclude Include="src\BetterNCMNativePlugin.h" />
@@ -180,6 +180,7 @@ npm run build</Command>
     <ClCompile Include="src\dllmain.cpp" />
     <ClCompile Include="src\EasyCEFHooks.cpp" />
     <ClCompile Include="src\ErrorHandler.cpp" />
+    <ClCompile Include="src\hijack.cpp" />
     <ClCompile Include="src\PluginManager.cpp" />
     <ClCompile Include="src\pch.cpp" />
     <ClCompile Include="src\utils\utils.cpp" />
@@ -198,7 +199,11 @@ npm run build</Command>
   <ItemGroup>
     <ResourceCompile Include="src\resource.rc" />
   </ItemGroup>
+  <ItemGroup>
+    <MASM Include="src\hijack_jump.asm" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="$(VCTargetsPath)\BuildCustomizations\masm.targets" />
   </ImportGroup>
 </Project>

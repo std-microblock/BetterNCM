@@ -527,7 +527,6 @@ App::App() {
 			CefString str = s;
 			command_line->append_switch(command_line, str.GetStruct());
 		};
-		
 
 		append("disable-web-security");
 

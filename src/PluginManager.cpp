@@ -149,17 +149,17 @@ Plugin::~Plugin() {
 }
 
 void Plugin::loadNativePluginDll(NCMProcessType processType) {
-	return;
+
 	if (manifest.native_plugin[0] != '\0') {
 		try {
 			HMODULE hDll = LoadLibrary((runtime_path / manifest.native_plugin).wstring().c_str());
 			if (!hDll) {
-				throw "dll doesn't exists.";
+				throw std::exception("dll doesn't exists.");
 			}
 
 			auto BetterNCMPluginMain = (BetterNCMPluginMainFunc)GetProcAddress(hDll, "BetterNCMPluginMain");
 			if (!BetterNCMPluginMain) {
-				throw "dll is not a betterncm plugin dll.";
+				throw std::exception("dll is not a betterncm plugin dll or is not adapted to this arch.");
 			}
 
 
@@ -175,7 +175,7 @@ void Plugin::loadNativePluginDll(NCMProcessType processType) {
 		}
 		catch (std::exception& e) {
 			util::write_file_text(datapath.utf8() + "/log.log",
-				std::string("\n[" + manifest.slug + "]Plugin Native Plugin load Error: ") + (e.
+				std::string("\n[" + manifest.slug + "] Plugin Native Plugin load Error: ") + (e.
 					what()), true);
 		}
 	}

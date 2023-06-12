@@ -1,0 +1,119 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="src\EasyCEFHooks.cpp">
+      <Filter>Hook</Filter>
+    </ClCompile>
+    <ClCompile Include="src\utils\utils.cpp">
+      <Filter>Utils</Filter>
+    </ClCompile>
+    <ClCompile Include="src\App.cpp">
+      <Filter>Service\Main</Filter>
+    </ClCompile>
+    <ClCompile Include="src\PluginManager.cpp">
+      <Filter>Service\Plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\v8NativeCalls.cpp">
+      <Filter>Service\Plugin</Filter>
+    </ClCompile>
+    <ClCompile Include="src\dllmain.cpp">
+      <Filter>Service\Main</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ErrorHandler.cpp">
+      <Filter>Service\Error</Filter>
+    </ClCompile>
+    <ClCompile Include="src\pch.cpp">
+      <Filter>Chore</Filter>
+    </ClCompile>
+    <ClCompile Include="src\hijack.cpp">
+      <Filter>Hook</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\EasyCEFHooks.h">
+      <Filter>Hook</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\BNString.hpp">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="src\resource.h">
+      <Filter>JS Framework</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\utils.h">
+      <Filter>Utils</Filter>
+    </ClInclude>
+    <ClInclude Include="src\App.h">
+      <Filter>Service\Main</Filter>
+    </ClInclude>
+    <ClInclude Include="src\BetterNCMNativePlugin.h">
+      <Filter>Service\Plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\PluginManager.h">
+      <Filter>Service\Plugin</Filter>
+    </ClInclude>
+    <ClInclude Include="src\ErrorHandler.h">
+      <Filter>Service\Error</Filter>
+    </ClInclude>
+    <ClInclude Include="src\framework.h">
+      <Filter>Chore</Filter>
+    </ClInclude>
+    <ClInclude Include="src\utils\Interprocess.hpp">
+      <Filter>Chore</Filter>
+    </ClInclude>
+    <ClInclude Include="src\pch.h">
+      <Filter>Chore</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="resource\PluginMarket.plugin">
+      <Filter>JS Framework</Filter>
+    </None>
+    <None Include="resource\rcdata2.bin">
+      <Filter>JS Framework</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="src\framework.js">
+      <Filter>JS Framework</Filter>
+    </Text>
+    <Text Include="src\framework.css">
+      <Filter>JS Framework</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="JS Framework">
+      <UniqueIdentifier>{313eb4b6-e87f-43e6-9e73-0ac42f8c4ec8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Hook">
+      <UniqueIdentifier>{4494f3d0-0b12-4281-b660-8ece04b1727f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Utils">
+      <UniqueIdentifier>{44dccf43-ec1c-431a-ac9a-782b39e5ea7a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Service">
+      <UniqueIdentifier>{4b90cf1c-a219-4b87-b534-ef3b54de7a25}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Service\Main">
+      <UniqueIdentifier>{32dd3c44-8399-4a2b-9e74-b7fb37f920c2}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Service\Plugin">
+      <UniqueIdentifier>{b5588d2f-0a97-443e-8464-f13504275e2b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Service\Error">
+      <UniqueIdentifier>{32153dac-a10c-41cb-b1ae-d8c2484ec90f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Chore">
+      <UniqueIdentifier>{67ed3ef2-b4ad-4373-bd18-9709646dc93b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="src\resource.rc">
+      <Filter>JS Framework</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <MASM Include="src\hijack_jump.asm">
+      <Filter>Hook</Filter>
+    </MASM>
+  </ItemGroup>
+</Project>
