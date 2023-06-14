@@ -154,12 +154,12 @@ void Plugin::loadNativePluginDll(NCMProcessType processType) {
 		try {
 			HMODULE hDll = LoadLibrary((runtime_path / manifest.native_plugin).wstring().c_str());
 			if (!hDll) {
-				throw std::exception("dll doesn't exists.");
+				throw std::exception("dll doesn't exists or is not adapted to this arch.");
 			}
 
 			auto BetterNCMPluginMain = (BetterNCMPluginMainFunc)GetProcAddress(hDll, "BetterNCMPluginMain");
 			if (!BetterNCMPluginMain) {
-				throw std::exception("dll is not a betterncm plugin dll or is not adapted to this arch.");
+				throw std::exception("dll is not a betterncm plugin dll");
 			}
 
 
