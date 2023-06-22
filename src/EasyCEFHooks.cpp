@@ -179,8 +179,8 @@ void CEF_CALLBACK hook_command_line_append_switch(_cef_command_line_t* self, con
 	if (EasyCEFHooks::onAddCommandLine(util::cefFromCEFUserFree(name).ToString())) {
 		CAST_TO(origin_command_line_append_switch, hook_command_line_append_switch)(self, name);
 	}
-}
-
+} 
+ 
 void CEF_CALLBACK hook_on_before_command_line_processing(
 	struct _cef_app_t* self,
 	const cef_string_t* process_type,
@@ -398,9 +398,9 @@ bool EasyCEFHooks::InstallHooks() {
 		DetourFindFunction("libcef.dll", "cef_register_scheme_handler_factory");
 
 
-	/*
-	if (origin_cef_v8context_get_current_context && false)
-		DetourAttach(&origin_cef_v8context_get_current_context, hook_cef_v8context_get_current_context);*/
+	
+	if (origin_cef_v8context_get_current_context)
+		DetourAttach(&origin_cef_v8context_get_current_context, hook_cef_v8context_get_current_context);
 
 	if (origin_cef_browser_host_create_browser)
 		DetourAttach(&origin_cef_browser_host_create_browser, hook_cef_browser_host_create_browser);
@@ -415,6 +415,8 @@ bool EasyCEFHooks::InstallHooks() {
 		DetourAttach(&origin_cef_execute_process, hook_cef_execute_process);
 
 	LONG ret = DetourTransactionCommit();
+
+	cef_v8context_get_current_context();
 	return ret == NO_ERROR;
 }
 

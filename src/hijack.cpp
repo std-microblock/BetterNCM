@@ -107,7 +107,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 
 			if (StrCmpI(szCurName, szAppName) == 0)
 			{
-				std::thread([]() {bncmMain(); }).detach();
+				bncmMain();
 			}
 		}
 	}
