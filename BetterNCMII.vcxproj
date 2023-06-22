@@ -117,7 +117,7 @@
     <PostBuildEvent>
       <Command>taskkill /f /im cloudmusic.exe &gt; nul
 ping localhost -n 2 &gt; nul
-copy "$(TargetDir)BetterNCMII.dll" "C:\Program Files (x64)\Netease\CloudMusic\msimg32.dll" /y</Command>
+copy "$(TargetDir)BetterNCMII.dll" "C:\Program Files\Netease\CloudMusic\msimg32.dll" /y</Command>
     </PostBuildEvent>
     <PreBuildEvent>
       <Command>cd /D $(SolutionDir)/src/js-framework

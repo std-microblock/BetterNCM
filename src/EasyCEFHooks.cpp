@@ -153,24 +153,26 @@ _cef_display_handler_t* CEF_CALLBACK hook_cef_client_get_display_handler(_cef_cl
 	return display_handler;
 }
 
-int hook_cef_browser_host_create_browser(
+cef_browser_t* hook_cef_browser_host_create_browser(
 	const cef_window_info_t* windowInfo,
 	struct _cef_client_t* client,
 	const cef_string_t* url,
 	const struct _cef_browser_settings_t* settings,
 	struct _cef_dictionary_value_t* extra_info,
-	struct _cef_request_context_t* request_context) {
+	struct _cef_request_context_t* request_context,
+	void* who_knows_what_is_this) {
 	origin_cef_get_keyboard_handler = client->get_keyboard_handler;
 	client->get_keyboard_handler = hook_cef_get_keyboard_handler;
 
+	
 	origin_cef_load_handler = client->get_load_handler;
 	client->get_load_handler = hook_cef_load_handler;
 
 	origin_cef_client_get_display_handler = client->get_display_handler;
 	client->get_display_handler = hook_cef_client_get_display_handler;
 
-	int origin = CAST_TO(origin_cef_browser_host_create_browser, hook_cef_browser_host_create_browser)
-		(windowInfo, client, url, settings, extra_info, request_context);
+	cef_browser_t* origin = CAST_TO(origin_cef_browser_host_create_browser, hook_cef_browser_host_create_browser)
+		(windowInfo, client, url, settings, extra_info, request_context, who_knows_what_is_this);
 	return origin;
 }
 
@@ -388,12 +390,14 @@ bool EasyCEFHooks::InstallHooks() {
 	DetourTransactionBegin();
 	DetourUpdateThread(GetCurrentThread());
 
+
 	origin_cef_v8context_get_current_context = DetourFindFunction("libcef.dll", "cef_v8context_get_current_context");
 	origin_cef_browser_host_create_browser = DetourFindFunction("libcef.dll", "cef_browser_host_create_browser_sync");
 	origin_cef_initialize = DetourFindFunction("libcef.dll", "cef_initialize");
 	origin_cef_execute_process = DetourFindFunction("libcef.dll", "cef_execute_process");
 	origin_cef_register_scheme_handler_factory =
 		DetourFindFunction("libcef.dll", "cef_register_scheme_handler_factory");
+
 
 	/*
 	if (origin_cef_v8context_get_current_context && false)
