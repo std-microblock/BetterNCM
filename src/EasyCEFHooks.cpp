@@ -159,20 +159,19 @@ cef_browser_t* hook_cef_browser_host_create_browser(
 	const cef_string_t* url,
 	const struct _cef_browser_settings_t* settings,
 	struct _cef_dictionary_value_t* extra_info,
-	struct _cef_request_context_t* request_context,
-	void* who_knows_what_is_this) {
+	struct _cef_request_context_t* request_context) {
 	origin_cef_get_keyboard_handler = client->get_keyboard_handler;
 	client->get_keyboard_handler = hook_cef_get_keyboard_handler;
 
 	
 	origin_cef_load_handler = client->get_load_handler;
 	client->get_load_handler = hook_cef_load_handler;
-
+	 
 	origin_cef_client_get_display_handler = client->get_display_handler;
 	client->get_display_handler = hook_cef_client_get_display_handler;
 
 	cef_browser_t* origin = CAST_TO(origin_cef_browser_host_create_browser, hook_cef_browser_host_create_browser)
-		(windowInfo, client, url, settings, extra_info, request_context, who_knows_what_is_this);
+		(windowInfo, client, url, settings, extra_info, request_context);
 	return origin;
 }
 
