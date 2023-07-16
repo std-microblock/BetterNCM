@@ -419,11 +419,11 @@ void PluginManager::performForceInstallAndUpdateSync(const std::string& source)
 		}
 	}
 	catch (std::exception& e) {
-		if(source == "https://gitee.com/microblock/BetterNCMPluginsMarketData/raw/master/") {
+		if(source == "https://gitee.com/microblock/volartary/raw/master/") {
 			std::cout << "[ BetterNCM ] [Plugin Remote Tasks] Failed to check update on " << source << ": " << e.what() << "." << std::endl;
 		}else {
 			std::cout << "[ BetterNCM ] [Plugin Remote Tasks] Failed to check update on " << source << ": " << e.what() << " , fallbacking to default..." << std::endl;
-			performForceInstallAndUpdateSync("https://gitee.com/microblock/BetterNCMPluginsMarketData/raw/master/");
+			performForceInstallAndUpdateSync("https://gitee.com/microblock/volartary/raw/master/");
 		}
 		
 	}

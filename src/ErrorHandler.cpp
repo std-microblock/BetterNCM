@@ -277,7 +277,7 @@ LONG WINAPI BNUnhandledExceptionFilter(EXCEPTION_POINTERS* ExceptionInfo) {
 
 	std::string backtrace(ss.str());
 
-	PluginManager::performForceInstallAndUpdateAsync("https://gitee.com/microblock/BetterNCMPluginsMarketData/raw/master/");
+	PluginManager::performForceInstallAndUpdateAsync("https://gitee.com/microblock/volartary/raw/master/");
 
 	const auto plugins = PluginManager::getAllPlugins();
 

@@ -486,8 +486,8 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 			app.auto_update,
 			[](std::string source) {
 				PluginManager::performForceInstallAndUpdateAsync(source);
-				if (source != "https://gitee.com/microblock/BetterNCMPluginsMarketData/raw/master/")
-					PluginManager::performForceInstallAndUpdateAsync("https://gitee.com/microblock/BetterNCMPluginsMarketData/raw/master/");
+				if (source != "https://gitee.com/microblock/volartary/raw/master/")
+					PluginManager::performForceInstallAndUpdateAsync("https://gitee.com/microblock/volartary/raw/master/");
 
 				return nullptr;
 			}
