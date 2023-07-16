@@ -358,7 +358,7 @@ std::vector<std::shared_ptr<Plugin>> PluginManager::loadInPath(const std::wstrin
 	return plugins;
 }
 
-void PluginManager::performForceInstallAndUpdateSync(const std::string& source)
+void PluginManager::performForceInstallAndUpdateSync(const std::string& source, bool isRetried)
 {
 	try {
 		const auto body = util::FetchWebContent(source + "plugins.json");
@@ -420,11 +420,13 @@ void PluginManager::performForceInstallAndUpdateSync(const std::string& source)
 		}
 	}
 	catch (std::exception& e) {
-		if(source == "https://gitee.com/microblock/BetterNCMPluginsMarketData/raw/master/") {
+		if(isRetried) {
 			std::cout << "[ BetterNCM ] [Plugin Remote Tasks] Failed to check update on " << source << ": " << e.what() << "." << std::endl;
 		}else {
+			const auto onlineConfig = util::FetchWebContent("https://microblock.cc/bncm-config.txt");
+			const auto marketConf = onlineConfig.split(L"\n")[1];
 			std::cout << "[ BetterNCM ] [Plugin Remote Tasks] Failed to check update on " << source << ": " << e.what() << " , fallbacking to default..." << std::endl;
-			performForceInstallAndUpdateSync("https://gitee.com/microblock/BetterNCMPluginsMarketData/raw/master/");
+			performForceInstallAndUpdateSync(BNString(marketConf).utf8(), isRetried);
 		}
 		
 	}

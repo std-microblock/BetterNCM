@@ -578,7 +578,13 @@ App::App() {
 				                                this->server_port) + "/local';" +
 			                                "console.log('BetterNCM API Initialized on',BETTERNCM_API_PORT);" +
 			                                load_string_resource(L"framework.js") + "\n\n" +
-											R"(betterncm.app.readConfig("cc.microblock.pluginmarket.source","https://gitee.com/microblock/BetterNCMPluginsMarketData/raw/master/").then(betterncm_native.app.auto_update))",
+											R"(
+fetch('https://microblock.cc/bncm-config.txt').then(v=>v.text()).then(config=>{
+    const market = config.split('\n')[1];
+    betterncm.app.readConfig("cc.microblock.pluginmarket.source", market)
+		.then(betterncm_native.app.auto_update)
+})
+)",
 			                                "betterncm://betterncm/framework.js");
 
 			EasyCEFHooks::executeJavaScript(frame,

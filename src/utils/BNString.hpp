@@ -140,6 +140,10 @@ public:
 		*this = utf8_to_wstring(s);
 	}
 
+	BNString(const std::wstring_view s) {
+		*this = BNString(std::wstring(s));
+	}
+
 	BNString(const char* s) {
 		*this = BNString(std::string(s));
 	}
@@ -157,49 +161,61 @@ public:
 		return *this;
 	}
 
-	const std::string toUtf8String() const {
+	[[nodiscard]] const std::string toUtf8String() const {
 		return wstring_to_utf8(this);
 	}
 
-	const std::string utf8() const {
+	[[nodiscard]] const std::string utf8() const {
 		return this->toUtf8String();
 	}
 
-	const std::string toANSIString() const {
+	[[nodiscard]] const std::string toANSIString() const {
 		return utf8_string_to_asni_string(wstring_to_utf8(this));
 	}
 
-	const std::string ansi() const {
+	[[nodiscard]] const std::string ansi() const {
 		return this->toANSIString();
 	}
 
-	const std::string toGBKString() const {
+	[[nodiscard]] const std::string toGBKString() const {
 		return utf8_string_to_gbk_string(this->toUtf8String());
 	}
 
-	const std::string gbk() const {
+	[[nodiscard]] const std::string gbk() const {
 		return this->toGBKString();
 	}
 
 
-	bool startsWith(const std::wstring& prefix) const {
+	[[nodiscard]] bool startsWith(const std::wstring& prefix) const {
 		if (prefix.length() > this->length()) return false;
 		return this->substr(0, prefix.length()) == prefix;
 	}
 
-	bool endsWith(const std::wstring& suffix) const {
+	[[nodiscard]] bool endsWith(const std::wstring& suffix) const {
 		if (suffix.length() > this->length()) return false;
 		return this->substr(this->length() - suffix.length()) == suffix;
 	}
 
-	bool includes(const std::wstring& search) const {
+	[[nodiscard]] bool includes(const std::wstring& search) const {
 		return this->find(search) != std::wstring::npos;
 	}
 
-	int indexOf(const std::wstring& search) const {
+	[[nodiscard]] int indexOf(const std::wstring& search) const {
 		size_t index = this->find(search);
 		if (index == std::wstring::npos) return -1;
 		return static_cast<int>(index);
+	}
+
+	[[nodiscard]] std::vector<std::wstring_view> split(const std::wstring& delimiter) const {
+				std::vector<std::wstring_view> result;
+		size_t start = 0;
+		size_t end = 0;
+		while ((end = this->find(delimiter, start)) != std::wstring::npos) {
+						result.push_back(this->substr(start, end - start));
+			start = end + delimiter.length();
+		}
+		result.push_back(this->substr(start));
+		return result;
 	}
 
 	BNString& replace(const std::wstring& search, const std::wstring& replacement) {
