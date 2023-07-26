@@ -154,6 +154,12 @@ void Plugin::loadNativePluginDll(NCMProcessType processType) {
 		try {
 			HMODULE hDll = LoadLibrary((runtime_path / manifest.native_plugin).wstring().c_str());
 			if (!hDll) {
+				const fs::path x64path = runtime_path / fs::path(manifest.native_plugin).parent_path() / (fs::path(manifest.native_plugin).filename().string() + ".x64.dll");
+				std::cout << "NativePlugin x64path: " << (x64path.string());
+				hDll = LoadLibrary(x64path.wstring().c_str());
+			}
+
+			if (!hDll) {
 				throw std::exception("dll doesn't exists or is not adapted to this arch.");
 			}
 
