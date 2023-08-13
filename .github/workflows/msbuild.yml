@@ -51,7 +51,7 @@ jobs:
         title: "Latest Test Release"
         files: |
           ./Release/BetterNCMII.dll
-          ./Release_86/BetterNCMII.dll
+          ./Release_86/BetterNCMII86.dll
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v3.1.1
