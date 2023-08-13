@@ -52,3 +52,4 @@ enc_temp_folder
 
 # VCPKG packages
 vcpkg_installed/
+vcpkg_installed_86/

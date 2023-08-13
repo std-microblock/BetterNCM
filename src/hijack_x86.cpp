@@ -1,24 +1,26 @@
+
+//
+// created by AheadLib
+// github:https://github.com/strivexjun/AheadLib-x86-x64
+//
 #include "pch.h"
 #include <windows.h>
 #include <Shlwapi.h>
 
 #pragma comment( lib, "Shlwapi.lib")
 
-#pragma comment(linker, "/EXPORT:vSetDdrawflag=AheadLib_vSetDdrawflag,@1")
-#pragma comment(linker, "/EXPORT:AlphaBlend=AheadLib_AlphaBlend,@2")
-#pragma comment(linker, "/EXPORT:DllInitialize=AheadLib_DllInitialize,@3")
-#pragma comment(linker, "/EXPORT:GradientFill=AheadLib_GradientFill,@4")
-#pragma comment(linker, "/EXPORT:TransparentBlt=AheadLib_TransparentBlt,@5")
+#pragma comment(linker, "/EXPORT:vSetDdrawflag=_AheadLib_vSetDdrawflag,@1")
+#pragma comment(linker, "/EXPORT:AlphaBlend=_AheadLib_AlphaBlend,@2")
+#pragma comment(linker, "/EXPORT:DllInitialize=_AheadLib_DllInitialize,@3")
+#pragma comment(linker, "/EXPORT:GradientFill=_AheadLib_GradientFill,@4")
+#pragma comment(linker, "/EXPORT:TransparentBlt=_AheadLib_TransparentBlt,@5")
 
 
-extern "C" 
-{
 PVOID pfnAheadLib_vSetDdrawflag;
 PVOID pfnAheadLib_AlphaBlend;
 PVOID pfnAheadLib_DllInitialize;
 PVOID pfnAheadLib_GradientFill;
 PVOID pfnAheadLib_TransparentBlt;
-}
 
 
 static
@@ -32,12 +34,11 @@ VOID WINAPI Free()
 	}
 }
 
-void bncmMain(HMODULE hModule);
+
 BOOL WINAPI Load()
 {
 	TCHAR tzPath[MAX_PATH];
 	TCHAR tzTemp[MAX_PATH * 2];
-
 
 	GetSystemDirectory(tzPath, MAX_PATH);
 
@@ -87,8 +88,6 @@ BOOL WINAPI Init()
 	return TRUE;
 }	
 
-
-HMODULE g_hModule = nullptr;
 void bncmMain();
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
@@ -96,11 +95,10 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 	if (dwReason == DLL_PROCESS_ATTACH)
 	{
 		DisableThreadLibraryCalls(hModule);
-		g_hModule = hModule;
 
 		if (Load() && Init())
 		{
-			TCHAR szAppName[MAX_PATH] = TEXT("cloudmusic.exe");
+			TCHAR szAppName[MAX_PATH] = TEXT("cloudmusic.exe");//请修改宿主进程名
 			TCHAR szCurName[MAX_PATH];
 
 			GetModuleFileName(NULL, szCurName, MAX_PATH);
@@ -118,5 +116,30 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 	}
 
 	return TRUE;
+}
+
+EXTERN_C __declspec(naked) void __cdecl AheadLib_vSetDdrawflag(void)
+{
+	__asm jmp pfnAheadLib_vSetDdrawflag;
+}
+
+EXTERN_C __declspec(naked) void __cdecl AheadLib_AlphaBlend(void)
+{
+	__asm jmp pfnAheadLib_AlphaBlend;
+}
+
+EXTERN_C __declspec(naked) void __cdecl AheadLib_DllInitialize(void)
+{
+	__asm jmp pfnAheadLib_DllInitialize;
+}
+
+EXTERN_C __declspec(naked) void __cdecl AheadLib_GradientFill(void)
+{
+	__asm jmp pfnAheadLib_GradientFill;
+}
+
+EXTERN_C __declspec(naked) void __cdecl AheadLib_TransparentBlt(void)
+{
+	__asm jmp pfnAheadLib_TransparentBlt;
 }
 

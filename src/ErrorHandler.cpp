@@ -131,16 +131,33 @@ std::wstring GetBacktrace(const EXCEPTION_POINTERS* ExceptionInfo) {
 
 	// Initialize the stack frame
 	STACKFRAME64 stackFrame = { 0 };
+
+#ifdef _WIN64
 	stackFrame.AddrPC.Offset = contextRecord->Rip;
 	stackFrame.AddrPC.Mode = AddrModeFlat;
 	stackFrame.AddrFrame.Offset = contextRecord->Rbp;
 	stackFrame.AddrFrame.Mode = AddrModeFlat;
 	stackFrame.AddrStack.Offset = contextRecord->Rsp;
 	stackFrame.AddrStack.Mode = AddrModeFlat;
+#else
+	stackFrame.AddrPC.Offset = contextRecord->Eip;
+	stackFrame.AddrPC.Mode = AddrModeFlat;
+	stackFrame.AddrFrame.Offset = contextRecord->Ebp;
+	stackFrame.AddrFrame.Mode = AddrModeFlat;
+	stackFrame.AddrStack.Offset = contextRecord->Esp;
+	stackFrame.AddrStack.Mode = AddrModeFlat;
+#endif
 
 	DWORD64 displacement = 0;
 	// Walk the call stack and append each frame to the string
-	while (StackWalk64(IMAGE_FILE_MACHINE_AMD64, GetCurrentProcess(), GetCurrentThread(), &stackFrame, contextRecord,
+	while (StackWalk64(
+#ifdef _WIN64
+		IMAGE_FILE_MACHINE_AMD64
+#else
+		IMAGE_FILE_MACHINE_I386
+#endif
+		
+		, GetCurrentProcess(), GetCurrentThread(), &stackFrame, contextRecord,
 		nullptr, SymFunctionTableAccess64, SymGetModuleBase64, nullptr)) {
 		// Get the module name and offset for this frame
 		DWORD64 moduleBase = SymGetModuleBase64(GetCurrentProcess(), stackFrame.AddrPC.Offset);
