@@ -39,7 +39,7 @@ jobs:
 
     - name: Build
       working-directory: ${{env.GITHUB_WORKSPACE}}
-      run: msbuild .\BetterNCMII.sln -p:Platform="x86" -p:Configuration=Release
+      run: msbuild .\BetterNCMII.sln -p:Platform="All" -p:Configuration=Release
 
     - uses: "marvinpinto/action-automatic-releases@latest"
       name: Upload to Github Release
@@ -49,7 +49,9 @@ jobs:
         automatic_release_tag: "dev-nightly"
         prerelease: true
         title: "Latest Test Release"
-        files: ./Release/BetterNCMII.dll
+        files: |
+          ./Release/BetterNCMII.dll
+          ./Release_86/BetterNCMII.dll
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v3.1.1

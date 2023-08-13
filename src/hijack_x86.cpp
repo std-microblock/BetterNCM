@@ -1,8 +1,3 @@
-
-//
-// created by AheadLib
-// github:https://github.com/strivexjun/AheadLib-x86-x64
-//
 #include "pch.h"
 #include <windows.h>
 #include <Shlwapi.h>
@@ -89,6 +84,7 @@ BOOL WINAPI Init()
 }	
 
 void bncmMain();
+HMODULE g_hModule = nullptr;
 
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 {
@@ -98,7 +94,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 
 		if (Load() && Init())
 		{
-			TCHAR szAppName[MAX_PATH] = TEXT("cloudmusic.exe");//请修改宿主进程名
+			TCHAR szAppName[MAX_PATH] = TEXT("cloudmusic.exe");
 			TCHAR szCurName[MAX_PATH];
 
 			GetModuleFileName(NULL, szCurName, MAX_PATH);
@@ -106,6 +102,7 @@ BOOL APIENTRY DllMain(HMODULE hModule, DWORD dwReason, PVOID pvReserved)
 
 			if (StrCmpI(szCurName, szAppName) == 0)
 			{
+				g_hModule = hModule;
 				bncmMain();
 			}
 		}
