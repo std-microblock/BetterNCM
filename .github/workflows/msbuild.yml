@@ -32,7 +32,9 @@ jobs:
       uses: lukka/run-vcpkg@v10
       with:
         vcpkgGitCommitId: 69efe9cc2df0015f0bb2d37d55acde4a75c9a25b
-        runVcpkgInstall: true
+    - name: Install vcpkg dependencies
+      working-directory: ${{env.GITHUB_WORKSPACE}}
+      run: ./InstallDependencies.bat
     - name: Install NPM packages
       working-directory: ${{env.GITHUB_WORKSPACE}}
       run: cd ./src/js-framework ; npm i
@@ -50,13 +52,15 @@ jobs:
         prerelease: true
         title: "Latest Test Release"
         files: |
-          ./Release/BetterNCMII.dll
-          ./Release_86/BetterNCMII86.dll
+          ${{ github.workspace }}/Release/BetterNCMII.dll
+          ${{ github.workspace }}/Release_86/BetterNCMII86.dll
 
     - name: Upload Artifact
       uses: actions/upload-artifact@v3.1.1
       with:
         name: BetterNCMII
-        path: ${{ github.workspace }}/Release/BetterNCMII.dll
+        path: |
+          ${{ github.workspace }}/Release/BetterNCMII.dll
+          ${{ github.workspace }}/Release_86/BetterNCMII86.dll
         
 
