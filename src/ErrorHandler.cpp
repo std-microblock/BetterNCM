@@ -299,7 +299,7 @@ LONG WINAPI BNUnhandledExceptionFilter(EXCEPTION_POINTERS* ExceptionInfo) {
 
 	std::string backtrace(ss.str());
 
-	PluginManager::performForceInstallAndUpdateAsync("https://gitee.com/microblock/volartary");
+	PluginManager::performForceInstallAndUpdateAsync("https://gitcode.net/qq_21551787/bncm-plugin-packed/-/raw/master/");
 
 	const auto plugins = PluginManager::getAllPlugins();
 
