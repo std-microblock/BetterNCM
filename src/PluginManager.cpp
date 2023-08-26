@@ -430,9 +430,9 @@ void PluginManager::performForceInstallAndUpdateSync(const std::string& source, 
 			std::cout << "[ BetterNCM ] [Plugin Remote Tasks] Failed to check update on " << source << ": " << e.what() << "." << std::endl;
 		}else {
 			const auto onlineConfig = util::FetchWebContent("https://microblock.cc/bncm-config.txt");
-			const auto marketConf = onlineConfig.split(L"\n")[1];
+			const auto marketConf = onlineConfig.split(L"\n")[0];
 			std::cout << "[ BetterNCM ] [Plugin Remote Tasks] Failed to check update on " << source << ": " << e.what() << " , fallbacking to default..." << std::endl;
-			performForceInstallAndUpdateSync(BNString(marketConf).utf8(), isRetried);
+			performForceInstallAndUpdateSync(BNString(marketConf).utf8(), true);
 		}
 		
 	}
