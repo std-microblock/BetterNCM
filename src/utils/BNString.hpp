@@ -5,17 +5,12 @@
 #include <stdexcept>
 #include <oleauto.h>
 #include <utility>
+#include <filesystem>
 
 class BNString : public std::wstring {
 private:
-	static std::string wstring_to_utf8(const BNString* str) {
-		std::string ret;
-		int len = WideCharToMultiByte(CP_UTF8, 0, str->c_str(), str->length(), nullptr, 0, nullptr, nullptr);
-		if (len > 0) {
-			ret.resize(len);
-			WideCharToMultiByte(CP_UTF8, 0, str->c_str(), str->length(), &ret[0], len, nullptr, nullptr);
-		}
-		return ret;
+	static std::string wstring_to_utf8(const BNString& str) {
+		return std::filesystem::path((std::wstring)str).string();
 	}
 
 	static BNString gbk_to_wstring(const std::string& str) {
@@ -162,7 +157,7 @@ public:
 	}
 
 	[[nodiscard]] const std::string toUtf8String() const {
-		return wstring_to_utf8(this);
+		return wstring_to_utf8(*this);
 	}
 
 	[[nodiscard]] const std::string utf8() const {
@@ -170,7 +165,7 @@ public:
 	}
 
 	[[nodiscard]] const std::string toANSIString() const {
-		return utf8_string_to_asni_string(wstring_to_utf8(this));
+		return utf8_string_to_asni_string(wstring_to_utf8(*this));
 	}
 
 	[[nodiscard]] const std::string ansi() const {
