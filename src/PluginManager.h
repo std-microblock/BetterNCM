@@ -108,7 +108,7 @@ struct RemotePlugin {
 class PluginManager {
 	static std::vector<std::shared_ptr<Plugin>> loadInPath(const std::wstring& path);
 	static std::vector<std::shared_ptr<Plugin>> packedPlugins;
-	static void performForceInstallAndUpdateSync(const std::string& source);
+	static void performForceInstallAndUpdateSync(const std::string& source, bool isRetried = false);
 public:
 	static void performForceInstallAndUpdateAsync(const std::string& source);
 	static void loadAll();

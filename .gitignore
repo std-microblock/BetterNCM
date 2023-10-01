@@ -32,6 +32,8 @@
 .vs/
 Debug/
 Release/
+Debug_86/
+Release_86/
 
 # https://github.com/microsoft/vcpkg/blob/master/.gitignore
 *.user
@@ -52,3 +54,4 @@ enc_temp_folder
 
 # VCPKG packages
 vcpkg_installed/
+vcpkg_installed_86/

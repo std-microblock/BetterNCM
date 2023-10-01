@@ -486,8 +486,8 @@ int _stdcall execute(struct _cef_v8handler_t* self,
 			app.auto_update,
 			[](std::string source) {
 				PluginManager::performForceInstallAndUpdateAsync(source);
-				if (source != "https://gitee.com/microblock/volartary/raw/master/")
-					PluginManager::performForceInstallAndUpdateAsync("https://gitee.com/microblock/volartary/raw/master/");
+				if (source != "https://gitcode.net/qq_21551787/bncm-plugin-packed/-/raw/master/")
+					PluginManager::performForceInstallAndUpdateAsync("https://gitcode.net/qq_21551787/bncm-plugin-packed/-/raw/master/");
 
 				return nullptr;
 			}

@@ -149,16 +149,23 @@ Plugin::~Plugin() {
 }
 
 void Plugin::loadNativePluginDll(NCMProcessType processType) {
+
 	if (manifest.native_plugin[0] != '\0') {
 		try {
 			HMODULE hDll = LoadLibrary((runtime_path / manifest.native_plugin).wstring().c_str());
 			if (!hDll) {
-				throw "dll doesn't exists.";
+				const fs::path x64path = runtime_path / fs::path(manifest.native_plugin).parent_path() / (fs::path(manifest.native_plugin).filename().string() + ".x64.dll");
+				std::cout << "NativePlugin x64path: " << (x64path.string());
+				hDll = LoadLibrary(x64path.wstring().c_str());
+			}
+
+			if (!hDll) {
+				throw std::exception("dll doesn't exists or is not adapted to this arch.");
 			}
 
 			auto BetterNCMPluginMain = (BetterNCMPluginMainFunc)GetProcAddress(hDll, "BetterNCMPluginMain");
 			if (!BetterNCMPluginMain) {
-				throw "dll is not a betterncm plugin dll.";
+				throw std::exception("dll is not a betterncm plugin dll");
 			}
 
 
@@ -174,7 +181,7 @@ void Plugin::loadNativePluginDll(NCMProcessType processType) {
 		}
 		catch (std::exception& e) {
 			util::write_file_text(datapath.utf8() + "/log.log",
-				std::string("\n[" + manifest.slug + "]Plugin Native Plugin load Error: ") + (e.
+				std::string("\n[" + manifest.slug + "] Plugin Native Plugin load Error: ") + (e.
 					what()), true);
 		}
 	}
@@ -286,7 +293,7 @@ std::vector<std::shared_ptr<Plugin>> PluginManager::getDevPlugins()
 }
 
 
-std::vector<std::shared_ptr<Plugin>> PluginManager::getAllPlugins()
+std::vector<std::shared_ptr<Plugin>> PluginManager::getAllPlugins() 
 {
 	std::vector<std::shared_ptr<Plugin>> tmp = getPackedPlugins();
 	auto devPlugins = getDevPlugins();
@@ -357,7 +364,7 @@ std::vector<std::shared_ptr<Plugin>> PluginManager::loadInPath(const std::wstrin
 	return plugins;
 }
 
-void PluginManager::performForceInstallAndUpdateSync(const std::string& source)
+void PluginManager::performForceInstallAndUpdateSync(const std::string& source, bool isRetried)
 {
 	try {
 		const auto body = util::FetchWebContent(source + "plugins.json");
@@ -419,11 +426,13 @@ void PluginManager::performForceInstallAndUpdateSync(const std::string& source)
 		}
 	}
 	catch (std::exception& e) {
-		if(source == "https://gitee.com/microblock/volartary/raw/master/") {
+		if(isRetried) {
 			std::cout << "[ BetterNCM ] [Plugin Remote Tasks] Failed to check update on " << source << ": " << e.what() << "." << std::endl;
 		}else {
+			const auto onlineConfig = util::FetchWebContent("https://microblock.cc/bncm-config.txt");
+			const auto marketConf = onlineConfig.split(L"\n")[0];
 			std::cout << "[ BetterNCM ] [Plugin Remote Tasks] Failed to check update on " << source << ": " << e.what() << " , fallbacking to default..." << std::endl;
-			performForceInstallAndUpdateSync("https://gitee.com/microblock/volartary/raw/master/");
+			performForceInstallAndUpdateSync(BNString(marketConf).utf8(), true);
 		}
 		
 	}
