@@ -23,7 +23,9 @@
   <image src="https://user-images.githubusercontent.com/66859419/215995178-82ec6501-b70f-4503-9e11-528399726e3a.png" />
 </div>
 
-![image](https://github.com/MicroCBer/BetterNCM/assets/66859419/cdb4a83d-1838-4757-b00e-7ea2175c3dc9)
+![image](https://github.com/MicroCBer/BetterNCM/assets/66859419/b5fb4c85-9bb6-456d-b0f0-f2bcbfb28439)
+![image](https://github.com/MicroCBer/BetterNCM/assets/66859419/35c93e35-88a5-4cce-a56c-1ab5509f3284)
+
 
 ---
 
