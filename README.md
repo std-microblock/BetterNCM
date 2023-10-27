@@ -23,6 +23,8 @@
   <image src="https://user-images.githubusercontent.com/66859419/215995178-82ec6501-b70f-4503-9e11-528399726e3a.png" />
 </div>
 
+![image](https://github.com/MicroCBer/BetterNCM/assets/66859419/cdb4a83d-1838-4757-b00e-7ea2175c3dc9)
+
 ---
 
 最新测试兼容版本：`3.0.0`
