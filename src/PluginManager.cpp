@@ -421,13 +421,6 @@ void PluginManager::performForceInstallAndUpdateSync(const std::string& source, 
 					}
 				}
 			}
-			else if (remote_plugin.force_install) {
-				std::cout << "[ BetterNCM ] [Plugin Remote Tasks] Remote plugin " << remote_plugin.slug << std::endl;
-				std::cout << "\t\t - Force install: Downloading...\n";
-				util::DownloadFile(source + remote_plugin.file_url, datapath + L"/plugins/" + BNString(remote_plugin.file));
-				std::cout << "\t\t - Force install performed.\n";
-				std::cout << std::endl;
-			}
 		}
 	}
 	catch (std::exception& e) {

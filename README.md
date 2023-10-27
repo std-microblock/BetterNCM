@@ -3,9 +3,8 @@
   <image width="140em" src="https://github.com/MicroCBer/BetterUniverse-Installer/assets/66859419/919b7908-16b1-4a92-8468-07f02ab0f21d" />
 </div>
 
-<h1 align="center">BetterUniverse</h1>
+<h1 align="center">BetterNCM</h1>
 
-<h3 align="center">for NCM</h3>
 <h4 align="center">PC版 NCM 客户端插件管理器</h4>
 
 <div align="center">
@@ -26,24 +25,16 @@
 
 ---
 
-最新测试兼容版本：`2.10.10`
+最新测试兼容版本：`3.0.0`
 
-3.0.0 测试版兼容进度：https://github.com/MicroCBer/BetterNCM/tree/3.0.0-adaption
+3.0.0 测试版兼容进度：✅
 
-# 注意
-BetterNCM 不保证在所有版本上的通用可用性，也不保证安全性（封号，崩溃等）。
+插件仍在陆续制作
 
-在使用此插件后所遇到的 Bug，崩溃等，请**不要**向官方反馈，而应在此 Repo 下发送 Issue。
-
-请**不要**在官方群聊等内提及，甚至 “炫耀” 此插件。
-
-请**不要**发送视频，帖子等来宣传此插件。
-
-BetterNCM 可能将于未来的某一天突然跑路。
 
 # 安装
 
-使用 [BetterUniversal Installer](https://github.com/MicroCBer/BetterNCM-Installer) 一键安装~
+使用 [BetterNCM Installer](https://github.com/MicroCBer/BetterNCM-Installer) 一键安装~
 
 # 其他
 ## 相关
