@@ -52,7 +52,7 @@ jobs:
         prerelease: true
         title: "Latest Test Release"
         files: |
-          ${{ github.workspace }}/Release/BetterNCMII.dll
+          ${{ github.workspace }}/x64/Release/BetterNCMII.dll
           ${{ github.workspace }}/Release_86/BetterNCMII86.dll
 
     - name: Upload Artifact
@@ -60,7 +60,7 @@ jobs:
       with:
         name: BetterNCMII
         path: |
-          ${{ github.workspace }}/Release/BetterNCMII.dll
+          ${{ github.workspace }}/x64/Release/BetterNCMII.dll
           ${{ github.workspace }}/Release_86/BetterNCMII86.dll
         
 
