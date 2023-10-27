@@ -62,6 +62,7 @@ struct PluginManifest {
 	std::string betterncm_version;
 	std::string preview;
 	std::string startup_script;
+	bool ncm3Compatible;
 
 	std::map<std::string, std::vector<std::map<std::string, std::string>>> injects;
 	HijackVersionMap hijacks;

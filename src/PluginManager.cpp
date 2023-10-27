@@ -69,6 +69,7 @@ void from_json(const nlohmann::json& j, PluginManifest& p) {
 	p.preview = j.value("preview", "unknown");
 	p.injects = j.value("injects", std::map<std::string, std::vector<std::map<std::string, std::string>>>());
 	p.startup_script = j.value("startup_script", "startup_script.js");
+	p.ncm3Compatible = j.value("ncm3-compatible", false);
 
 	p.hijacks.clear();
 	if (j.count("hijacks")) {
@@ -242,6 +243,7 @@ void PluginManager::extractPackedPlugins() {
 	}
 
 	fs::create_directories(datapath + L"/plugins_runtime");
+	static const bool isNCM3 = util::getNCMExecutableVersion().major == 3;
 
 	for (auto file : fs::directory_iterator(datapath + L"/plugins")) {
 		BNString path = file.path().wstring();
@@ -256,7 +258,10 @@ void PluginManager::extractPackedPlugins() {
 					util::read_to_string(datapath + L"/plugins_runtime/tmp/manifest.json"));
 				modManifest.get_to(manifest);
 
-				if (std::ranges::find(disable_list, manifest.slug) != disable_list.end()) {
+				if (std::ranges::find(disable_list, manifest.slug) != disable_list.end() || (
+					!isNCM3 ||
+					manifest.ncm3Compatible // duplicated / not ncm3 / ncm3-compatible
+					)) {
 					fs::remove_all(datapath.utf8() + "/plugins_runtime/tmp");
 					continue;
 				}
@@ -348,7 +353,7 @@ std::vector<std::shared_ptr<Plugin>> PluginManager::loadInPath(const std::wstrin
 					PluginManifest manifest;
 					json.get_to(manifest);
 
-					std::optional<std::filesystem::path> packed_file_path=std::nullopt;
+					std::optional<std::filesystem::path> packed_file_path = std::nullopt;
 					auto plugin_meta_path = file.path() / ".plugin.path.meta";
 					if (fs::exists(plugin_meta_path)) packed_file_path = util::read_to_string(plugin_meta_path);
 					plugins.push_back(std::make_shared<Plugin>(manifest, file.path(), packed_file_path));
@@ -356,7 +361,7 @@ std::vector<std::shared_ptr<Plugin>> PluginManager::loadInPath(const std::wstrin
 			}
 			catch (std::exception& e) {
 				util::write_file_text(datapath.utf8() + "log.log",
-					std::string("\n[" + file.path().string() + "]Plugin Native load Error: ") + (e.
+					std::string("\n[" + file.path().string() + "] Plugin Native load Error: ") + (e.
 						what()), true);
 			}
 		}
