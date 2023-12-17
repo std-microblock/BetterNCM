@@ -70,6 +70,7 @@ void from_json(const nlohmann::json& j, PluginManifest& p) {
 	p.injects = j.value("injects", std::map<std::string, std::vector<std::map<std::string, std::string>>>());
 	p.startup_script = j.value("startup_script", "startup_script.js");
 	p.ncm3Compatible = j.value("ncm3-compatible", false);
+	p.ncm_version_req = j.value("ncm-version-req", "> 2.10.2");
 
 	p.hijacks.clear();
 	if (j.count("hijacks")) {
@@ -258,10 +259,17 @@ void PluginManager::extractPackedPlugins() {
 					util::read_to_string(datapath + L"/plugins_runtime/tmp/manifest.json"));
 				modManifest.get_to(manifest);
 
-				if (std::ranges::find(disable_list, manifest.slug) != disable_list.end() || (
-					!isNCM3 ||
-					manifest.ncm3Compatible // duplicated / not ncm3 / ncm3-compatible
-					)) {
+				if (std::ranges::find(disable_list, manifest.slug) != disable_list.end() ||
+					(
+					isNCM3 &&
+					!manifest.ncm3Compatible // duplicated / not ncm3 / ncm3-compatible
+					) ||
+					(
+						!semver::range::satisfies(
+							util::getNCMExecutableVersion(), manifest.ncm_version_req
+						)
+					)
+					) {
 					fs::remove_all(datapath.utf8() + "/plugins_runtime/tmp");
 					continue;
 				}
@@ -385,11 +393,10 @@ void PluginManager::performForceInstallAndUpdateSync(const std::string& source, 
 
 			// output log
 			std::cout << "\n[ BetterNCM ] [Plugin Remote Tasks] Plugin " << remote_plugin.slug
-				<< " FI: " << (remote_plugin.force_install ? "true" : "false") << " FUni: " << (remote_plugin.force_uninstall ? "true" : "false")
+			    << " FUni: " << (remote_plugin.force_uninstall ? "true" : "false")
 				<< " FUpd: " << remote_plugin.force_update << "\n";
 
 			if (local != local_plugins.end()) {
-
 				auto localVer = (*local)->manifest.version;
 				std::cout << "\t\tlocal: " << localVer << "\n\t\t - at " << (*local)->runtime_path << std::endl;
 
