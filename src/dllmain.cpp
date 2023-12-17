@@ -91,8 +91,17 @@ void bncmMain() {
 
 		}
 		catch (std::exception& e) {
-			util::alert("BetterNCM 崩溃了！\n\nBetterNCM 将不会运行\n网易云将有可能崩溃\n\n崩溃原因：" + std::string(e.what()));
-		}
+			std::optional<std::string> probableReason;
+			const auto systemReason = std::string(e.what());
 
-	
+			if(systemReason.find("Unicode") != std::string::npos) {
+				probableReason = "这很有可能是因为你修改了默认数据位置导致的，请在 BetterNCM Installer 内将其改回默认位置：C:\\betterncm\n\nThis is probably because you edited the default data location. Please change it back to the default location in BetterNCM Installer: C:\\betterncm";
+			}
+
+			if (systemReason.find("remove_all") != std::string::npos) {
+				probableReason = "这有可能是因为你运行了多个实例的网易云，请只点击一次，然后等待网易云打开。不要多次点击。\n\nThis is probably because you ran multiple instances of CloudMusic. Please only click once.";
+			}
+
+			util::alert("BetterNCM 崩溃了！\n\nBetterNCM 将不会运行\n网易云将有可能崩溃\n\n崩溃原因：" + systemReason + (probableReason.has_value() ? "\n\n" + probableReason.value() : ""));
+		}
 }
