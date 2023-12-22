@@ -55,13 +55,7 @@ void bncmMain() {
 						
 						// PluginMarket
 						if (!fs::exists(datapath + L"/plugins/PluginMarket.plugin")) {
-							HRSRC myResource = ::FindResource(g_hModule, MAKEINTRESOURCE(IDR_RCDATA1), RT_RCDATA);
-							unsigned int myResourceSize = SizeofResource(g_hModule, myResource);
-							HGLOBAL myResourceData = LoadResource(g_hModule, myResource);
-							void* pMyBinaryData = LockResource(myResourceData);
-							std::ofstream f(datapath + L"/plugins/PluginMarket.plugin", std::ios::out | std::ios::binary);
-							f.write(static_cast<char*>(pMyBinaryData), myResourceSize);
-							f.close();
+							util::extractPluginMarket();
 						}
 
 						// Inject NCM

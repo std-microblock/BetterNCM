@@ -250,14 +250,29 @@ void PluginManager::extractPackedPlugins() {
 		BNString path = file.path().wstring();
 		if (path.endsWith(L".plugin")) {
 			try {
-				int result = zip_extract(path.utf8().c_str(),
-					BNString(datapath + L"/plugins_runtime/tmp").utf8().c_str(), nullptr, nullptr);
-				if (result != 0)throw std::exception(("unzip err code:" + std::to_string(GetLastError())).c_str());
 
 				PluginManifest manifest;
-				auto modManifest = nlohmann::json::parse(
-					util::read_to_string(datapath + L"/plugins_runtime/tmp/manifest.json"));
-				modManifest.get_to(manifest);
+
+				const auto extractPlugin = [&]() {
+					if(fs::exists(datapath.utf8() + "/plugins_runtime/tmp")) 
+						fs::remove_all(datapath.utf8() + "/plugins_runtime/tmp");
+					
+					int result = zip_extract(path.utf8().c_str(),
+						BNString(datapath + L"/plugins_runtime/tmp").utf8().c_str(), nullptr, nullptr);
+					if (result != 0)throw std::exception(("unzip err code:" + std::to_string(GetLastError())).c_str());
+
+					const auto modManifest = nlohmann::json::parse(
+						util::read_to_string(datapath + L"/plugins_runtime/tmp/manifest.json"));
+					modManifest.get_to(manifest);
+					};
+
+				extractPlugin();
+				if (manifest.name == "PluginMarket") {
+					if (semver::version(manifest.version) < semver::version("0.7.1")) {
+						util::extractPluginMarket();
+						extractPlugin();
+					}
+				}
 
 				if (std::ranges::find(disable_list, manifest.slug) != disable_list.end() ||
 					(

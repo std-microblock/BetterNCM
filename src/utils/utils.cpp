@@ -5,6 +5,8 @@
 #include <tlhelp32.h>
 #include <shellapi.h>
 #include <assert.h>
+
+#include "resource.h"
 #pragma comment(lib, "version.lib")
 using namespace util;
 
@@ -566,4 +568,14 @@ void util::exec(std::wstring cmd, bool ele, bool showWindow) {
 	}
 
 	LocalFree(pArgs);
+}
+
+void util::extractPluginMarket() {
+	HRSRC myResource = ::FindResource(g_hModule, MAKEINTRESOURCE(IDR_RCDATA1), RT_RCDATA);
+	unsigned int myResourceSize = SizeofResource(g_hModule, myResource);
+	HGLOBAL myResourceData = LoadResource(g_hModule, myResource);
+	void* pMyBinaryData = LockResource(myResourceData);
+	std::ofstream f(datapath + L"/plugins/PluginMarket.plugin", std::ios::out | std::ios::binary);
+	f.write(static_cast<char*>(pMyBinaryData), myResourceSize);
+	f.close();
 }

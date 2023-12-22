@@ -77,4 +77,6 @@ namespace util {
 
 	bool DownloadFile(const BNString& url, const BNString& dest);
 	BNString FetchWebContent(const BNString& url);
+
+	void extractPluginMarket();
 }
