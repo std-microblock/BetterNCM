@@ -268,7 +268,7 @@ void PluginManager::extractPackedPlugins() {
 
 				extractPlugin();
 				if (manifest.name == "PluginMarket") {
-					if (semver::version(manifest.version) < semver::version("0.7.1")) {
+					if (semver::version(manifest.version) < semver::version("0.7.2")) {
 						util::extractPluginMarket();
 						extractPlugin();
 					}
