@@ -257,12 +257,19 @@ void PluginManager::extractPackedPlugins() {
 					if(fs::exists(datapath.utf8() + "/plugins_runtime/tmp")) 
 						fs::remove_all(datapath.utf8() + "/plugins_runtime/tmp");
 					
-					int result = zip_extract(path.utf8().c_str(),
-						BNString(datapath + L"/plugins_runtime/tmp").utf8().c_str(), nullptr, nullptr);
-					if (result != 0)throw std::exception(("unzip err code:" + std::to_string(GetLastError())).c_str());
+					const auto zip = zip_open(path.utf8().c_str(), 0, 'r');
+					
+					auto code = zip_entry_open(zip, "manifest.json");
+					if (code < 0) throw std::exception("manifest.json not found in plugin");
 
-					const auto modManifest = nlohmann::json::parse(
-						util::read_to_string(datapath + L"/plugins_runtime/tmp/manifest.json"));
+					char* buf = nullptr;
+					size_t size = 0;
+					code = zip_entry_read(zip, (void**) & buf, &size);
+					if (code < 0) throw std::exception("manifest.json read error");
+					zip_entry_close(zip);
+					zip_close(zip);
+
+					const auto modManifest = nlohmann::json::parse(std::string(buf, size));
 					modManifest.get_to(manifest);
 					};
 
@@ -277,7 +284,7 @@ void PluginManager::extractPackedPlugins() {
 				if (std::ranges::find(disable_list, manifest.slug) != disable_list.end() ||
 					(
 					isNCM3 &&
-					!manifest.ncm3Compatible // duplicated / not ncm3 / ncm3-compatible
+					!manifest.ncm3Compatible // duplicated / ncm3 but not ncm3-compatible / do not meet version req
 					) ||
 					(
 						!semver::range::satisfies(
@@ -285,20 +292,21 @@ void PluginManager::extractPackedPlugins() {
 						)
 					)
 					) {
-					fs::remove_all(datapath.utf8() + "/plugins_runtime/tmp");
 					continue;
 				}
 
 				if (manifest.manifest_version == 1) {
-					util::write_file_text(datapath + L"/plugins_runtime/tmp/.plugin.path.meta",
-						pystring::slice(path, datapath.length()));
-					auto realPath = datapath + L"/plugins_runtime/" + BNString(manifest.slug);
+					BNString realPath = datapath + L"/plugins_runtime/" + BNString(manifest.slug);
 
 					std::error_code ec;
-					if (fs::exists(realPath) && manifest.native_plugin[0] == '\0')
-						fs::remove_all(realPath, ec);
+					if (fs::exists(realPath.utf8()) && manifest.native_plugin[0] == '\0')
+						fs::remove_all(realPath.utf8(), ec);
 
-					fs::rename(datapath + L"/plugins_runtime/tmp", realPath);
+					const auto code = zip_extract(path.utf8().c_str(), realPath.utf8().c_str(), nullptr, nullptr);
+					if (code != 0) throw std::exception(("unzip err code:" + std::to_string(code)).c_str());
+
+					util::write_file_text(realPath + L"/.plugin.path.meta",
+						pystring::slice(path, datapath.length()));
 				}
 				else {
 					throw std::exception("Unsupported manifest version.");
