@@ -12,7 +12,7 @@ using namespace util;
 
 namespace fs = std::filesystem;
 
-const std::string version = "1.3.2";
+constexpr std::string version = "1.3.3";
 
 extern BNString datapath;
 
