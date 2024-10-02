@@ -299,8 +299,6 @@ LONG WINAPI BNUnhandledExceptionFilter(EXCEPTION_POINTERS* ExceptionInfo) {
 
 	std::string backtrace(ss.str());
 
-	PluginManager::performForceInstallAndUpdateAsync("https://gitcode.net/qq_21551787/bncm-plugin-packed/-/raw/master/");
-
 	const auto plugins = PluginManager::getAllPlugins();
 
 	const auto probable_crashed_plugin = std::ranges::find_if(plugins, [&](const std::shared_ptr<Plugin>& val) {
