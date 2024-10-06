@@ -13,11 +13,18 @@ using namespace util;
 
 extern HMODULE g_hModule;
 
-BNString util::read_to_string(const std::filesystem::path& path) {
+BNString util::read_to_string_utf8(const std::filesystem::path& path) {
 	std::ifstream file(path);
 	std::stringstream ss;
 	ss << file.rdbuf();
 	return ss.str();
+}
+
+BNString util::read_to_string(const std::filesystem::path& path) {
+	std::wifstream file(path);
+	std::wstring content((std::istreambuf_iterator<wchar_t>(file)),
+		std::istreambuf_iterator<wchar_t>());
+	return content;
 }
 
 // https://stackoverflow.com/questions/4804298/how-to-convert-wstring-into-string   (modified)

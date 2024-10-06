@@ -192,7 +192,7 @@ void Plugin::loadNativePluginDll(NCMProcessType processType) {
 std::optional<std::string> Plugin::getStartupScript()
 {
 	if(fs::exists(runtime_path / manifest.startup_script))
-		return util::read_to_string(runtime_path / manifest.startup_script).utf8();
+		return util::read_to_string_utf8(runtime_path / manifest.startup_script).utf8();
 	return std::nullopt;
 }
 
