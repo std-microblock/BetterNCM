@@ -18,8 +18,10 @@ class App {
 	std::shared_timed_mutex succeeded_hijacks_lock;
 	std::vector<std::string> succeeded_hijacks;
 	void parseConfig();
-	
+	nlohmann::json config{};
+	std::mutex configMutex{};
 public:
-	App();
+	void Init();
+	App() = default;
 	~App();
 };

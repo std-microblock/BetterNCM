@@ -52,14 +52,15 @@ void bncmMain() {
 						std::filesystem::perms::owner_write)) {
 						// Create data folder
 						fs::create_directories(datapath + L"/plugins");
-						
+
 						// PluginMarket
 						if (!fs::exists(datapath + L"/plugins/PluginMarket.plugin")) {
 							util::extractPluginMarket();
 						}
 
 						// Inject NCM
-						new App();
+						auto app = new App();
+						app->Init();
 					}
 					else {
 						util::alert(L"BetterNCM访问数据目录失败！可能需要以管理员身份运行或更改数据目录。\n\nBetterNCM将不会运行");

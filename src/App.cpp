@@ -16,9 +16,6 @@ constexpr std::string version = "1.3.4";
 
 extern BNString datapath;
 
-nlohmann::json config;
-std::mutex configMutex;
-
 
 std::string App::readConfig(const std::string& key, const std::string& def) {
 	std::lock_guard<std::mutex> lock(configMutex);
@@ -466,7 +463,7 @@ void App::parseConfig() {
 	}
 }
 
-App::App() {
+void App::Init() {
 
 	std::cout << "BetterNCM v" << version << " running on NCM " << getNCMExecutableVersion() << std::endl;
 
