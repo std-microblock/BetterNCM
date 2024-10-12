@@ -46,6 +46,13 @@ void bncmMain() {
 					freopen("CONOUT$", "w", stdout);
 					ShowWindow(GetConsoleWindow(), SW_HIDE);
 
+					std::filesystem::path datapathPath((std::wstring)datapath);
+
+					if (datapathPath.has_root_path() && !datapathPath.has_relative_path()) {
+						util::alert(L"BetterNCM 数据目录不能在磁盘根目录！请将数据目录放在其他位置。\n修改数据目录后可能需要重启\n\nBetterNCM 将不会运行");
+						return;
+					}
+
 					std::wcout << L"Data folder picked: " << datapath << "\n";
 
 					if (static_cast<int>(fs::status((std::wstring)datapath).permissions()) & static_cast<int>(
